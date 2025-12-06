@@ -15,9 +15,9 @@ require_relative "config/debug"
 begin
   require "kettle-soup-cover"
   require "simplecov" if Kettle::Soup::Cover::DO_COV # `.simplecov` is run here!
-rescue LoadError => error
+rescue LoadError => e
   # check the error message and re-raise when unexpected
-  raise error unless error.message.include?("kettle")
+  raise e unless e.message.include?("kettle")
 end
 
 # this library

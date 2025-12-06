@@ -1,0 +1,390 @@
+# frozen_string_literal: true
+
+require "ast/merge/rspec/shared_examples"
+
+RSpec.describe Ast::Merge::ConflictResolverBase do
+  # Dogfood: Test the base class with the shared examples
+  it_behaves_like "Ast::Merge::ConflictResolverBase" do
+    let(:conflict_resolver_class) { described_class }
+    let(:strategy) { :node } # Test with :node strategy
+    let(:build_conflict_resolver) do
+      lambda { |preference:, template_analysis:, dest_analysis:, **opts|
+        # Use an anonymous subclass that provides minimal implementations
+        klass = Class.new(described_class) do
+          def resolve_node_pair(template_node, dest_node, template_index:, dest_index:)
+            # Minimal implementation for testing
+            {
+              source: @preference,
+              decision: @preference == :destination ? DECISION_DESTINATION : DECISION_TEMPLATE,
+              template_node: template_node,
+              dest_node: dest_node
+            }
+          end
+        end
+
+        klass.new(
+          strategy: :node,
+          preference: preference,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+          **opts
+        )
+      }
+    end
+    let(:build_mock_analysis) { -> { double("Analysis") } }
+  end
+
+  it_behaves_like "Ast::Merge::ConflictResolverBase validation" do
+    let(:build_mock_analysis) { -> { double("Analysis") } }
+  end
+
+  # Test strategy-specific shared examples
+  it_behaves_like "Ast::Merge::ConflictResolverBase node strategy" do
+    let(:conflict_resolver_class) { described_class }
+    let(:build_conflict_resolver) do
+      lambda { |preference:, template_analysis:, dest_analysis:, **opts|
+        klass = Class.new(described_class) do
+          def resolve_node_pair(_template_node, _dest_node, template_index:, dest_index:)
+            { source: @preference, decision: :test }
+          end
+        end
+        klass.new(strategy: :node, preference: preference,
+                  template_analysis: template_analysis, dest_analysis: dest_analysis, **opts)
+      }
+    end
+    let(:build_mock_analysis) { -> { double("Analysis") } }
+  end
+
+  it_behaves_like "Ast::Merge::ConflictResolverBase batch strategy" do
+    let(:conflict_resolver_class) { described_class }
+    let(:build_conflict_resolver) do
+      lambda { |preference:, template_analysis:, dest_analysis:, **opts|
+        klass = Class.new(described_class) do
+          def resolve_batch(_result)
+            { decision: :batch_test }
+          end
+        end
+        klass.new(strategy: :batch, preference: preference,
+                  template_analysis: template_analysis, dest_analysis: dest_analysis, **opts)
+      }
+    end
+    let(:build_mock_analysis) { -> { double("Analysis") } }
+  end
+
+  it_behaves_like "Ast::Merge::ConflictResolverBase boundary strategy" do
+    let(:conflict_resolver_class) { described_class }
+    let(:build_conflict_resolver) do
+      lambda { |preference:, template_analysis:, dest_analysis:, **opts|
+        klass = Class.new(described_class) do
+          def resolve_boundary(_boundary, _result)
+            { decision: :boundary_test }
+          end
+        end
+        klass.new(strategy: :boundary, preference: preference,
+                  template_analysis: template_analysis, dest_analysis: dest_analysis, **opts)
+      }
+    end
+    let(:build_mock_analysis) { -> { double("Analysis") } }
+  end
+
+  describe "direct base class behavior" do
+    let(:template_analysis) { double("TemplateAnalysis") }
+    let(:dest_analysis) { double("DestAnalysis") }
+
+    describe "#resolve with :node strategy" do
+      it "raises NotImplementedError when resolve_node_pair not implemented" do
+        resolver = described_class.new(
+          strategy: :node,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+
+        expect do
+          resolver.resolve("template_node", "dest_node", template_index: 0, dest_index: 0)
+        end.to raise_error(NotImplementedError, /resolve_node_pair/)
+      end
+    end
+
+    describe "#resolve with :batch strategy" do
+      it "raises NotImplementedError when resolve_batch not implemented" do
+        resolver = described_class.new(
+          strategy: :batch,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+
+        expect do
+          resolver.resolve("result")
+        end.to raise_error(NotImplementedError, /resolve_batch/)
+      end
+    end
+
+    describe "#resolve with :boundary strategy" do
+      it "raises NotImplementedError when resolve_boundary not implemented" do
+        resolver = described_class.new(
+          strategy: :boundary,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+
+        expect do
+          resolver.resolve("boundary", "result")
+        end.to raise_error(NotImplementedError, /resolve_boundary/)
+      end
+    end
+
+    describe "#build_signature_map" do
+      it "builds a map from nodes to signatures" do
+        resolver = described_class.new(
+          strategy: :batch,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+
+        node1 = double("Node1")
+        node2 = double("Node2")
+        node3 = double("Node3")
+        nodes = [node1, node2, node3]
+
+        allow(template_analysis).to receive(:generate_signature).with(node1).and_return(%i[sig a])
+        allow(template_analysis).to receive(:generate_signature).with(node2).and_return(%i[sig b])
+        allow(template_analysis).to receive(:generate_signature).with(node3).and_return(%i[sig a]) # duplicate
+
+        map = resolver.send(:build_signature_map, nodes, template_analysis)
+
+        expect(map[%i[sig a]].size).to eq(2)
+        expect(map[%i[sig b]].size).to eq(1)
+        expect(map[%i[sig a]][0][:node]).to eq(node1)
+        expect(map[%i[sig a]][0][:index]).to eq(0)
+        expect(map[%i[sig a]][1][:node]).to eq(node3)
+        expect(map[%i[sig a]][1][:index]).to eq(2)
+      end
+
+      it "skips nodes with nil signatures" do
+        resolver = described_class.new(
+          strategy: :batch,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+
+        node1 = double("Node1")
+        node2 = double("Node2")
+        nodes = [node1, node2]
+
+        allow(template_analysis).to receive(:generate_signature).with(node1).and_return(nil)
+        allow(template_analysis).to receive(:generate_signature).with(node2).and_return(%i[sig b])
+
+        map = resolver.send(:build_signature_map, nodes, template_analysis)
+
+        expect(map.keys).to eq([%i[sig b]])
+      end
+    end
+
+    describe "#build_signature_map_from_infos" do
+      it "builds a map from node_info hashes" do
+        resolver = described_class.new(
+          strategy: :boundary,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+
+        node_infos = [
+          { signature: %i[sig a], index: 0, node: double("Node1") },
+          { signature: %i[sig b], index: 1, node: double("Node2") },
+          { signature: %i[sig a], index: 2, node: double("Node3") }
+        ]
+
+        map = resolver.send(:build_signature_map_from_infos, node_infos)
+
+        expect(map[%i[sig a]].size).to eq(2)
+        expect(map[%i[sig b]].size).to eq(1)
+        expect(map[%i[sig a]][0][:index]).to eq(0)
+        expect(map[%i[sig a]][1][:index]).to eq(2)
+      end
+
+      it "skips node_infos with nil signatures" do
+        resolver = described_class.new(
+          strategy: :boundary,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+
+        node_infos = [
+          { signature: nil, index: 0, node: double("Node1") },
+          { signature: %i[sig b], index: 1, node: double("Node2") }
+        ]
+
+        map = resolver.send(:build_signature_map_from_infos, node_infos)
+
+        expect(map.keys).to eq([%i[sig b]])
+      end
+    end
+
+    describe "#ranges_overlap?" do
+      let(:resolver) do
+        described_class.new(
+          strategy: :boundary,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+      end
+
+      it "returns true for overlapping ranges" do
+        expect(resolver.send(:ranges_overlap?, 1..5, 3..7)).to be true
+        expect(resolver.send(:ranges_overlap?, 3..7, 1..5)).to be true
+      end
+
+      it "returns true for adjacent ranges that share an endpoint" do
+        expect(resolver.send(:ranges_overlap?, 1..5, 5..10)).to be true
+      end
+
+      it "returns false for non-overlapping ranges" do
+        expect(resolver.send(:ranges_overlap?, 1..5, 7..10)).to be false
+        expect(resolver.send(:ranges_overlap?, 7..10, 1..5)).to be false
+      end
+
+      it "returns true for contained ranges" do
+        expect(resolver.send(:ranges_overlap?, 1..10, 3..5)).to be true
+        expect(resolver.send(:ranges_overlap?, 3..5, 1..10)).to be true
+      end
+    end
+
+    describe "resolution helpers" do
+      let(:resolver) do
+        described_class.new(
+          strategy: :node,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+      end
+
+      describe "#frozen_resolution" do
+        it "creates a frozen resolution hash" do
+          template_node = double("TemplateNode")
+          dest_node = double("DestNode")
+
+          result = resolver.send(
+            :frozen_resolution,
+            source: :destination,
+            template_node: template_node,
+            dest_node: dest_node,
+            reason: "user requested freeze"
+          )
+
+          expect(result[:source]).to eq(:destination)
+          expect(result[:decision]).to eq(:frozen)
+          expect(result[:template_node]).to eq(template_node)
+          expect(result[:dest_node]).to eq(dest_node)
+          expect(result[:reason]).to eq("user requested freeze")
+        end
+      end
+
+      describe "#identical_resolution" do
+        it "creates an identical resolution hash" do
+          template_node = double("TemplateNode")
+          dest_node = double("DestNode")
+
+          result = resolver.send(
+            :identical_resolution,
+            template_node: template_node,
+            dest_node: dest_node
+          )
+
+          expect(result[:source]).to eq(:destination)
+          expect(result[:decision]).to eq(:identical)
+          expect(result[:template_node]).to eq(template_node)
+          expect(result[:dest_node]).to eq(dest_node)
+        end
+      end
+
+      describe "#preference_resolution" do
+        context "with :destination preference" do
+          it "returns destination resolution" do
+            template_node = double("TemplateNode")
+            dest_node = double("DestNode")
+
+            result = resolver.send(
+              :preference_resolution,
+              template_node: template_node,
+              dest_node: dest_node
+            )
+
+            expect(result[:source]).to eq(:destination)
+            expect(result[:decision]).to eq(:destination)
+          end
+        end
+
+        context "with :template preference" do
+          let(:resolver) do
+            described_class.new(
+              strategy: :node,
+              preference: :template,
+              template_analysis: template_analysis,
+              dest_analysis: dest_analysis
+            )
+          end
+
+          it "returns template resolution" do
+            template_node = double("TemplateNode")
+            dest_node = double("DestNode")
+
+            result = resolver.send(
+              :preference_resolution,
+              template_node: template_node,
+              dest_node: dest_node
+            )
+
+            expect(result[:source]).to eq(:template)
+            expect(result[:decision]).to eq(:template)
+          end
+        end
+      end
+    end
+
+    describe "#resolve with unknown strategy (covers else branch at line 150)" do
+      it "returns nil for unknown strategy" do
+        # Force an unknown strategy by setting instance variable directly
+        resolver = described_class.new(
+          strategy: :node,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+        resolver.instance_variable_set(:@strategy, :unknown)
+
+        # Should fall through the case statement and return nil
+        result = resolver.resolve("arg1", "arg2")
+        expect(result).to be_nil
+      end
+    end
+
+    describe "#signature_match_preference alias explicit coverage" do
+      it "returns preference via signature_match_preference alias when defined" do
+        klass = Class.new(described_class) do
+          def signature_match_preference
+            @preference
+          end
+        end
+
+        resolver = klass.new(
+          strategy: :boundary,
+          preference: :template,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+
+        expect(resolver.respond_to?(:signature_match_preference)).to be true
+        expect(resolver.signature_match_preference).to eq(resolver.preference)
+      end
+    end
+  end
+end

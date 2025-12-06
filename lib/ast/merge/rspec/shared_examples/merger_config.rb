@@ -1,0 +1,176 @@
+# frozen_string_literal: true
+
+# Shared examples for validating MergerConfig usage
+#
+# Usage in your spec:
+#   require "ast/merge/rspec/shared_examples/merger_config"
+#
+#   RSpec.describe Ast::Merge::MergerConfig do
+#     it_behaves_like "Ast::Merge::MergerConfig" do
+#       let(:merger_config_class) { Ast::Merge::MergerConfig }
+#       # Factory to create merger config instance
+#       let(:build_merger_config) { ->(**opts) { merger_config_class.new(**opts) } }
+#     end
+#   end
+#
+# @note This is for testing the MergerConfig class itself or custom subclasses
+
+RSpec.shared_examples "Ast::Merge::MergerConfig" do
+  # Required let blocks:
+  # - merger_config_class: The class under test (usually Ast::Merge::MergerConfig)
+  # - build_merger_config: Lambda that creates a merger config instance
+
+  describe "constants" do
+    it "has VALID_PREFERENCES" do
+      expect(merger_config_class::VALID_PREFERENCES).to eq(%i[destination template])
+    end
+  end
+
+  describe "default configuration" do
+    let(:config) { build_merger_config.call }
+
+    it "defaults signature_match_preference to :destination" do
+      expect(config.signature_match_preference).to eq(:destination)
+    end
+
+    it "defaults add_template_only_nodes to false" do
+      expect(config.add_template_only_nodes).to eq(false)
+    end
+
+    it "defaults freeze_token to nil" do
+      expect(config.freeze_token).to be_nil
+    end
+
+    it "defaults signature_generator to nil" do
+      expect(config.signature_generator).to be_nil
+    end
+  end
+
+  describe "custom configuration" do
+    it "accepts signature_match_preference: :template" do
+      config = build_merger_config.call(signature_match_preference: :template)
+      expect(config.signature_match_preference).to eq(:template)
+    end
+
+    it "accepts add_template_only_nodes: true" do
+      config = build_merger_config.call(add_template_only_nodes: true)
+      expect(config.add_template_only_nodes).to eq(true)
+    end
+
+    it "accepts freeze_token option" do
+      config = build_merger_config.call(freeze_token: "my-token")
+      expect(config.freeze_token).to eq("my-token")
+    end
+
+    it "accepts signature_generator proc" do
+      generator = ->(node) { [:custom, node] }
+      config = build_merger_config.call(signature_generator: generator)
+      expect(config.signature_generator).to eq(generator)
+    end
+  end
+
+  describe "validation" do
+    it "raises ArgumentError for invalid signature_match_preference" do
+      expect { build_merger_config.call(signature_match_preference: :invalid) }
+        .to raise_error(ArgumentError, /invalid.*preference/i)
+    end
+
+    it "accepts :destination preference" do
+      expect { build_merger_config.call(signature_match_preference: :destination) }
+        .not_to raise_error
+    end
+
+    it "accepts :template preference" do
+      expect { build_merger_config.call(signature_match_preference: :template) }
+        .not_to raise_error
+    end
+  end
+
+  describe "#prefer_destination?" do
+    it "returns true when preference is :destination" do
+      config = build_merger_config.call(signature_match_preference: :destination)
+      expect(config.prefer_destination?).to be true
+    end
+
+    it "returns false when preference is :template" do
+      config = build_merger_config.call(signature_match_preference: :template)
+      expect(config.prefer_destination?).to be false
+    end
+  end
+
+  describe "#prefer_template?" do
+    it "returns true when preference is :template" do
+      config = build_merger_config.call(signature_match_preference: :template)
+      expect(config.prefer_template?).to be true
+    end
+
+    it "returns false when preference is :destination" do
+      config = build_merger_config.call(signature_match_preference: :destination)
+      expect(config.prefer_template?).to be false
+    end
+  end
+
+  describe "#to_h" do
+    it "returns a hash with configuration options" do
+      config = build_merger_config.call(
+        signature_match_preference: :template,
+        add_template_only_nodes: true
+      )
+      hash = config.to_h
+
+      expect(hash).to be_a(Hash)
+      expect(hash[:signature_match_preference]).to eq(:template)
+      expect(hash[:add_template_only_nodes]).to eq(true)
+    end
+
+    it "includes freeze_token when set" do
+      config = build_merger_config.call(freeze_token: "my-token")
+      hash = config.to_h
+
+      expect(hash[:freeze_token]).to eq("my-token")
+    end
+
+    it "uses default_freeze_token when none specified" do
+      config = build_merger_config.call
+      hash = config.to_h(default_freeze_token: "default-token")
+
+      expect(hash[:freeze_token]).to eq("default-token")
+    end
+
+    it "includes signature_generator when set" do
+      generator = ->(_node) { [:custom] }
+      config = build_merger_config.call(signature_generator: generator)
+      hash = config.to_h
+
+      expect(hash[:signature_generator]).to eq(generator)
+    end
+  end
+
+  describe "#with" do
+    it "creates a new config with updated values" do
+      original = build_merger_config.call(signature_match_preference: :destination)
+      updated = original.with(signature_match_preference: :template)
+
+      expect(original.signature_match_preference).to eq(:destination)
+      expect(updated.signature_match_preference).to eq(:template)
+    end
+
+    it "preserves unmodified values" do
+      original = build_merger_config.call(
+        signature_match_preference: :destination,
+        add_template_only_nodes: true
+      )
+      updated = original.with(signature_match_preference: :template)
+
+      expect(updated.add_template_only_nodes).to eq(true)
+    end
+  end
+
+  describe "#inspect" do
+    it "returns a string representation" do
+      config = build_merger_config.call
+      expect(config.inspect).to be_a(String)
+      expect(config.inspect).to include("MergerConfig")
+    end
+  end
+end

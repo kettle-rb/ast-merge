@@ -45,7 +45,7 @@
 # rake yard                                   # Generate YARD Documentation
 #
 
-require "bundler/gem_tasks" if !Dir[File.join(__dir__, "*.gemspec")].empty?
+require "bundler/gem_tasks" unless Dir[File.join(__dir__, "*.gemspec")].empty?
 
 # Define a base default task early so other files can enhance it.
 desc "Default tasks aggregator"
