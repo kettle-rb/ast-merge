@@ -84,6 +84,16 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
       expect { build_merger_config.call(signature_match_preference: :template) }
         .not_to raise_error
     end
+
+    it "accepts Hash preference" do
+      expect { build_merger_config.call(signature_match_preference: { default: :destination }) }
+        .not_to raise_error
+    end
+
+    it "validates node_splitter if provided" do
+      expect { build_merger_config.call(node_splitter: "not a hash") }
+        .to raise_error(ArgumentError, /must be a Hash/)
+    end
   end
 
   describe "#prefer_destination?" do
@@ -144,6 +154,14 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
 
       expect(hash[:signature_generator]).to eq(generator)
     end
+
+    it "includes node_splitter when set" do
+      splitter = { CallNode: ->(_node) { nil } }
+      config = build_merger_config.call(node_splitter: splitter)
+      hash = config.to_h
+
+      expect(hash[:node_splitter]).to eq(splitter)
+    end
   end
 
   describe "#with" do
@@ -163,6 +181,14 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
       updated = original.with(signature_match_preference: :template)
 
       expect(updated.add_template_only_nodes).to eq(true)
+    end
+
+    it "preserves node_splitter" do
+      splitter = { CallNode: ->(_node) { nil } }
+      original = build_merger_config.call(node_splitter: splitter)
+      updated = original.with(signature_match_preference: :template)
+
+      expect(updated.node_splitter).to eq(splitter)
     end
   end
 

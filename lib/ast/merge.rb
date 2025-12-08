@@ -101,15 +101,58 @@ module Ast
     # @api public
     class DestinationParseError < ParseError; end
 
+    # Raised when the document contains text that matches the region placeholder.
+    #
+    # Region placeholders are used internally to mark positions in a document
+    # where nested regions will be substituted after merging. If the document
+    # already contains text that looks like a placeholder, the merge cannot
+    # proceed safely.
+    #
+    # @example Handling placeholder collision
+    #   begin
+    #     merger = SmartMerger.new(template, destination, regions: [...])
+    #   rescue Ast::Merge::PlaceholderCollisionError => e
+    #     # Use a custom placeholder to avoid the collision
+    #     merger = SmartMerger.new(template, destination,
+    #       regions: [...],
+    #       region_placeholder: "###MY_CUSTOM_PLACEHOLDER_"
+    #     )
+    #   end
+    #
+    # @api public
+    class PlaceholderCollisionError < Error
+      # @return [String] The placeholder that caused the collision
+      attr_reader :placeholder
+
+      # Initialize a new PlaceholderCollisionError.
+      #
+      # @param placeholder [String] The placeholder string that was found in the document
+      def initialize(placeholder)
+        @placeholder = placeholder
+        super(
+          "Document contains placeholder text '#{placeholder}'. " \
+          "Use the :region_placeholder option to specify a custom placeholder."
+        )
+      end
+    end
+
     autoload :ConflictResolverBase, "ast/merge/conflict_resolver_base"
     autoload :DebugLogger, "ast/merge/debug_logger"
+    autoload :FencedCodeBlockDetector, "ast/merge/fenced_code_block_detector"
     autoload :FileAnalyzable, "ast/merge/file_analyzable"
     autoload :FreezeNodeBase, "ast/merge/freeze_node_base"
     autoload :MatchRefinerBase, "ast/merge/match_refiner_base"
     autoload :MatchScoreBase, "ast/merge/match_score_base"
     autoload :MergeResultBase, "ast/merge/merge_result_base"
     autoload :MergerConfig, "ast/merge/merger_config"
+    autoload :NodeSplitter, "ast/merge/node_splitter"
+    autoload :Region, "ast/merge/region"
+    autoload :RegionDetectorBase, "ast/merge/region_detector_base"
+    autoload :RegionMergeable, "ast/merge/region_mergeable"
+    autoload :SmartMergerBase, "ast/merge/smart_merger_base"
     autoload :Text, "ast/merge/text"
+    autoload :TomlFrontmatterDetector, "ast/merge/toml_frontmatter_detector"
+    autoload :YamlFrontmatterDetector, "ast/merge/yaml_frontmatter_detector"
   end
 end
 

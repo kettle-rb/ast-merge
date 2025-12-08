@@ -386,5 +386,216 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         expect(resolver.signature_match_preference).to eq(resolver.preference)
       end
     end
+
+    describe "#preference_for_node" do
+      context "with Symbol preference" do
+        let(:resolver) do
+          described_class.new(
+            strategy: :node,
+            preference: :destination,
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+        end
+
+        it "returns the preference for any node" do
+          node = double("Node")
+          expect(resolver.preference_for_node(node)).to eq(:destination)
+        end
+
+        it "returns the preference when node is nil" do
+          expect(resolver.preference_for_node(nil)).to eq(:destination)
+        end
+      end
+
+      context "with Hash preference" do
+        let(:resolver) do
+          described_class.new(
+            strategy: :node,
+            preference: { default: :destination, lint_gem: :template, test_type: :template },
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+        end
+
+        it "returns default preference when node is nil" do
+          expect(resolver.preference_for_node(nil)).to eq(:destination)
+        end
+
+        it "returns default preference for non-typed node" do
+          node = double("Node")
+          expect(resolver.preference_for_node(node)).to eq(:destination)
+        end
+
+        it "returns type-specific preference for typed node" do
+          node = double("Node")
+          typed_node = Ast::Merge::NodeSplitter.with_merge_type(node, :lint_gem)
+          expect(resolver.preference_for_node(typed_node)).to eq(:template)
+        end
+
+        it "returns default for typed node with unknown merge_type" do
+          node = double("Node")
+          typed_node = Ast::Merge::NodeSplitter.with_merge_type(node, :unknown_type)
+          expect(resolver.preference_for_node(typed_node)).to eq(:destination)
+        end
+      end
+    end
+
+    describe "#default_preference" do
+      context "with Symbol preference" do
+        it "returns the symbol preference" do
+          resolver = described_class.new(
+            strategy: :node,
+            preference: :template,
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+          expect(resolver.default_preference).to eq(:template)
+        end
+      end
+
+      context "with Hash preference" do
+        it "returns :default value from hash" do
+          resolver = described_class.new(
+            strategy: :node,
+            preference: { default: :template, other: :destination },
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+          expect(resolver.default_preference).to eq(:template)
+        end
+
+        it "returns :destination when :default key is missing" do
+          resolver = described_class.new(
+            strategy: :node,
+            preference: { lint_gem: :template },
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+          expect(resolver.default_preference).to eq(:destination)
+        end
+      end
+    end
+
+    describe "#per_type_preference?" do
+      it "returns true for Hash preference" do
+        resolver = described_class.new(
+          strategy: :node,
+          preference: { default: :destination },
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+        expect(resolver.per_type_preference?).to be true
+      end
+
+      it "returns false for Symbol preference" do
+        resolver = described_class.new(
+          strategy: :node,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis
+        )
+        expect(resolver.per_type_preference?).to be false
+      end
+    end
+
+    describe "#preference_resolution with typed nodes" do
+      context "with Hash preference" do
+        let(:resolver) do
+          described_class.new(
+            strategy: :node,
+            preference: { default: :destination, special_type: :template },
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+        end
+
+        it "uses template_node's merge_type when template is typed" do
+          template = Ast::Merge::NodeSplitter.with_merge_type(double("T"), :special_type)
+          dest = double("DestNode")
+
+          result = resolver.send(:preference_resolution, template_node: template, dest_node: dest)
+
+          expect(result[:source]).to eq(:template)
+          expect(result[:decision]).to eq(:template)
+        end
+
+        it "uses dest_node's merge_type when only dest is typed" do
+          template = double("TemplateNode")
+          dest = Ast::Merge::NodeSplitter.with_merge_type(double("D"), :special_type)
+
+          result = resolver.send(:preference_resolution, template_node: template, dest_node: dest)
+
+          expect(result[:source]).to eq(:template)
+          expect(result[:decision]).to eq(:template)
+        end
+
+        it "uses default preference when neither node is typed" do
+          template = double("TemplateNode")
+          dest = double("DestNode")
+
+          result = resolver.send(:preference_resolution, template_node: template, dest_node: dest)
+
+          expect(result[:source]).to eq(:destination)
+          expect(result[:decision]).to eq(:destination)
+        end
+
+        it "template_node takes precedence over dest_node" do
+          template = Ast::Merge::NodeSplitter.with_merge_type(double("T"), :special_type)
+          dest = Ast::Merge::NodeSplitter.with_merge_type(double("D"), :other_type)
+
+          result = resolver.send(:preference_resolution, template_node: template, dest_node: dest)
+
+          # special_type => :template
+          expect(result[:source]).to eq(:template)
+        end
+      end
+    end
+
+    describe "Hash preference validation" do
+      it "accepts valid Hash preference" do
+        expect do
+          described_class.new(
+            strategy: :node,
+            preference: { default: :destination, custom: :template },
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+        end.not_to raise_error
+      end
+
+      it "raises ArgumentError for non-Symbol keys" do
+        expect do
+          described_class.new(
+            strategy: :node,
+            preference: { "string_key" => :destination },
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+        end.to raise_error(ArgumentError, /keys must be Symbols/)
+      end
+
+      it "raises ArgumentError for invalid values" do
+        expect do
+          described_class.new(
+            strategy: :node,
+            preference: { default: :invalid_value },
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+        end.to raise_error(ArgumentError, /values must be :destination or :template/)
+      end
+
+      it "raises ArgumentError for invalid preference type" do
+        expect do
+          described_class.new(
+            strategy: :node,
+            preference: :invalid_symbol,
+            template_analysis: template_analysis,
+            dest_analysis: dest_analysis
+          )
+        end.to raise_error(ArgumentError, /Invalid preference/)
+      end
+    end
   end
 end

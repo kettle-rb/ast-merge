@@ -78,10 +78,14 @@ RSpec.shared_examples "a reproducible merge" do |scenario, options = {}|
     )
     result = merger.merge
 
-    expect(result).to eq(fixture[:expected].chomp),
+    # Normalize trailing newlines for comparison
+    expected = fixture[:expected]
+    actual = result.to_s
+
+    expect(actual).to eq(expected),
       "Merge result did not match expected.\n" \
-      "Expected:\n#{fixture[:expected].chomp.inspect}\n" \
-      "Got:\n#{result.inspect}"
+      "Expected:\n#{expected.inspect}\n" \
+      "Got:\n#{actual.inspect}"
   end
 
   it "is idempotent (merging again produces same result)" do

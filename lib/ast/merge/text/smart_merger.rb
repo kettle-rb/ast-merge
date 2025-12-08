@@ -42,21 +42,18 @@ module Ast
       #   merger = SmartMerger.new(template, dest)
       #   result = merger.merge
       #   # => "Line one modified\n# text-merge:freeze\nCustom content\n# text-merge:unfreeze"
-      class SmartMerger
+      #
+      # @example With regions (embedded code blocks)
+      #   merger = SmartMerger.new(
+      #     template_content,
+      #     dest_content,
+      #     regions: [
+      #       { detector: FencedCodeBlockDetector.ruby, merger_class: SomeRubyMerger }
+      #     ]
+      #   )
+      class SmartMerger < SmartMergerBase
         # Default freeze token for text merging
         DEFAULT_FREEZE_TOKEN = "text-merge"
-
-        # @return [TextAnalysis] Analysis of the template file
-        attr_reader :template_analysis
-
-        # @return [TextAnalysis] Analysis of the destination file
-        attr_reader :dest_analysis
-
-        # @return [ConflictResolver] Resolver for handling conflicts
-        attr_reader :resolver
-
-        # @return [MergeResult] Result object
-        attr_reader :result
 
         # Initialize a new SmartMerger
         #
@@ -66,56 +63,81 @@ module Ast
         # @param add_template_only_nodes [Boolean] Whether to add template-only lines
         # @param freeze_token [String] Token for freeze block markers
         # @param signature_generator [Proc, nil] Custom signature generator
+        # @param regions [Array<Hash>, nil] Region configurations for nested merging
+        # @param region_placeholder [String, nil] Custom placeholder for regions
         def initialize(
           template_content,
           dest_content,
           signature_match_preference: :destination,
           add_template_only_nodes: false,
           freeze_token: DEFAULT_FREEZE_TOKEN,
-          signature_generator: nil
+          signature_generator: nil,
+          regions: nil,
+          region_placeholder: nil
         )
-          @template_analysis = TextAnalysis.new(
+          super(
             template_content,
-            freeze_token: freeze_token,
-            signature_generator: signature_generator
-          )
-          @dest_analysis = TextAnalysis.new(
             dest_content,
-            freeze_token: freeze_token,
-            signature_generator: signature_generator
-          )
-          @resolver = ConflictResolver.new(
-            @template_analysis,
-            @dest_analysis,
+            signature_generator: signature_generator,
             signature_match_preference: signature_match_preference,
-            add_template_only_nodes: add_template_only_nodes
+            add_template_only_nodes: add_template_only_nodes,
+            freeze_token: freeze_token,
+            regions: regions,
+            region_placeholder: region_placeholder,
           )
-          @result = MergeResult.new(
-            template_analysis: @template_analysis,
-            dest_analysis: @dest_analysis
-          )
-          @signature_match_preference = signature_match_preference
-          @add_template_only_nodes = add_template_only_nodes
-        end
-
-        # Perform the merge
-        #
-        # @return [String] Merged content
-        def merge
-          @resolver.resolve(@result)
-          @result.to_s
         end
 
         # Get merge statistics
         #
         # @return [Hash] Statistics about the merge
         def stats
+          merge_result # Ensure merge has run
           {
             template_lines: @template_analysis.statements.count { |s| s.is_a?(LineNode) },
             dest_lines: @dest_analysis.statements.count { |s| s.is_a?(LineNode) },
             result_lines: @result.lines.size,
-            decisions: @result.decision_summary
+            decisions: @result.decision_summary,
           }
+        end
+
+        protected
+
+        # @return [Class] The analysis class for text files
+        def analysis_class
+          TextAnalysis
+        end
+
+        # @return [String] The default freeze token
+        def default_freeze_token
+          DEFAULT_FREEZE_TOKEN
+        end
+
+        # @return [Class] The resolver class for text files
+        def resolver_class
+          ConflictResolver
+        end
+
+        # @return [Class] The result class for text files
+        def result_class
+          MergeResult
+        end
+
+        # Perform the text-specific merge
+        #
+        # @return [MergeResult] The merge result
+        def perform_merge
+          @resolver.resolve(@result)
+          @result
+        end
+
+        # Build the resolver with positional arguments (Text::ConflictResolver signature)
+        def build_resolver
+          ConflictResolver.new(
+            @template_analysis,
+            @dest_analysis,
+            signature_match_preference: @signature_match_preference,
+            add_template_only_nodes: @add_template_only_nodes,
+          )
         end
       end
     end

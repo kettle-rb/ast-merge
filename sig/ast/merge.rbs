@@ -165,16 +165,18 @@ module Ast
     class MergerConfig
       VALID_PREFERENCES: Array[Symbol]
 
-      attr_reader signature_match_preference: Symbol
+    attr_reader signature_match_preference: Symbol | Hash[Symbol, Symbol]
+    attr_reader node_splitter: (Hash[Symbol, untyped])?
       attr_reader add_template_only_nodes: bool
       attr_reader freeze_token: String?
       attr_reader signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?
 
       def initialize: (
-        ?signature_match_preference: Symbol,
+        ?signature_match_preference: (Symbol | Hash[Symbol, Symbol]),
         ?add_template_only_nodes: bool,
         ?freeze_token: String?,
-        ?signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?
+        ?signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?,
+        ?node_splitter: (Hash[Symbol, untyped])?
       ) -> void
 
       def prefer_destination?: () -> bool
@@ -182,8 +184,8 @@ module Ast
       def to_h: (?default_freeze_token: String?) -> Hash[Symbol, untyped]
       def with: (**untyped options) -> MergerConfig
 
-      def self.destination_wins: (?freeze_token: String?, ?signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?) -> MergerConfig
-      def self.template_wins: (?freeze_token: String?, ?signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?) -> MergerConfig
+  def self.destination_wins: (?freeze_token: String?, ?signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?, ?node_splitter: (Hash[Symbol, untyped])?) -> MergerConfig
+  def self.template_wins: (?freeze_token: String?, ?signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?, ?node_splitter: (Hash[Symbol, untyped])?) -> MergerConfig
 
       private
 

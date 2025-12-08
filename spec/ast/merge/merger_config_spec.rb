@@ -29,6 +29,12 @@ RSpec.describe Ast::Merge::MergerConfig do
       config = described_class.destination_wins(signature_generator: generator)
       expect(config.signature_generator).to eq(generator)
     end
+
+    it "accepts node_splitter option" do
+      splitter = { CallNode: ->(node) { node } }
+      config = described_class.destination_wins(node_splitter: splitter)
+      expect(config.node_splitter).to eq(splitter)
+    end
   end
 
   describe ".template_wins" do
@@ -51,6 +57,153 @@ RSpec.describe Ast::Merge::MergerConfig do
       generator = ->(node) { [:custom, node] }
       config = described_class.template_wins(signature_generator: generator)
       expect(config.signature_generator).to eq(generator)
+    end
+
+    it "accepts node_splitter option" do
+      splitter = { CallNode: ->(node) { node } }
+      config = described_class.template_wins(node_splitter: splitter)
+      expect(config.node_splitter).to eq(splitter)
+    end
+  end
+
+  describe "Hash-based preference" do
+    it "accepts a Hash for signature_match_preference" do
+      config = described_class.new(
+        signature_match_preference: { default: :destination, lint_gem: :template }
+      )
+      expect(config.signature_match_preference).to eq({ default: :destination, lint_gem: :template })
+    end
+
+    describe "#prefer_destination?" do
+      it "returns true when default is :destination" do
+        config = described_class.new(
+          signature_match_preference: { default: :destination, other: :template }
+        )
+        expect(config.prefer_destination?).to be true
+      end
+
+      it "returns false when default is :template" do
+        config = described_class.new(
+          signature_match_preference: { default: :template }
+        )
+        expect(config.prefer_destination?).to be false
+      end
+
+      it "returns true when :default key is missing (implicit :destination)" do
+        config = described_class.new(
+          signature_match_preference: { lint_gem: :template }
+        )
+        expect(config.prefer_destination?).to be true
+      end
+    end
+
+    describe "#prefer_template?" do
+      it "returns true when default is :template" do
+        config = described_class.new(
+          signature_match_preference: { default: :template }
+        )
+        expect(config.prefer_template?).to be true
+      end
+
+      it "returns false when default is :destination" do
+        config = described_class.new(
+          signature_match_preference: { default: :destination }
+        )
+        expect(config.prefer_template?).to be false
+      end
+    end
+
+    describe "#preference_for" do
+      let(:config) do
+        described_class.new(
+          signature_match_preference: {
+            default: :destination,
+            lint_gem: :template,
+            test_gem: :destination
+          }
+        )
+      end
+
+      it "returns the preference for a known type" do
+        expect(config.preference_for(:lint_gem)).to eq(:template)
+        expect(config.preference_for(:test_gem)).to eq(:destination)
+      end
+
+      it "returns the default for unknown types" do
+        expect(config.preference_for(:unknown_type)).to eq(:destination)
+      end
+
+      it "returns :destination when no :default key and unknown type" do
+        config = described_class.new(
+          signature_match_preference: { lint_gem: :template }
+        )
+        expect(config.preference_for(:unknown_type)).to eq(:destination)
+      end
+
+      context "with Symbol preference" do
+        it "returns the symbol preference for any type" do
+          config = described_class.new(signature_match_preference: :template)
+          expect(config.preference_for(:any_type)).to eq(:template)
+          expect(config.preference_for(:other_type)).to eq(:template)
+        end
+      end
+    end
+
+    describe "#per_type_preference?" do
+      it "returns true for Hash preference" do
+        config = described_class.new(
+          signature_match_preference: { default: :destination }
+        )
+        expect(config.per_type_preference?).to be true
+      end
+
+      it "returns false for Symbol preference" do
+        config = described_class.new(signature_match_preference: :destination)
+        expect(config.per_type_preference?).to be false
+      end
+    end
+
+    it "raises ArgumentError for invalid Hash values" do
+      expect {
+        described_class.new(
+          signature_match_preference: { default: :invalid }
+        )
+      }.to raise_error(ArgumentError, /must be :destination or :template/)
+    end
+
+    it "raises ArgumentError for non-Symbol Hash keys" do
+      expect {
+        described_class.new(
+          signature_match_preference: { "string_key" => :destination }
+        )
+      }.to raise_error(ArgumentError, /keys must be Symbols/)
+    end
+  end
+
+  describe "#node_splitter" do
+    it "stores node_splitter configuration" do
+      splitter = { CallNode: ->(node) { node } }
+      config = described_class.new(node_splitter: splitter)
+      expect(config.node_splitter).to eq(splitter)
+    end
+
+    it "validates node_splitter on initialization" do
+      expect {
+        described_class.new(node_splitter: "not a hash")
+      }.to raise_error(ArgumentError, /must be a Hash/)
+    end
+
+    it "includes node_splitter in to_h" do
+      splitter = { CallNode: ->(node) { node } }
+      config = described_class.new(node_splitter: splitter)
+      expect(config.to_h[:node_splitter]).to eq(splitter)
+    end
+
+    it "preserves node_splitter in #with" do
+      splitter = { CallNode: ->(node) { node } }
+      config = described_class.new(node_splitter: splitter)
+      new_config = config.with(signature_match_preference: :template)
+      expect(new_config.node_splitter).to eq(splitter)
     end
   end
 end

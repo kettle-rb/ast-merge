@@ -103,7 +103,10 @@ module Ast
       # @return [Symbol] Resolution strategy (:node, :batch, or :boundary)
       attr_reader :strategy
 
-      # @return [Symbol] Merge preference (:destination or :template)
+      # @return [Symbol, Hash] Merge preference.
+      #   As Symbol: :destination or :template (applies to all nodes)
+      #   As Hash: Maps node types/merge_types to preferences
+      #     @example { default: :destination, lint_gem: :template }
       attr_reader :preference
 
       # @return [Object] Template file analysis
@@ -118,7 +121,11 @@ module Ast
       # Initialize the conflict resolver
       #
       # @param strategy [Symbol] Resolution strategy (:node, :batch, or :boundary)
-      # @param preference [Symbol] Which version to prefer (:destination or :template)
+      # @param preference [Symbol, Hash] Which version to prefer.
+      #   As Symbol: :destination or :template (applies to all nodes)
+      #   As Hash: Maps node types/merge_types to preferences
+      #     - Use :default key for fallback preference
+      #     @example { default: :destination, lint_gem: :template }
       # @param template_analysis [Object] Analysis of the template file
       # @param dest_analysis [Object] Analysis of the destination file
       # @param add_template_only_nodes [Boolean] Whether to add nodes only in template (batch/boundary strategy)
@@ -127,9 +134,7 @@ module Ast
           raise ArgumentError, "Invalid strategy: #{strategy}. Must be :node, :batch, or :boundary"
         end
 
-        unless %i[destination template].include?(preference)
-          raise ArgumentError, "Invalid preference: #{preference}. Must be :destination or :template"
-        end
+        validate_preference!(preference)
 
         @strategy = strategy
         @preference = preference
@@ -163,6 +168,51 @@ module Ast
       # @return [Boolean] True if node is a freeze node
       def freeze_node?(node)
         node.respond_to?(:freeze_node?) && node.freeze_node?
+      end
+
+      # Get the preference for a specific node.
+      #
+      # When preference is a Hash, looks up the preference for the node's
+      # merge_type (if wrapped with NodeSplitter) or falls back to :default.
+      #
+      # @param node [Object, nil] The node to get preference for
+      # @return [Symbol] :destination or :template
+      #
+      # @example With Symbol preference
+      #   preference_for_node(any_node)  # => returns @preference
+      #
+      # @example With Hash preference and typed node
+      #   # Given preference: { default: :destination, lint_gem: :template }
+      #   preference_for_node(lint_gem_node)  # => :template
+      #   preference_for_node(other_node)     # => :destination
+      def preference_for_node(node)
+        return default_preference unless @preference.is_a?(Hash)
+        return default_preference unless node
+
+        # Check if node has a merge_type (from NodeSplitter)
+        merge_type = NodeSplitter.merge_type_for(node)
+        return @preference.fetch(merge_type) { default_preference } if merge_type
+
+        # Fall back to default
+        default_preference
+      end
+
+      # Get the default preference (used as fallback).
+      #
+      # @return [Symbol] :destination or :template
+      def default_preference
+        if @preference.is_a?(Hash)
+          @preference.fetch(:default, :destination)
+        else
+          @preference
+        end
+      end
+
+      # Check if Hash-based per-type preferences are configured.
+      #
+      # @return [Boolean] true if preference is a Hash
+      def per_type_preference?
+        @preference.is_a?(Hash)
       end
 
       protected
@@ -274,13 +324,28 @@ module Ast
         }
       end
 
-      # Create a resolution hash based on preference
+      # Create a resolution hash based on preference.
+      # Supports per-node-type preferences when a Hash is configured.
       #
-      # @param template_node [Object] Template node
-      # @param dest_node [Object] Destination node
+      # When per-type preferences are configured, checks template_node for
+      # merge_type (from NodeSplitter wrapping). If template_node has no merge_type,
+      # falls back to dest_node's merge_type, then to the default preference.
+      #
+      # @param template_node [Object] Template node (may be a TypedNodeWrapper)
+      # @param dest_node [Object] Destination node (may be a TypedNodeWrapper)
       # @return [Hash] Resolution hash
       def preference_resolution(template_node:, dest_node:)
-        if @preference == :template
+        # Get the appropriate preference for this node pair
+        # Template node's merge_type takes precedence, then dest_node's
+        node_preference = if NodeSplitter.typed_node?(template_node)
+          preference_for_node(template_node)
+        elsif NodeSplitter.typed_node?(dest_node)
+          preference_for_node(dest_node)
+        else
+          default_preference
+        end
+
+        if node_preference == :template
           {
             source: :template,
             decision: DECISION_TEMPLATE,
@@ -294,6 +359,39 @@ module Ast
             template_node: template_node,
             dest_node: dest_node
           }
+        end
+      end
+
+      private
+
+      # Validate the preference parameter.
+      #
+      # @param preference [Symbol, Hash] The preference to validate
+      # @raise [ArgumentError] If preference is invalid
+      def validate_preference!(preference)
+        if preference.is_a?(Hash)
+          validate_hash_preference!(preference)
+        elsif !%i[destination template].include?(preference)
+          raise ArgumentError, "Invalid preference: #{preference}. Must be :destination, :template, or a Hash"
+        end
+      end
+
+      # Validate a Hash preference configuration.
+      #
+      # @param preference [Hash] The preference hash to validate
+      # @raise [ArgumentError] If any key or value is invalid
+      def validate_hash_preference!(preference)
+        preference.each do |key, value|
+          unless key.is_a?(Symbol)
+            raise ArgumentError,
+                  "preference Hash keys must be Symbols, got #{key.class} for #{key.inspect}"
+          end
+
+          unless %i[destination template].include?(value)
+            raise ArgumentError,
+                  "preference Hash values must be :destination or :template, " \
+                  "got #{value.inspect} for key #{key.inspect}"
+          end
         end
       end
     end

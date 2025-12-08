@@ -22,13 +22,40 @@ module Ast
     # @example Using with SmartMerger
     #   config = MergerConfig.new(signature_match_preference: :template)
     #   merger = SmartMerger.new(template, dest, **config.to_h)
+    #
+    # @example Per-node-type preferences with node_splitter
+    #   node_splitter = {
+    #     CallNode: ->(node) {
+    #       return node unless node.name == :gem
+    #       gem_name = node.arguments&.arguments&.first&.unescaped
+    #       if gem_name&.start_with?("rubocop")
+    #         Ast::Merge::NodeSplitter.with_merge_type(node, :lint_gem)
+    #       else
+    #         node
+    #       end
+    #     }
+    #   }
+    #
+    #   config = MergerConfig.new(
+    #     node_splitter: node_splitter,
+    #     signature_match_preference: {
+    #       default: :destination,
+    #       lint_gem: :template  # Use template versions for lint gems
+    #     }
+    #   )
     class MergerConfig
-      # Valid values for signature_match_preference
+      # Valid values for signature_match_preference (when using Symbol)
       VALID_PREFERENCES = %i[destination template].freeze
 
-      # @return [Symbol] Which version to prefer when nodes have matching signatures
+      # @return [Symbol, Hash] Which version to prefer when nodes have matching signatures.
+      #   As Symbol:
       #   - :destination (default) - Keep destination version (preserves customizations)
       #   - :template - Use template version (applies updates)
+      #   As Hash:
+      #   - Keys are node types (Symbol) or merge_types from node_splitter
+      #   - Values are :destination or :template
+      #   - Use :default key for fallback preference
+      #   @example { default: :destination, lint_gem: :template, config_call: :template }
       attr_reader :signature_match_preference
 
       # @return [Boolean] Whether to add nodes that only exist in template
@@ -42,41 +69,98 @@ module Ast
       # @return [Proc, nil] Custom signature generator proc
       attr_reader :signature_generator
 
+      # @return [Hash{Symbol,String => #call}, nil] Node splitter configuration.
+      #   Maps node type names to callable objects that can transform nodes
+      #   and optionally add merge_type attributes for per-node-type preferences.
+      attr_reader :node_splitter
+
       # Initialize a new MergerConfig.
       #
-      # @param signature_match_preference [Symbol] Which version to prefer on match
-      #   (:destination or :template)
+      # @param signature_match_preference [Symbol, Hash] Which version to prefer on match.
+      #   As Symbol: :destination or :template
+      #   As Hash: Maps node types/merge_types to preferences
+      #     @example { default: :destination, lint_gem: :template }
       # @param add_template_only_nodes [Boolean] Whether to add template-only nodes
       # @param freeze_token [String, nil] Token for freeze block markers (nil uses gem default)
       # @param signature_generator [Proc, nil] Custom signature generator
+      # @param node_splitter [Hash{Symbol,String => #call}, nil] Node splitter configuration
       #
-      # @raise [ArgumentError] If signature_match_preference is not :destination or :template
+      # @raise [ArgumentError] If signature_match_preference is invalid
+      # @raise [ArgumentError] If node_splitter is invalid
       def initialize(
         signature_match_preference: :destination,
         add_template_only_nodes: false,
         freeze_token: nil,
-        signature_generator: nil
+        signature_generator: nil,
+        node_splitter: nil
       )
         validate_preference!(signature_match_preference)
+        NodeSplitter.validate!(node_splitter) if node_splitter
 
         @signature_match_preference = signature_match_preference
         @add_template_only_nodes = add_template_only_nodes
         @freeze_token = freeze_token
         @signature_generator = signature_generator
+        @node_splitter = node_splitter
       end
 
       # Check if destination version should be preferred on signature match.
+      # For Hash preferences, checks the :default key.
       #
       # @return [Boolean] true if destination preference
       def prefer_destination?
-        @signature_match_preference == :destination
+        if @signature_match_preference.is_a?(Hash)
+          @signature_match_preference.fetch(:default, :destination) == :destination
+        else
+          @signature_match_preference == :destination
+        end
       end
 
       # Check if template version should be preferred on signature match.
+      # For Hash preferences, checks the :default key.
       #
       # @return [Boolean] true if template preference
       def prefer_template?
-        @signature_match_preference == :template
+        if @signature_match_preference.is_a?(Hash)
+          @signature_match_preference.fetch(:default, :destination) == :template
+        else
+          @signature_match_preference == :template
+        end
+      end
+
+      # Get the preference for a specific node type or merge_type.
+      #
+      # When signature_match_preference is a Hash, looks up the preference
+      # for the given type, falling back to :default, then to :destination.
+      #
+      # @param type [Symbol, nil] The node type or merge_type to look up
+      # @return [Symbol] :destination or :template
+      #
+      # @example With Symbol preference
+      #   config = MergerConfig.new(signature_match_preference: :template)
+      #   config.preference_for(:any_type)  # => :template
+      #
+      # @example With Hash preference
+      #   config = MergerConfig.new(
+      #     signature_match_preference: { default: :destination, lint_gem: :template }
+      #   )
+      #   config.preference_for(:lint_gem)   # => :template
+      #   config.preference_for(:other_type) # => :destination
+      def preference_for(type)
+        if @signature_match_preference.is_a?(Hash)
+          @signature_match_preference.fetch(type) do
+            @signature_match_preference.fetch(:default, :destination)
+          end
+        else
+          @signature_match_preference
+        end
+      end
+
+      # Check if Hash-based per-type preferences are configured.
+      #
+      # @return [Boolean] true if preference is a Hash
+      def per_type_preference?
+        @signature_match_preference.is_a?(Hash)
       end
 
       # Convert config to a hash suitable for passing to SmartMerger.
@@ -90,6 +174,7 @@ module Ast
         }
         result[:freeze_token] = @freeze_token || default_freeze_token if @freeze_token || default_freeze_token
         result[:signature_generator] = @signature_generator if @signature_generator
+        result[:node_splitter] = @node_splitter if @node_splitter
         result
       end
 
@@ -102,7 +187,8 @@ module Ast
           signature_match_preference: options.fetch(:signature_match_preference, @signature_match_preference),
           add_template_only_nodes: options.fetch(:add_template_only_nodes, @add_template_only_nodes),
           freeze_token: options.fetch(:freeze_token, @freeze_token),
-          signature_generator: options.fetch(:signature_generator, @signature_generator)
+          signature_generator: options.fetch(:signature_generator, @signature_generator),
+          node_splitter: options.fetch(:node_splitter, @node_splitter)
         )
       end
 
@@ -111,13 +197,15 @@ module Ast
       #
       # @param freeze_token [String, nil] Optional freeze token
       # @param signature_generator [Proc, nil] Optional signature generator
+      # @param node_splitter [Hash, nil] Optional node splitter configuration
       # @return [MergerConfig] Config preset
-      def self.destination_wins(freeze_token: nil, signature_generator: nil)
+      def self.destination_wins(freeze_token: nil, signature_generator: nil, node_splitter: nil)
         new(
           signature_match_preference: :destination,
           add_template_only_nodes: false,
           freeze_token: freeze_token,
-          signature_generator: signature_generator
+          signature_generator: signature_generator,
+          node_splitter: node_splitter
         )
       end
 
@@ -126,24 +214,43 @@ module Ast
       #
       # @param freeze_token [String, nil] Optional freeze token
       # @param signature_generator [Proc, nil] Optional signature generator
+      # @param node_splitter [Hash, nil] Optional node splitter configuration
       # @return [MergerConfig] Config preset
-      def self.template_wins(freeze_token: nil, signature_generator: nil)
+      def self.template_wins(freeze_token: nil, signature_generator: nil, node_splitter: nil)
         new(
           signature_match_preference: :template,
           add_template_only_nodes: true,
           freeze_token: freeze_token,
-          signature_generator: signature_generator
+          signature_generator: signature_generator,
+          node_splitter: node_splitter
         )
       end
 
       private
 
       def validate_preference!(preference)
-        return if VALID_PREFERENCES.include?(preference)
+        if preference.is_a?(Hash)
+          validate_hash_preference!(preference)
+        elsif !VALID_PREFERENCES.include?(preference)
+          raise ArgumentError,
+                "Invalid signature_match_preference: #{preference.inspect}. " \
+                "Must be one of: #{VALID_PREFERENCES.map(&:inspect).join(", ")} or a Hash"
+        end
+      end
 
-        raise ArgumentError,
-              "Invalid signature_match_preference: #{preference.inspect}. " \
-              "Must be one of: #{VALID_PREFERENCES.map(&:inspect).join(", ")}"
+      def validate_hash_preference!(preference)
+        preference.each do |key, value|
+          unless key.is_a?(Symbol)
+            raise ArgumentError,
+                  "signature_match_preference Hash keys must be Symbols, got #{key.class} for #{key.inspect}"
+          end
+
+          unless VALID_PREFERENCES.include?(value)
+            raise ArgumentError,
+                  "signature_match_preference Hash values must be :destination or :template, " \
+                  "got #{value.inspect} for key #{key.inspect}"
+          end
+        end
       end
     end
   end
