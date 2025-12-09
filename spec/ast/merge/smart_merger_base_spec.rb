@@ -53,6 +53,10 @@ RSpec.describe Ast::Merge::SmartMergerBase do
         @content
       end
 
+      def content_string
+        @content
+      end
+
       def statistics
         {lines: @lines.size}
       end
