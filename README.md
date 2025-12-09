@@ -102,15 +102,6 @@ Ast::Merge is **not typically used directly** - instead, use one of the format-s
 - **Error Classes**: `ParseError`, `TemplateParseError`, `DestinationParseError`
 - **RSpec Shared Examples**: Test helpers for implementing new merge gems
 
-### Supported Comment Patterns
-
-| Pattern Type | Start Marker | End Marker | Languages |
-|--------------|--------------|------------|-----------|
-| `:hash_comment` | `# token:freeze` | `# token:unfreeze` | Ruby, Python, YAML, Bash |
-| `:html_comment` | `<!-- token:freeze -->` | `<!-- token:unfreeze -->` | HTML, Markdown |
-| `:c_style_line` | `// token:freeze` | `// token:unfreeze` | JavaScript, TypeScript, JSON |
-| `:c_style_block` | `/* token:freeze */` | `/* token:unfreeze */` | CSS, C, Java |
-
 ### Creating a New Merge Gem
 
 ```ruby
@@ -325,6 +316,50 @@ end
 - `"Ast::Merge::MergerConfig"` - Tests for SmartMerger implementations
 
 ## 🎛️ Advanced Configuration
+
+### Freeze Blocks
+
+**Freeze blocks** are special comment-delimited regions in your files that tell the merge tool
+to preserve content exactly as-is, preventing any changes from the template.
+This is useful for hand-edited customizations you never want overwritten.
+
+A freeze block consists of:
+- A **start marker** comment (e.g., `# mytoken:freeze`)
+- The protected content
+- An **end marker** comment (e.g., `# mytoken:unfreeze`)
+
+```ruby
+# In a Ruby file with prism-merge:
+class MyApp
+  # prism-merge:freeze
+  # Custom configuration that should never be overwritten
+  CUSTOM_SETTING = "my-value"
+  # prism-merge:unfreeze
+
+  VERSION = "1.0.0"  # This can be updated by template
+end
+```
+
+The `FreezeNode` class represents these protected regions internally.
+Each format-specific merge gem (like `prism-merge`, `psych-merge`, etc.) configures its own
+freeze token (the `token` in `token:freeze`), which defaults to the gem name (e.g., `prism-merge`).
+
+### Supported Comment Patterns
+
+Different file formats use different comment syntaxes. The merge tools detect freeze markers
+using the appropriate pattern for each format:
+
+| Pattern Type | Start Marker | End Marker | Languages |
+|--------------|--------------|------------|-----------|
+| `:hash_comment` | `# token:freeze` | `# token:unfreeze` | Ruby, Python, YAML, Bash, Shell |
+| `:html_comment` | `<!-- token:freeze -->` | `<!-- token:unfreeze -->` | HTML, XML, Markdown |
+| `:c_style_line` | `// token:freeze` | `// token:unfreeze` | C (C99+), C++, JavaScript, TypeScript, Java, C#, Go, Rust, Swift, Kotlin, PHP, JSONC |
+| `:c_style_block` | `/* token:freeze */` | `/* token:unfreeze */` | C, C++, JavaScript, TypeScript, Java, C#, Go, Rust, Swift, Kotlin, PHP, CSS |
+
+| 📍 NOTE                                                                                             |
+|-----------------------------------------------------------------------------------------------------|
+| CSS only supports block comments (`/* */`), not line comments.                                      |
+| JSON does not support comments; use JSONC for JSON with comments.                                   |
 
 ### Per-Node-Type Preference with `node_splitter`
 
