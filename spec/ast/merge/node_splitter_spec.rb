@@ -345,4 +345,107 @@ RSpec.describe Ast::Merge::NodeSplitter do
         .to raise_error(ArgumentError, /must be callable/)
     end
   end
+
+  describe ".process edge cases for branch coverage" do
+    context "with node that has nil class.name (anonymous class)" do
+      let(:anonymous_node) do
+        anon_class = Class.new # Anonymous class has nil name
+        anon_class.new
+      end
+
+      it "falls back to class.to_s for type key" do
+        # The config should not match since we use class.to_s which is something like "#<Class:0x...>"
+        config = {
+          SomeOtherNode: ->(node) { described_class.with_merge_type(node, :other_type) }
+        }
+
+        result = described_class.process(anonymous_node, config)
+
+        # Should return unchanged since no match
+        expect(result).to eq(anonymous_node)
+      end
+
+      it "can match anonymous class by its to_s representation" do
+        anon_class = Class.new
+        anon_node = anon_class.new
+        type_string = anon_class.to_s
+
+        config = {
+          type_string => ->(node) { described_class.with_merge_type(node, :anon_type) }
+        }
+
+        result = described_class.process(anon_node, config)
+
+        expect(described_class.typed_node?(result)).to be true
+        expect(result.merge_type).to eq(:anon_type)
+      end
+    end
+
+    context "when full_name is nil for lookup paths" do
+      let(:anonymous_node) do
+        anon_class = Class.new
+        anon_class.new
+      end
+
+      it "skips fully-qualified and underscored lookups when full_name is nil" do
+        config = {
+          # Use string key that won't match the anonymous class's to_s
+          "SomeNode" => ->(node) { described_class.with_merge_type(node, :some_type) }
+        }
+
+        result = described_class.process(anonymous_node, config)
+
+        # Should return unchanged since no match and full_name is nil
+        expect(result).to eq(anonymous_node)
+      end
+    end
+
+    context "when config has no matching keys for any lookup strategy" do
+      let(:namespaced_node) do
+        node_class = Class.new do
+          def self.name
+            "MyModule::MyNode"
+          end
+        end
+        double("NamespacedNode", class: node_class, name: :test)
+      end
+
+      it "returns nil from find_splitter when no strategy matches" do
+        config = {
+          # None of these will match MyModule::MyNode
+          OtherNode: ->(node) { described_class.with_merge_type(node, :other) },
+          "Different::Path" => ->(node) { described_class.with_merge_type(node, :different) },
+          some_other_node: ->(node) { described_class.with_merge_type(node, :some_other) }
+        }
+
+        result = described_class.process(namespaced_node, config)
+
+        expect(result).to eq(namespaced_node)
+        expect(described_class.typed_node?(result)).to be false
+      end
+    end
+
+    context "with TypedNodeWrapper passed to process" do
+      let(:inner_node) do
+        node_class = Class.new do
+          def self.name
+            "InnerNode"
+          end
+        end
+        double("InnerNode", class: node_class)
+      end
+
+      it "unwraps TypedNodeWrapper to find matching splitter" do
+        wrapped = described_class.with_merge_type(inner_node, :original_type)
+        config = {
+          InnerNode: ->(node) { described_class.with_merge_type(node, :new_type) }
+        }
+
+        result = described_class.process(wrapped, config)
+
+        expect(described_class.typed_node?(result)).to be true
+        expect(result.merge_type).to eq(:new_type)
+      end
+    end
+  end
 end

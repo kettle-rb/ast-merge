@@ -217,23 +217,12 @@ module Ast
       # @return [Hash] Hash containing:
       #   - `:content` [String] - Final merged content
       #   - `:statistics` [Hash] - Merge decision counts
-      #   - `:debug` [String, nil] - Debug output (if available)
       def merge_with_debug
         content = merge
-        stats = if @result.respond_to?(:statistics)
-          @result.statistics
-        elsif @result.respond_to?(:decision_summary)
-          @result.decision_summary
-        else
-          {}
-        end
-
-        debug = @result.respond_to?(:debug_output) ? @result.debug_output : nil
 
         {
           content: content,
-          statistics: stats,
-          debug: debug,
+          statistics: @result.decision_summary,
         }
       end
 
@@ -242,13 +231,7 @@ module Ast
       # @return [Hash] Statistics about the merge
       def stats
         merge_result # Ensure merge has run
-        if @result.respond_to?(:statistics)
-          @result.statistics
-        elsif @result.respond_to?(:decision_summary)
-          @result.decision_summary
-        else
-          {}
-        end
+        @result.decision_summary
       end
 
       protected
@@ -331,12 +314,7 @@ module Ast
       # @param result [Object] The merge result
       # @param content [String] The final content with regions substituted
       def update_result_content(result, content)
-        if result.respond_to?(:content=)
-          result.content = content
-        elsif result.respond_to?(:set_content)
-          result.set_content(content)
-        end
-        # Otherwise, assume the result will be recreated or doesn't need updating
+        result.content = content
       end
 
       private
@@ -349,18 +327,9 @@ module Ast
       def parse_and_analyze(content, source)
         options = build_full_analysis_options
 
-        analysis = DebugLogger.time("#{self.class.name}#analyze_#{source}") do
+        DebugLogger.time("#{self.class.name}#analyze_#{source}") do
           analysis_class.new(content, **options)
         end
-
-        # Check if analysis is valid (handles cases where parser stores errors without raising)
-        if analysis.respond_to?(:valid?) && !analysis.valid?
-          error_class = source == :template ? template_parse_error_class : destination_parse_error_class
-          errors = analysis.respond_to?(:errors) ? analysis.errors : []
-          raise error_class.new(errors: errors, content: content)
-        end
-
-        analysis
       rescue StandardError => e
         # Don't re-wrap our own parse errors
         raise if e.is_a?(template_parse_error_class) || e.is_a?(destination_parse_error_class)

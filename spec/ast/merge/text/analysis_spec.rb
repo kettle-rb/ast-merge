@@ -167,5 +167,56 @@ RSpec.describe Ast::Merge::Text::TextAnalysis do
       result = analysis.send(:freeze_marker?, "# text-merge:freeze", :invalid_type)
       expect(result).to be false
     end
+
+    it "returns false when line does not match freeze pattern" do
+      analysis = described_class.new("test")
+      result = analysis.send(:freeze_marker?, "regular line", :freeze)
+      expect(result).to be false
+    end
+  end
+
+  describe "orphan unfreeze marker" do
+    it "ignores unfreeze marker without matching freeze marker" do
+      source = <<~TEXT
+        Line before
+        # text-merge:unfreeze
+        Line after
+      TEXT
+      analysis = described_class.new(source)
+
+      # The unfreeze line should be skipped (not create a freeze block or line node)
+      # and we should just get the regular lines
+      statements = analysis.statements
+      line_contents = statements.map { |s| s.respond_to?(:content) ? s.content : s.to_s }
+      
+      expect(statements.size).to eq(2)
+      expect(line_contents).to contain_exactly("Line before", "Line after")
+    end
+  end
+
+  describe "#extract_freeze_reason edge cases" do
+    it "returns nil when no reason is provided" do
+      source = <<~TEXT
+        # text-merge:freeze
+        Content
+        # text-merge:unfreeze
+      TEXT
+      analysis = described_class.new(source)
+      freeze_node = analysis.statements[0]
+
+      expect(freeze_node.reason).to be_nil
+    end
+
+    it "extracts reason when provided after freeze" do
+      source = <<~TEXT
+        # text-merge:freeze Keep this content
+        Content
+        # text-merge:unfreeze
+      TEXT
+      analysis = described_class.new(source)
+      freeze_node = analysis.statements[0]
+
+      expect(freeze_node.reason).to eq("Keep this content")
+    end
   end
 end

@@ -333,4 +333,45 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
       expect(results.first.template_node).to eq(:a)
     end
   end
+
+  describe "#node_type" do
+    let(:refiner) { described_class.new }
+
+    context "when node responds to :type" do
+      let(:node_with_type) do
+        double("TypedNode", type: :block_quote)
+      end
+
+      it "returns the type" do
+        result = refiner.send(:node_type, node_with_type)
+        expect(result).to eq(:block_quote)
+      end
+    end
+
+    context "when node does not respond to :type but has class" do
+      let(:plain_object) { Object.new }
+
+      it "returns class name as symbol" do
+        result = refiner.send(:node_type, plain_object)
+        expect(result).to eq(:Object)
+      end
+    end
+
+    context "with namespaced class" do
+      let(:namespaced_node) do
+        # Create a class with a namespaced name
+        node_class = Class.new do
+          def self.name
+            "Ast::Merge::TestNode"
+          end
+        end
+        node_class.new
+      end
+
+      it "returns just the last part of the class name" do
+        result = refiner.send(:node_type, namespaced_node)
+        expect(result).to eq(:TestNode)
+      end
+    end
+  end
 end

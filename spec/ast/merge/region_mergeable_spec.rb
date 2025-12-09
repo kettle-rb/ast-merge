@@ -403,4 +403,381 @@ RSpec.describe Ast::Merge::RegionMergeable do
       expect(extracted.map { |e| e.region.type }).to contain_exactly(:yaml_frontmatter, :ruby_code_block)
     end
   end
+
+  describe "#merge_region edge cases" do
+    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
+    let(:extracted_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
+
+    context "when both template and dest extracted are nil" do
+      it "returns nil" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+        result = merger.send(:merge_region, nil, nil)
+        expect(result).to be_nil
+      end
+    end
+
+    context "when only template region exists" do
+      let(:template_region) do
+        Ast::Merge::Region.new(
+          type: :yaml_frontmatter,
+          content: "title: Template\n",
+          start_line: 1,
+          end_line: 3,
+          delimiters: ["---", "---"],
+          metadata: {},
+        )
+      end
+
+      let(:config) { config_class.new(detector: detector) }
+
+      let(:template_extracted) do
+        extracted_class.new(
+          region: template_region,
+          config: config,
+          placeholder: "<<<P>>>",
+          merged_content: nil,
+        )
+      end
+
+      it "returns template text when dest is empty" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+        result = merger.send(:merge_region, template_extracted, nil)
+        expect(result).to include("title: Template")
+      end
+    end
+
+    context "when only dest region exists" do
+      let(:dest_region) do
+        Ast::Merge::Region.new(
+          type: :yaml_frontmatter,
+          content: "author: Jane\n",
+          start_line: 1,
+          end_line: 3,
+          delimiters: ["---", "---"],
+          metadata: {},
+        )
+      end
+
+      let(:config) { config_class.new(detector: detector) }
+
+      let(:dest_extracted) do
+        extracted_class.new(
+          region: dest_region,
+          config: config,
+          placeholder: "<<<P>>>",
+          merged_content: nil,
+        )
+      end
+
+      it "returns dest text" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+        result = merger.send(:merge_region, nil, dest_extracted)
+        expect(result).to include("author: Jane")
+      end
+    end
+
+    context "with merger_class configured" do
+      let(:template_region) do
+        Ast::Merge::Region.new(
+          type: :yaml_frontmatter,
+          content: "title: Template\n",
+          start_line: 1,
+          end_line: 3,
+          delimiters: ["---", "---"],
+          metadata: {},
+        )
+      end
+
+      let(:dest_region) do
+        Ast::Merge::Region.new(
+          type: :yaml_frontmatter,
+          content: "title: Dest\nauthor: Jane\n",
+          start_line: 1,
+          end_line: 4,
+          delimiters: ["---", "---"],
+          metadata: {},
+        )
+      end
+
+      let(:config) do
+        config_class.new(
+          detector: detector,
+          merger_class: mock_region_merger_class,
+        )
+      end
+
+      let(:template_extracted) do
+        extracted_class.new(
+          region: template_region,
+          config: config,
+          placeholder: "<<<P>>>",
+          merged_content: nil,
+        )
+      end
+
+      let(:dest_extracted) do
+        extracted_class.new(
+          region: dest_region,
+          config: config,
+          placeholder: "<<<P>>>",
+          merged_content: nil,
+        )
+      end
+
+      it "uses the merger_class to merge content" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector, merger_class: mock_region_merger_class}])
+        result = merger.send(:merge_region, template_extracted, dest_extracted)
+        # mock_region_merger_class prefers dest content
+        expect(result).to include("title: Dest")
+      end
+    end
+  end
+
+  describe "#reconstruct_region_with_delimiters edge cases" do
+    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+
+    context "when region has no delimiters" do
+      let(:region) do
+        Ast::Merge::Region.new(
+          type: :raw,
+          content: "raw content",
+          start_line: 1,
+          end_line: 1,
+          delimiters: nil,
+          metadata: {},
+        )
+      end
+
+      it "returns content as-is" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+        result = merger.send(:reconstruct_region_with_delimiters, region, "new content")
+        expect(result).to eq("new content")
+      end
+    end
+
+    context "when content doesn't end with newline" do
+      let(:region) do
+        Ast::Merge::Region.new(
+          type: :yaml_frontmatter,
+          content: "title: Test",
+          start_line: 1,
+          end_line: 3,
+          delimiters: ["---", "---"],
+          metadata: {},
+        )
+      end
+
+      it "adds newline before closing delimiter" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+        result = merger.send(:reconstruct_region_with_delimiters, region, "title: New")
+        expect(result).to eq("---\ntitle: New\n---\n")
+      end
+    end
+
+    context "when content ends with newline" do
+      let(:region) do
+        Ast::Merge::Region.new(
+          type: :yaml_frontmatter,
+          content: "title: Test\n",
+          start_line: 1,
+          end_line: 3,
+          delimiters: ["---", "---"],
+          metadata: {},
+        )
+      end
+
+      it "doesn't add extra newline" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+        result = merger.send(:reconstruct_region_with_delimiters, region, "title: New\n")
+        expect(result).to eq("---\ntitle: New\n---\n")
+      end
+    end
+  end
+
+  describe "#validate_no_placeholder_collision!" do
+    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+
+    context "with nil content" do
+      it "does not raise" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+        expect {
+          merger.send(:validate_no_placeholder_collision!, nil)
+        }.not_to raise_error
+      end
+    end
+
+    context "with empty content" do
+      it "does not raise" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+        expect {
+          merger.send(:validate_no_placeholder_collision!, "")
+        }.not_to raise_error
+      end
+    end
+  end
+
+  describe "#replace_region_with_placeholder edge cases" do
+    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+
+    context "with LF line endings (not CRLF)" do
+      let(:source_with_lf) { "line1\nline2\nline3\n" }
+      let(:region) do
+        Ast::Merge::Region.new(
+          type: :test,
+          content: "line2",
+          start_line: 2,
+          end_line: 2,
+          delimiters: nil,
+          metadata: {},
+        )
+      end
+
+      it "uses LF newlines for placeholder" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+        result = merger.send(:replace_region_with_placeholder, source_with_lf, region, "<<<PLACEHOLDER>>>")
+        expect(result).to include("<<<PLACEHOLDER>>>\n")
+        expect(result).not_to include("\r\n")
+      end
+    end
+  end
+
+  describe "#merge_region when merge_region returns nil" do
+    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
+    let(:extracted_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
+
+    context "when both template and dest extracted have nil config" do
+      it "returns nil and doesn't substitute" do
+        merger = merger_class.new("t", "d", regions: [{detector: detector}])
+
+        # Directly test merge_region returning nil
+        result = merger.send(:merge_region, nil, nil)
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  describe "#merge_region with regions in config" do
+    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
+    let(:extracted_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
+
+    let(:template_region) do
+      Ast::Merge::Region.new(
+        type: :yaml_frontmatter,
+        content: "title: Template\n",
+        start_line: 1,
+        end_line: 3,
+        delimiters: ["---", "---"],
+        metadata: {},
+      )
+    end
+
+    let(:dest_region) do
+      Ast::Merge::Region.new(
+        type: :yaml_frontmatter,
+        content: "title: Dest\n",
+        start_line: 1,
+        end_line: 3,
+        delimiters: ["---", "---"],
+        metadata: {},
+      )
+    end
+
+    context "when config has nested regions" do
+      let(:nested_detector) { Ast::Merge::FencedCodeBlockDetector.ruby }
+      let(:config) do
+        config_class.new(
+          detector: detector,
+          merger_class: mock_region_merger_class,
+          regions: [{detector: nested_detector}],
+        )
+      end
+
+      let(:template_extracted) do
+        extracted_class.new(
+          region: template_region,
+          config: config,
+          placeholder: "<<<P>>>",
+          merged_content: nil,
+        )
+      end
+
+      let(:dest_extracted) do
+        extracted_class.new(
+          region: dest_region,
+          config: config,
+          placeholder: "<<<P>>>",
+          merged_content: nil,
+        )
+      end
+
+      it "passes nested regions to the merger" do
+        merger = merger_class.new("t", "d", regions: [
+          {detector: detector, merger_class: mock_region_merger_class, regions: [{detector: nested_detector}]},
+        ])
+        result = merger.send(:merge_region, template_extracted, dest_extracted)
+        expect(result).not_to be_nil
+      end
+    end
+  end
+
+  describe "#merge_region with dest_text empty" do
+    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
+    let(:extracted_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
+
+    let(:template_region) do
+      Ast::Merge::Region.new(
+        type: :yaml_frontmatter,
+        content: "title: Template\n",
+        start_line: 1,
+        end_line: 3,
+        delimiters: ["---", "---"],
+        metadata: {},
+      )
+    end
+
+    # Empty region with no content
+    let(:dest_region) do
+      Ast::Merge::Region.new(
+        type: :yaml_frontmatter,
+        content: "",
+        start_line: 1,
+        end_line: 2,
+        delimiters: ["---", "---"],
+        metadata: {},
+      )
+    end
+
+    let(:config) { config_class.new(detector: detector) }
+
+    let(:template_extracted) do
+      extracted_class.new(
+        region: template_region,
+        config: config,
+        placeholder: "<<<P>>>",
+        merged_content: nil,
+      )
+    end
+
+    let(:dest_extracted) do
+      extracted_class.new(
+        region: dest_region,
+        config: config,
+        placeholder: "<<<P>>>",
+        merged_content: nil,
+      )
+    end
+
+    it "returns template text when dest region has empty full_text" do
+      # Override full_text to return empty
+      allow(dest_region).to receive(:full_text).and_return("")
+
+      merger = merger_class.new("t", "d", regions: [{detector: detector}])
+      result = merger.send(:merge_region, template_extracted, dest_extracted)
+      expect(result).to include("title: Template")
+    end
+  end
 end

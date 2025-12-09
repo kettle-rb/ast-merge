@@ -100,6 +100,14 @@ module Ast
         @lines
       end
 
+      # Set content from a string (splits on newlines).
+      # Used when region substitution replaces the merged content.
+      #
+      # @param value [String] The new content
+      def content=(value)
+        @lines = value.to_s.split("\n", -1)
+      end
+
       # Get content as a string (useful for debugging and file output).
       #
       # @return [String] Content as string joined with newlines

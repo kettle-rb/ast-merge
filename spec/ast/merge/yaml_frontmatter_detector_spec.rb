@@ -223,4 +223,47 @@ RSpec.describe Ast::Merge::YamlFrontmatterDetector do
       }.to raise_error(NotImplementedError, /overrides detect_all/)
     end
   end
+
+  describe "line calculation edge cases" do
+    context "when content is not empty and doesn't end with newline" do
+      let(:source) do
+        "---\ntitle: test\n---\nBody"
+      end
+
+      it "correctly calculates end_line for non-empty content" do
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+        expect(regions.first.content).to eq("title: test\n")
+        # Line 1: ---, Line 2: title: test, Line 3: ---
+        expect(regions.first.start_line).to eq(1)
+        expect(regions.first.end_line).to eq(3)
+      end
+    end
+
+    context "when full match does not end with newline" do
+      let(:source) do
+        "---\ntitle: test\n---"
+      end
+
+      it "correctly handles match without trailing newline" do
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+        expect(regions.first.end_line).to eq(3)
+      end
+    end
+
+    context "when content has multiple lines without trailing newline" do
+      let(:source) do
+        "---\nline1: a\nline2: b\n---\nBody"
+      end
+
+      it "correctly calculates end_line for multi-line content" do
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+        expect(regions.first.start_line).to eq(1)
+        # Line 1: ---, Line 2: line1, Line 3: line2, Line 4: ---
+        expect(regions.first.end_line).to eq(4)
+      end
+    end
+  end
 end

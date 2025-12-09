@@ -57,7 +57,7 @@ RSpec.describe Ast::Merge::SmartMergerBase do
         @content
       end
 
-      def statistics
+      def decision_summary
         {lines: @lines.size}
       end
     end
@@ -331,184 +331,14 @@ RSpec.describe Ast::Merge::SmartMergerBase do
     end
   end
 
-  describe "#merge_with_debug with various result types" do
-    context "when result has decision_summary instead of statistics" do
-      let(:result_with_decision_summary) do
-        Class.new do
-          attr_accessor :content
+  describe "#merge_with_debug" do
+    it "returns hash with content and statistics" do
+      merger = concrete_merger_class.new("template", "dest")
+      result = merger.merge_with_debug
 
-          def initialize(**options)
-            @content = ""
-          end
-
-          def decision_summary
-            {decisions: 5}
-          end
-
-          def to_s
-            @content
-          end
-        end
-      end
-
-      let(:merger_with_decision_summary_class) do
-        analysis = mock_analysis_class
-        result = result_with_decision_summary
-
-        Class.new(described_class) do
-          define_method(:analysis_class) { analysis }
-          define_method(:result_class) { result }
-          define_method(:default_freeze_token) { "test-merge" }
-
-          private
-
-          define_method(:perform_merge) do
-            @result.content = "merged"
-            @result
-          end
-        end
-      end
-
-      it "uses decision_summary when statistics is not available" do
-        merger = merger_with_decision_summary_class.new("t", "d")
-        result = merger.merge_with_debug
-        expect(result[:statistics]).to eq({decisions: 5})
-      end
-    end
-
-    context "when result has debug_output" do
-      let(:result_with_debug) do
-        Class.new do
-          attr_accessor :content
-
-          def initialize(**options)
-            @content = ""
-          end
-
-          def statistics
-            {}
-          end
-
-          def debug_output
-            "debug info here"
-          end
-
-          def to_s
-            @content
-          end
-        end
-      end
-
-      let(:merger_with_debug_class) do
-        analysis = mock_analysis_class
-        result = result_with_debug
-
-        Class.new(described_class) do
-          define_method(:analysis_class) { analysis }
-          define_method(:result_class) { result }
-          define_method(:default_freeze_token) { "test-merge" }
-
-          private
-
-          define_method(:perform_merge) do
-            @result.content = "merged"
-            @result
-          end
-        end
-      end
-
-      it "includes debug_output when available" do
-        merger = merger_with_debug_class.new("t", "d")
-        result = merger.merge_with_debug
-        expect(result[:debug]).to eq("debug info here")
-      end
-    end
-
-    context "when result has no statistics or decision_summary" do
-      let(:minimal_result_class) do
-        Class.new do
-          attr_accessor :content
-
-          def initialize(**options)
-            @content = ""
-          end
-
-          def to_s
-            @content
-          end
-        end
-      end
-
-      let(:minimal_merger_class) do
-        analysis = mock_analysis_class
-        result = minimal_result_class
-
-        Class.new(described_class) do
-          define_method(:analysis_class) { analysis }
-          define_method(:result_class) { result }
-          define_method(:default_freeze_token) { "test-merge" }
-
-          private
-
-          define_method(:perform_merge) do
-            @result.content = "merged"
-            @result
-          end
-        end
-      end
-
-      it "returns empty hash for statistics" do
-        merger = minimal_merger_class.new("t", "d")
-        result = merger.merge_with_debug
-        expect(result[:statistics]).to eq({})
-        expect(result[:debug]).to be_nil
-      end
-    end
-  end
-
-  describe "#stats with various result types" do
-    context "when result has decision_summary instead of statistics" do
-      let(:result_with_decision_summary) do
-        Class.new do
-          attr_accessor :content
-
-          def initialize(**options)
-            @content = ""
-          end
-
-          def decision_summary
-            {total: 10}
-          end
-
-          def to_s
-            @content
-          end
-        end
-      end
-
-      let(:merger_class_for_stats) do
-        analysis = mock_analysis_class
-        result = result_with_decision_summary
-
-        Class.new(described_class) do
-          define_method(:analysis_class) { analysis }
-          define_method(:result_class) { result }
-          define_method(:default_freeze_token) { "test-merge" }
-
-          private
-
-          define_method(:perform_merge) do
-            @result.content = "merged"
-            @result
-          end
-        end
-      end
-
-      it "falls back to decision_summary" do
-        merger = merger_class_for_stats.new("t", "d")
-        stats = merger.stats
-        expect(stats).to eq({total: 10})
-      end
+      expect(result).to have_key(:content)
+      expect(result).to have_key(:statistics)
+      expect(result.keys).to eq([:content, :statistics])
     end
   end
 
@@ -547,131 +377,129 @@ RSpec.describe Ast::Merge::SmartMergerBase do
   end
 
   describe "update_result_content" do
-    context "when result responds to content=" do
-      it "updates content via content=" do
-        merger = concrete_merger_class.new("t", "d")
-        result = merger.merge_result
+    it "updates content via content=" do
+      merger = concrete_merger_class.new("t", "d")
+      result = merger.merge_result
 
-        merger.send(:update_result_content, result, "new content")
-        expect(result.content).to eq("new content")
+      merger.send(:update_result_content, result, "new content")
+      expect(result.content_string).to eq("new content")
+    end
+  end
+
+  describe "parse error handling" do
+    context "when analysis raises an error" do
+      let(:error_analysis_class) do
+        Class.new do
+          def initialize(content, **options)
+            raise "Parse failed"
+          end
+        end
+      end
+
+      let(:error_merger_class) do
+        analysis = error_analysis_class
+
+        Class.new(described_class) do
+          define_method(:analysis_class) { analysis }
+          define_method(:default_freeze_token) { "test" }
+        end
+      end
+
+      it "raises TemplateParseError" do
+        expect {
+          error_merger_class.new("bad template", "good dest")
+        }.to raise_error(Ast::Merge::TemplateParseError)
       end
     end
+  end
 
-    context "when result responds to set_content" do
-      let(:result_with_set_content) do
+  describe "build_result edge cases" do
+    context "when result_class has zero-arity initializer" do
+      let(:zero_arity_result) do
         Class.new do
-          attr_reader :content
+          attr_accessor :content
 
-          def initialize(**options)
-            @content = ""
+          def initialize
+            @content = "zero arity"
           end
 
-          def set_content(c)
-            @content = c
+          def content_string
+            @content
           end
 
           def to_s
             @content
           end
 
-          def statistics
+          def decision_summary
             {}
           end
         end
       end
 
-      let(:merger_with_set_content_class) do
+      let(:zero_arity_merger_class) do
         analysis = mock_analysis_class
-        result = result_with_set_content
+        result = zero_arity_result
 
         Class.new(described_class) do
           define_method(:analysis_class) { analysis }
           define_method(:result_class) { result }
-          define_method(:default_freeze_token) { "test-merge" }
+          define_method(:default_freeze_token) { "test" }
 
           private
 
           define_method(:perform_merge) do
+            @result.content = "merged"
             @result
           end
         end
       end
 
-      it "updates content via set_content" do
-        merger = merger_with_set_content_class.new("t", "d")
+      it "creates result with no arguments" do
+        merger = zero_arity_merger_class.new("t", "d")
         result = merger.merge_result
-
-        merger.send(:update_result_content, result, "updated")
-        expect(result.content).to eq("updated")
+        expect(result).not_to be_nil
       end
     end
   end
 
-  describe "parse error handling" do
-    context "when analysis is invalid" do
-      let(:invalid_analysis_class) do
-        Class.new do
-          attr_reader :content
-
-          def initialize(content, **options)
-            @content = content
-          end
-
-          def valid?
-            false
-          end
-
-          def errors
-            ["Parse error occurred"]
-          end
+  describe "with aligner_class" do
+    let(:mock_aligner_class) do
+      Class.new do
+        def initialize(template_analysis, dest_analysis, **options)
+          @template_analysis = template_analysis
+          @dest_analysis = dest_analysis
         end
-      end
 
-      let(:invalid_merger_class) do
-        analysis = invalid_analysis_class
-
-        Class.new(described_class) do
-          define_method(:analysis_class) { analysis }
-          define_method(:default_freeze_token) { "test" }
+        def align
+          []
         end
-      end
-
-      it "raises TemplateParseError when template analysis is invalid" do
-        expect {
-          invalid_merger_class.new("bad template", "good dest")
-        }.to raise_error(Ast::Merge::TemplateParseError)
       end
     end
 
-    context "when analysis doesn't respond to errors" do
-      let(:invalid_no_errors_class) do
-        Class.new do
-          attr_reader :content
+    let(:merger_with_aligner_class) do
+      analysis = mock_analysis_class
+      result = mock_result_class
+      aligner = mock_aligner_class
 
-          def initialize(content, **options)
-            @content = content
-          end
+      Class.new(described_class) do
+        define_method(:analysis_class) { analysis }
+        define_method(:result_class) { result }
+        define_method(:aligner_class) { aligner }
+        define_method(:default_freeze_token) { "test" }
 
-          def valid?
-            false
-          end
+        private
+
+        define_method(:perform_merge) do
+          @result.content = "merged with aligner"
+          @result
         end
       end
+    end
 
-      let(:invalid_no_errors_merger_class) do
-        analysis = invalid_no_errors_class
-
-        Class.new(described_class) do
-          define_method(:analysis_class) { analysis }
-          define_method(:default_freeze_token) { "test" }
-        end
-      end
-
-      it "raises error with empty errors array" do
-        expect {
-          invalid_no_errors_merger_class.new("bad", "good")
-        }.to raise_error(Ast::Merge::TemplateParseError)
-      end
+    it "builds aligner when aligner_class is defined" do
+      merger = merger_with_aligner_class.new("t", "d")
+      expect(merger.aligner).not_to be_nil
     end
   end
 end
