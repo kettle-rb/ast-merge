@@ -295,6 +295,141 @@ RSpec.describe Ast::Merge::FencedCodeBlockDetector do
         expect(detector.aliases).to include("ts")
       end
     end
+
+    describe ".python" do
+      let(:detector) { described_class.python }
+
+      it "creates a python detector" do
+        expect(detector.language).to eq("python")
+      end
+
+      it "includes py alias" do
+        expect(detector.aliases).to include("py")
+      end
+
+      it "detects python code blocks" do
+        source = "```python\ndef hello():\n    pass\n```"
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+      end
+
+      it "detects py code blocks" do
+        source = "```py\nprint('hi')\n```"
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+      end
+    end
+
+    describe ".bash" do
+      let(:detector) { described_class.bash }
+
+      it "creates a bash detector" do
+        expect(detector.language).to eq("bash")
+      end
+
+      it "includes sh, shell, and zsh aliases" do
+        expect(detector.aliases).to include("sh")
+        expect(detector.aliases).to include("shell")
+        expect(detector.aliases).to include("zsh")
+      end
+
+      it "detects bash code blocks" do
+        source = "```bash\necho 'hello'\n```"
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+      end
+
+      it "detects shell code blocks" do
+        source = "```shell\nls -la\n```"
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+      end
+    end
+
+    describe ".sql" do
+      let(:detector) { described_class.sql }
+
+      it "creates a sql detector" do
+        expect(detector.language).to eq("sql")
+      end
+
+      it "detects sql code blocks" do
+        source = "```sql\nSELECT * FROM users;\n```"
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+      end
+    end
+
+    describe ".html" do
+      let(:detector) { described_class.html }
+
+      it "creates an html detector" do
+        expect(detector.language).to eq("html")
+      end
+
+      it "detects html code blocks" do
+        source = "```html\n<div>Hello</div>\n```"
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+      end
+    end
+
+    describe ".css" do
+      let(:detector) { described_class.css }
+
+      it "creates a css detector" do
+        expect(detector.language).to eq("css")
+      end
+
+      it "detects css code blocks" do
+        source = "```css\nbody { color: red; }\n```"
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+      end
+    end
+
+    describe ".markdown" do
+      let(:detector) { described_class.markdown }
+
+      it "creates a markdown detector" do
+        expect(detector.language).to eq("markdown")
+      end
+
+      it "includes md alias" do
+        expect(detector.aliases).to include("md")
+      end
+
+      it "detects markdown code blocks" do
+        source = "```markdown\n# Nested heading\n```"
+        regions = detector.detect_all(source)
+        expect(regions.size).to eq(1)
+      end
+    end
+  end
+
+  describe "#inspect" do
+    let(:detector) { described_class.new("ruby", aliases: ["rb"]) }
+
+    it "includes class name" do
+      expect(detector.inspect).to include("FencedCodeBlockDetector")
+    end
+
+    it "includes language" do
+      expect(detector.inspect).to include("language=ruby")
+    end
+
+    it "includes aliases when present" do
+      expect(detector.inspect).to include("aliases=")
+      expect(detector.inspect).to include("rb")
+    end
+
+    context "without aliases" do
+      let(:detector) { described_class.new("sql") }
+
+      it "does not include aliases string" do
+        expect(detector.inspect).not_to include("aliases=")
+      end
+    end
   end
 
   describe "#matches_language?" do

@@ -133,6 +133,13 @@ module Ast
       # @param region_placeholder [String, nil] Custom placeholder prefix for regions.
       #   Default: "<<<AST_MERGE_REGION_"
       #
+      # @param format_options [Hash] Format-specific parser options passed to FileAnalysis.
+      #   These are merged with freeze_token and signature_generator in build_full_analysis_options.
+      #   Examples:
+      #   - Markly: `flags: Markly::FOOTNOTES, extensions: [:table, :strikethrough]`
+      #   - Commonmarker: `options: { parse: { smart: true } }`
+      #   - Prism: (no additional parser options needed)
+      #
       # @raise [Ast::Merge::TemplateParseError] If template has syntax errors
       # @raise [Ast::Merge::DestinationParseError] If destination has syntax errors
       def initialize(

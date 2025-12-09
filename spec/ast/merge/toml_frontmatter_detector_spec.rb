@@ -237,4 +237,12 @@ RSpec.describe Ast::Merge::TomlFrontmatterDetector do
       end
     end
   end
+
+  describe "#build_regions" do
+    it "raises NotImplementedError since detect_all is overridden" do
+      expect {
+        detector.send(:build_regions, "source", [])
+      }.to raise_error(NotImplementedError, /overrides detect_all/)
+    end
+  end
 end

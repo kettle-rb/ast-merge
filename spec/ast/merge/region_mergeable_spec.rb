@@ -299,6 +299,41 @@ RSpec.describe Ast::Merge::RegionMergeable do
     end
   end
 
+  describe "#build_region_configs" do
+    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
+
+    context "when config is already a RegionConfig" do
+      it "passes through unchanged" do
+        config = config_class.new(detector: detector)
+        merger = merger_class.new("t", "d", regions: [config])
+
+        configs = merger.instance_variable_get(:@region_configs)
+        expect(configs.first).to eq(config)
+      end
+    end
+
+    context "when config is an invalid type" do
+      it "raises ArgumentError for string config" do
+        expect {
+          merger_class.new("t", "d", regions: ["invalid"])
+        }.to raise_error(ArgumentError, /Invalid region config/)
+      end
+
+      it "raises ArgumentError for integer config" do
+        expect {
+          merger_class.new("t", "d", regions: [123])
+        }.to raise_error(ArgumentError, /Invalid region config/)
+      end
+
+      it "raises ArgumentError for array config" do
+        expect {
+          merger_class.new("t", "d", regions: [[detector]])
+        }.to raise_error(ArgumentError, /Invalid region config/)
+      end
+    end
+  end
+
   describe "ExtractedRegion struct" do
     let(:struct_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
     let(:region) do

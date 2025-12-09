@@ -187,4 +187,148 @@ RSpec.describe Ast::Merge::Region do
       expect(r1).to eq(r2)
     end
   end
+
+  describe "#line_count" do
+    it "returns 1 for single-line region" do
+      region = described_class.new(
+        type: :single,
+        content: "one line",
+        start_line: 5,
+        end_line: 5,
+        delimiters: nil,
+        metadata: {},
+      )
+      expect(region.line_count).to eq(1)
+    end
+
+    it "returns correct count for multi-line region" do
+      region = described_class.new(
+        type: :multi,
+        content: "line1\nline2\nline3",
+        start_line: 10,
+        end_line: 14,
+        delimiters: ["---", "---"],
+        metadata: {},
+      )
+      expect(region.line_count).to eq(5)
+    end
+  end
+
+  describe "#contains_line?" do
+    subject(:region) do
+      described_class.new(
+        type: :block,
+        content: "content",
+        start_line: 5,
+        end_line: 10,
+        delimiters: nil,
+        metadata: {},
+      )
+    end
+
+    it "returns true for start_line" do
+      expect(region.contains_line?(5)).to be true
+    end
+
+    it "returns true for end_line" do
+      expect(region.contains_line?(10)).to be true
+    end
+
+    it "returns true for middle line" do
+      expect(region.contains_line?(7)).to be true
+    end
+
+    it "returns false for line before region" do
+      expect(region.contains_line?(4)).to be false
+    end
+
+    it "returns false for line after region" do
+      expect(region.contains_line?(11)).to be false
+    end
+  end
+
+  describe "#overlaps?" do
+    subject(:region) do
+      described_class.new(
+        type: :block,
+        content: "content",
+        start_line: 10,
+        end_line: 20,
+        delimiters: nil,
+        metadata: {},
+      )
+    end
+
+    it "returns true when other starts inside this region" do
+      other = described_class.new(
+        type: :other,
+        content: "c",
+        start_line: 15,
+        end_line: 25,
+        delimiters: nil,
+        metadata: {},
+      )
+      expect(region.overlaps?(other)).to be true
+    end
+
+    it "returns true when other ends inside this region" do
+      other = described_class.new(
+        type: :other,
+        content: "c",
+        start_line: 5,
+        end_line: 15,
+        delimiters: nil,
+        metadata: {},
+      )
+      expect(region.overlaps?(other)).to be true
+    end
+
+    it "returns true when other contains this region" do
+      other = described_class.new(
+        type: :other,
+        content: "c",
+        start_line: 5,
+        end_line: 25,
+        delimiters: nil,
+        metadata: {},
+      )
+      expect(region.overlaps?(other)).to be true
+    end
+
+    it "returns true when this region contains other" do
+      other = described_class.new(
+        type: :other,
+        content: "c",
+        start_line: 12,
+        end_line: 18,
+        delimiters: nil,
+        metadata: {},
+      )
+      expect(region.overlaps?(other)).to be true
+    end
+
+    it "returns false when other is completely before" do
+      other = described_class.new(
+        type: :other,
+        content: "c",
+        start_line: 1,
+        end_line: 5,
+        delimiters: nil,
+        metadata: {},
+      )
+      expect(region.overlaps?(other)).to be false
+    end
+
+    it "returns false when other is completely after" do
+      other = described_class.new(
+        type: :other,
+        content: "c",
+        start_line: 25,
+        end_line: 30,
+        delimiters: nil,
+        metadata: {},
+      )
+      expect(region.overlaps?(other)).to be false
+    end
+  end
 end

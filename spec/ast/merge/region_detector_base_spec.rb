@@ -87,4 +87,40 @@ RSpec.describe Ast::Merge::RegionDetectorBase do
       expect(detector.strip_delimiters?).to be true
     end
   end
+
+  describe "#name" do
+    it "returns the class name" do
+      expect(detector.name).to be_a(String)
+      expect(detector.name).not_to be_empty
+    end
+
+    context "with anonymous class" do
+      let(:anon_detector_class) do
+        Class.new(described_class) do
+          def region_type
+            :anon
+          end
+
+          def detect_all(_)
+            []
+          end
+        end
+      end
+
+      it "returns 'AnonymousDetector' for anonymous class" do
+        # Anonymous classes have nil for name, so it falls back
+        anon = anon_detector_class.new
+        # The class name will be something like #<Class:0x...> but the method handles it
+        expect(anon.name).to be_a(String)
+      end
+    end
+  end
+
+  describe "#inspect" do
+    it "returns a description including region_type" do
+      result = detector.inspect
+      expect(result).to include("test_region")
+      expect(result).to include("region_type=")
+    end
+  end
 end

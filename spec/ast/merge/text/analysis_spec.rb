@@ -159,4 +159,13 @@ RSpec.describe Ast::Merge::Text::TextAnalysis do
       expect(analysis.fallthrough_node?("not a node")).to be false
     end
   end
+
+  describe "#freeze_marker? edge cases" do
+    it "returns false for invalid marker type" do
+      analysis = described_class.new("test")
+      # Test with an unrecognized type symbol
+      result = analysis.send(:freeze_marker?, "# text-merge:freeze", :invalid_type)
+      expect(result).to be false
+    end
+  end
 end
