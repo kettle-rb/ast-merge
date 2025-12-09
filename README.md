@@ -60,14 +60,14 @@ Ast::Merge is **not typically used directly** - instead, use one of the format-s
 
 | Gem | Format | Parser | Description |
 |-----|--------|--------|-------------|
-| [ast-merge][ast-merge] | N/A | N/A | Shared infrastructure for all `*-merge` gems |
+| [ast-merge][ast-merge] | Text | internal | Shared infrastructure for all `*-merge` gems |
 | [prism-merge][prism-merge] | Ruby | [Prism][prism] | Smart merge for Ruby source files |
 | [psych-merge][psych-merge] | YAML | [Psych][psych] | Smart merge for YAML files |
 | [json-merge][json-merge] | JSON | [tree-sitter-json][ts-json] | Smart merge for JSON files |
-| [jsonc-merge][jsonc-merge] | JSONC | [tree-sitter-json][ts-json] | Smart merge for JSON with Comments |
+| [jsonc-merge][jsonc-merge] | JSONC | [tree-sitter-jsonc][ts-jsonc] | ⚠️ Proof of concept; Smart merge for JSON with Comments |
 | [bash-merge][bash-merge] | Bash | [tree-sitter-bash][ts-bash] | Smart merge for Bash scripts |
 | [rbs-merge][rbs-merge] | RBS | [RBS][rbs] | Smart merge for Ruby type signatures |
-| [dotenv-merge][dotenv-merge] | Dotenv | [dotenv][dotenv] | Smart merge for `.env` files |
+| [dotenv-merge][dotenv-merge] | Dotenv | internal ([dotenv][dotenv]) | Smart merge for `.env` files |
 | [toml-merge][toml-merge] | TOML | [tree-sitter-toml][ts-toml] | Smart merge for TOML files |
 | [markly-merge][markly-merge] | Markdown | [Markly][markly] | Smart merge for Markdown (CommonMark via libcmark-gfm) |
 | [commonmarker-merge][commonmarker-merge] | Markdown | [Commonmarker][commonmarker] | Smart merge for Markdown (CommonMark via comrak) |
@@ -86,6 +86,7 @@ Ast::Merge is **not typically used directly** - instead, use one of the format-s
 [prism]: https://github.com/ruby/prism
 [psych]: https://github.com/ruby/psych
 [ts-json]: https://github.com/tree-sitter/tree-sitter-json
+[ts-jsonc]: https://gitlab.com/WhyNotHugo/tree-sitter-jsonc
 [ts-bash]: https://github.com/tree-sitter/tree-sitter-bash
 [ts-toml]: https://github.com/tree-sitter-grammars/tree-sitter-toml
 [rbs]: https://github.com/ruby/rbs
