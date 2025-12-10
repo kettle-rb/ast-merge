@@ -2,6 +2,10 @@
 /pkg/
 /tmp/
 *.gem
+/vendor/*merge
+/vendor/*dev
+/vendor/*gem
+/vendor/*jem
 
 # Bundler
 /vendor/bundle/
