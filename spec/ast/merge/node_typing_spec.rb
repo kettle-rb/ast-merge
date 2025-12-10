@@ -410,7 +410,7 @@ RSpec.describe Ast::Merge::NodeTyping do
         double("NamespacedNode", class: node_class, name: :test)
       end
 
-      it "returns nil from find_splitter when no strategy matches" do
+      it "returns nil from find_typing_callable when no strategy matches" do
         config = {
           # None of these will match MyModule::MyNode
           OtherNode: ->(node) { described_class.with_merge_type(node, :other) },
@@ -422,6 +422,29 @@ RSpec.describe Ast::Merge::NodeTyping do
 
         expect(result).to eq(namespaced_node)
         expect(described_class.typed_node?(result)).to be false
+      end
+    end
+
+    context "with string key lookup" do
+      let(:string_key_node) do
+        node_class = Class.new do
+          def self.name
+            "StringKeyNode"
+          end
+        end
+        double("StringKeyNode", class: node_class)
+      end
+
+      it "matches config with string type_key" do
+        config = {
+          # Use string key matching the type_key derived from class
+          "StringKeyNode" => ->(node) { described_class.with_merge_type(node, :string_match) }
+        }
+
+        result = described_class.process(string_key_node, config)
+
+        expect(described_class.typed_node?(result)).to be true
+        expect(result.merge_type).to eq(:string_match)
       end
     end
 

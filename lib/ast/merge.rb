@@ -149,6 +149,7 @@ module Ast
     autoload :Region, "ast/merge/region"
     autoload :RegionDetectorBase, "ast/merge/region_detector_base"
     autoload :RegionMergeable, "ast/merge/region_mergeable"
+    autoload :SectionTyping, "ast/merge/section_typing"
     autoload :SmartMergerBase, "ast/merge/smart_merger_base"
     autoload :Text, "ast/merge/text"
     autoload :TomlFrontmatterDetector, "ast/merge/toml_frontmatter_detector"

@@ -6,6 +6,8 @@ require_relative "text/analysis"
 require_relative "text/merge_result"
 require_relative "text/conflict_resolver"
 require_relative "text/smart_merger"
+require_relative "text/section"
+require_relative "text/section_splitter"
 
 module Ast
   module Merge

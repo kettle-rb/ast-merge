@@ -167,9 +167,10 @@ module Ast
       #
       # @param default_freeze_token [String, nil] Default freeze token to use if none specified
       # @return [Hash] Configuration as keyword arguments hash
+      # @note Uses :preference key to match SmartMerger's API (not :signature_match_preference)
       def to_h(default_freeze_token: nil)
         result = {
-          signature_match_preference: @signature_match_preference,
+          preference: @signature_match_preference,
           add_template_only_nodes: @add_template_only_nodes
         }
         result[:freeze_token] = @freeze_token || default_freeze_token if @freeze_token || default_freeze_token
