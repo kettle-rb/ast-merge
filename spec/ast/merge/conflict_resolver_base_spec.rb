@@ -367,26 +367,6 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
       end
     end
 
-    describe "#preference alias explicit coverage" do
-      it "returns preference via preference alias when defined" do
-        klass = Class.new(described_class) do
-          def preference
-            @preference
-          end
-        end
-
-        resolver = klass.new(
-          strategy: :boundary,
-          preference: :template,
-          template_analysis: template_analysis,
-          dest_analysis: dest_analysis
-        )
-
-        expect(resolver.respond_to?(:preference)).to be true
-        expect(resolver.preference).to eq(resolver.preference)
-      end
-    end
-
     describe "#preference_for_node" do
       context "with Symbol preference" do
         let(:resolver) do
