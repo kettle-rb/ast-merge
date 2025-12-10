@@ -11,7 +11,7 @@ RSpec.describe Ast::Merge::MergerConfig do
   describe ".destination_wins" do
     it "creates a config with :destination preference" do
       config = described_class.destination_wins
-      expect(config.signature_match_preference).to eq(:destination)
+      expect(config.preference).to eq(:destination)
     end
 
     it "sets add_template_only_nodes to false" do
@@ -40,7 +40,7 @@ RSpec.describe Ast::Merge::MergerConfig do
   describe ".template_wins" do
     it "creates a config with :template preference" do
       config = described_class.template_wins
-      expect(config.signature_match_preference).to eq(:template)
+      expect(config.preference).to eq(:template)
     end
 
     it "sets add_template_only_nodes to true" do
@@ -67,31 +67,31 @@ RSpec.describe Ast::Merge::MergerConfig do
   end
 
   describe "Hash-based preference" do
-    it "accepts a Hash for signature_match_preference" do
+    it "accepts a Hash for preference" do
       config = described_class.new(
-        signature_match_preference: { default: :destination, lint_gem: :template }
+        preference: { default: :destination, lint_gem: :template }
       )
-      expect(config.signature_match_preference).to eq({ default: :destination, lint_gem: :template })
+      expect(config.preference).to eq({ default: :destination, lint_gem: :template })
     end
 
     describe "#prefer_destination?" do
       it "returns true when default is :destination" do
         config = described_class.new(
-          signature_match_preference: { default: :destination, other: :template }
+          preference: { default: :destination, other: :template }
         )
         expect(config.prefer_destination?).to be true
       end
 
       it "returns false when default is :template" do
         config = described_class.new(
-          signature_match_preference: { default: :template }
+          preference: { default: :template }
         )
         expect(config.prefer_destination?).to be false
       end
 
       it "returns true when :default key is missing (implicit :destination)" do
         config = described_class.new(
-          signature_match_preference: { lint_gem: :template }
+          preference: { lint_gem: :template }
         )
         expect(config.prefer_destination?).to be true
       end
@@ -100,14 +100,14 @@ RSpec.describe Ast::Merge::MergerConfig do
     describe "#prefer_template?" do
       it "returns true when default is :template" do
         config = described_class.new(
-          signature_match_preference: { default: :template }
+          preference: { default: :template }
         )
         expect(config.prefer_template?).to be true
       end
 
       it "returns false when default is :destination" do
         config = described_class.new(
-          signature_match_preference: { default: :destination }
+          preference: { default: :destination }
         )
         expect(config.prefer_template?).to be false
       end
@@ -116,7 +116,7 @@ RSpec.describe Ast::Merge::MergerConfig do
     describe "#preference_for" do
       let(:config) do
         described_class.new(
-          signature_match_preference: {
+          preference: {
             default: :destination,
             lint_gem: :template,
             test_gem: :destination
@@ -135,14 +135,14 @@ RSpec.describe Ast::Merge::MergerConfig do
 
       it "returns :destination when no :default key and unknown type" do
         config = described_class.new(
-          signature_match_preference: { lint_gem: :template }
+          preference: { lint_gem: :template }
         )
         expect(config.preference_for(:unknown_type)).to eq(:destination)
       end
 
       context "with Symbol preference" do
         it "returns the symbol preference for any type" do
-          config = described_class.new(signature_match_preference: :template)
+          config = described_class.new(preference: :template)
           expect(config.preference_for(:any_type)).to eq(:template)
           expect(config.preference_for(:other_type)).to eq(:template)
         end
@@ -152,13 +152,13 @@ RSpec.describe Ast::Merge::MergerConfig do
     describe "#per_type_preference?" do
       it "returns true for Hash preference" do
         config = described_class.new(
-          signature_match_preference: { default: :destination }
+          preference: { default: :destination }
         )
         expect(config.per_type_preference?).to be true
       end
 
       it "returns false for Symbol preference" do
-        config = described_class.new(signature_match_preference: :destination)
+        config = described_class.new(preference: :destination)
         expect(config.per_type_preference?).to be false
       end
     end
@@ -166,7 +166,7 @@ RSpec.describe Ast::Merge::MergerConfig do
     it "raises ArgumentError for invalid Hash values" do
       expect {
         described_class.new(
-          signature_match_preference: { default: :invalid }
+          preference: { default: :invalid }
         )
       }.to raise_error(ArgumentError, /must be :destination or :template/)
     end
@@ -174,7 +174,7 @@ RSpec.describe Ast::Merge::MergerConfig do
     it "raises ArgumentError for non-Symbol Hash keys" do
       expect {
         described_class.new(
-          signature_match_preference: { "string_key" => :destination }
+          preference: { "string_key" => :destination }
         )
       }.to raise_error(ArgumentError, /keys must be Symbols/)
     end
@@ -202,7 +202,7 @@ RSpec.describe Ast::Merge::MergerConfig do
     it "preserves node_typing in #with" do
       typing = { CallNode: ->(node) { node } }
       config = described_class.new(node_typing: typing)
-      new_config = config.with(signature_match_preference: :template)
+      new_config = config.with(preference: :template)
       expect(new_config.node_typing).to eq(typing)
     end
   end

@@ -10,17 +10,17 @@ module Ast
     #
     # @example Creating a config with defaults
     #   config = MergerConfig.new
-    #   config.signature_match_preference  # => :destination
+    #   config.preference  # => :destination
     #   config.add_template_only_nodes     # => false
     #
     # @example Creating a config for template-wins merge
     #   config = MergerConfig.new(
-    #     signature_match_preference: :template,
+    #     preference: :template,
     #     add_template_only_nodes: true
     #   )
     #
     # @example Using with SmartMerger
-    #   config = MergerConfig.new(signature_match_preference: :template)
+    #   config = MergerConfig.new(preference: :template)
     #   merger = SmartMerger.new(template, dest, **config.to_h)
     #
     # @example Per-node-type preferences with node_typing
@@ -38,13 +38,13 @@ module Ast
     #
     #   config = MergerConfig.new(
     #     node_typing: node_typing,
-    #     signature_match_preference: {
+    #     preference: {
     #       default: :destination,
     #       lint_gem: :template  # Use template versions for lint gems
     #     }
     #   )
     class MergerConfig
-      # Valid values for signature_match_preference (when using Symbol)
+      # Valid values for preference (when using Symbol)
       VALID_PREFERENCES = %i[destination template].freeze
 
       # @return [Symbol, Hash] Which version to prefer when nodes have matching signatures.
@@ -56,7 +56,7 @@ module Ast
       #   - Values are :destination or :template
       #   - Use :default key for fallback preference
       #   @example { default: :destination, lint_gem: :template, config_call: :template }
-      attr_reader :signature_match_preference
+      attr_reader :preference
 
       # @return [Boolean] Whether to add nodes that only exist in template
       #   - false (default) - Skip template-only nodes
@@ -76,7 +76,7 @@ module Ast
 
       # Initialize a new MergerConfig.
       #
-      # @param signature_match_preference [Symbol, Hash] Which version to prefer on match.
+      # @param preference [Symbol, Hash] Which version to prefer on match.
       #   As Symbol: :destination or :template
       #   As Hash: Maps node types/merge_types to preferences
       #     @example { default: :destination, lint_gem: :template }
@@ -85,19 +85,19 @@ module Ast
       # @param signature_generator [Proc, nil] Custom signature generator
       # @param node_typing [Hash{Symbol,String => #call}, nil] Node typing configuration
       #
-      # @raise [ArgumentError] If signature_match_preference is invalid
+      # @raise [ArgumentError] If preference is invalid
       # @raise [ArgumentError] If node_typing is invalid
       def initialize(
-        signature_match_preference: :destination,
+        preference: :destination,
         add_template_only_nodes: false,
         freeze_token: nil,
         signature_generator: nil,
         node_typing: nil
       )
-        validate_preference!(signature_match_preference)
+        validate_preference!(preference)
         NodeTyping.validate!(node_typing) if node_typing
 
-        @signature_match_preference = signature_match_preference
+        @preference = preference
         @add_template_only_nodes = add_template_only_nodes
         @freeze_token = freeze_token
         @signature_generator = signature_generator
@@ -109,10 +109,10 @@ module Ast
       #
       # @return [Boolean] true if destination preference
       def prefer_destination?
-        if @signature_match_preference.is_a?(Hash)
-          @signature_match_preference.fetch(:default, :destination) == :destination
+        if @preference.is_a?(Hash)
+          @preference.fetch(:default, :destination) == :destination
         else
-          @signature_match_preference == :destination
+          @preference == :destination
         end
       end
 
@@ -121,38 +121,38 @@ module Ast
       #
       # @return [Boolean] true if template preference
       def prefer_template?
-        if @signature_match_preference.is_a?(Hash)
-          @signature_match_preference.fetch(:default, :destination) == :template
+        if @preference.is_a?(Hash)
+          @preference.fetch(:default, :destination) == :template
         else
-          @signature_match_preference == :template
+          @preference == :template
         end
       end
 
       # Get the preference for a specific node type or merge_type.
       #
-      # When signature_match_preference is a Hash, looks up the preference
+      # When preference is a Hash, looks up the preference
       # for the given type, falling back to :default, then to :destination.
       #
       # @param type [Symbol, nil] The node type or merge_type to look up
       # @return [Symbol] :destination or :template
       #
       # @example With Symbol preference
-      #   config = MergerConfig.new(signature_match_preference: :template)
+      #   config = MergerConfig.new(preference: :template)
       #   config.preference_for(:any_type)  # => :template
       #
       # @example With Hash preference
       #   config = MergerConfig.new(
-      #     signature_match_preference: { default: :destination, lint_gem: :template }
+      #     preference: { default: :destination, lint_gem: :template }
       #   )
       #   config.preference_for(:lint_gem)   # => :template
       #   config.preference_for(:other_type) # => :destination
       def preference_for(type)
-        if @signature_match_preference.is_a?(Hash)
-          @signature_match_preference.fetch(type) do
-            @signature_match_preference.fetch(:default, :destination)
+        if @preference.is_a?(Hash)
+          @preference.fetch(type) do
+            @preference.fetch(:default, :destination)
           end
         else
-          @signature_match_preference
+          @preference
         end
       end
 
@@ -160,17 +160,17 @@ module Ast
       #
       # @return [Boolean] true if preference is a Hash
       def per_type_preference?
-        @signature_match_preference.is_a?(Hash)
+        @preference.is_a?(Hash)
       end
 
       # Convert config to a hash suitable for passing to SmartMerger.
       #
       # @param default_freeze_token [String, nil] Default freeze token to use if none specified
       # @return [Hash] Configuration as keyword arguments hash
-      # @note Uses :preference key to match SmartMerger's API (not :signature_match_preference)
+      # @note Uses :preference key to match SmartMerger's API (not :preference)
       def to_h(default_freeze_token: nil)
         result = {
-          preference: @signature_match_preference,
+          preference: @preference,
           add_template_only_nodes: @add_template_only_nodes
         }
         result[:freeze_token] = @freeze_token || default_freeze_token if @freeze_token || default_freeze_token
@@ -185,7 +185,7 @@ module Ast
       # @return [MergerConfig] New config with updated values
       def with(**options)
         self.class.new(
-          signature_match_preference: options.fetch(:signature_match_preference, @signature_match_preference),
+          preference: options.fetch(:preference, @preference),
           add_template_only_nodes: options.fetch(:add_template_only_nodes, @add_template_only_nodes),
           freeze_token: options.fetch(:freeze_token, @freeze_token),
           signature_generator: options.fetch(:signature_generator, @signature_generator),
@@ -202,7 +202,7 @@ module Ast
       # @return [MergerConfig] Config preset
       def self.destination_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
         new(
-          signature_match_preference: :destination,
+          preference: :destination,
           add_template_only_nodes: false,
           freeze_token: freeze_token,
           signature_generator: signature_generator,
@@ -219,7 +219,7 @@ module Ast
       # @return [MergerConfig] Config preset
       def self.template_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
         new(
-          signature_match_preference: :template,
+          preference: :template,
           add_template_only_nodes: true,
           freeze_token: freeze_token,
           signature_generator: signature_generator,
@@ -234,7 +234,7 @@ module Ast
           validate_hash_preference!(preference)
         elsif !VALID_PREFERENCES.include?(preference)
           raise ArgumentError,
-                "Invalid signature_match_preference: #{preference.inspect}. " \
+                "Invalid preference: #{preference.inspect}. " \
                 "Must be one of: #{VALID_PREFERENCES.map(&:inspect).join(", ")} or a Hash"
         end
       end
@@ -243,12 +243,12 @@ module Ast
         preference.each do |key, value|
           unless key.is_a?(Symbol)
             raise ArgumentError,
-                  "signature_match_preference Hash keys must be Symbols, got #{key.class} for #{key.inspect}"
+                  "preference Hash keys must be Symbols, got #{key.class} for #{key.inspect}"
           end
 
           unless VALID_PREFERENCES.include?(value)
             raise ArgumentError,
-                  "signature_match_preference Hash values must be :destination or :template, " \
+                  "preference Hash values must be :destination or :template, " \
                   "got #{value.inspect} for key #{key.inspect}"
           end
         end

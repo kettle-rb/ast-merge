@@ -364,7 +364,7 @@ using the appropriate pattern for each format:
 ### Per-Node-Type Preference with `node_typing`
 
 The `node_typing` option allows you to customize merge behavior on a per-node-type basis.
-When combined with a Hash-based `signature_match_preference`, you can specify different merge
+When combined with a Hash-based `preference`, you can specify different merge
 preferences for different types of nodes (e.g., prefer template for linter configs but destination for everything else).
 
 #### How It Works
@@ -439,7 +439,7 @@ and document your intention for future per-type customization:
 merger = MyMerger.new(
   template_content,
   dest_content,
-  signature_match_preference: { default: :destination }
+  preference: { default: :destination }
 )
 ```
 

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "section"
-
 module Ast
   module Merge
     module Text

@@ -9,11 +9,11 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
   let(:dest_analysis) { Ast::Merge::Text::TextAnalysis.new(dest_source) }
 
   describe "#initialize" do
-    it "accepts signature_match_preference option" do
+    it "accepts preference option" do
       resolver = described_class.new(
         template_analysis,
         dest_analysis,
-        signature_match_preference: :template
+        preference: :template
       )
 
       expect(resolver.instance_variable_get(:@preference)).to eq(:template)
@@ -123,7 +123,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
       let(:template_source) { "  Line one  \nLine two" }
       let(:dest_source) { "Line one\n  Line two  " }
 
-      context "with signature_match_preference: :destination (default)" do
+      context "with preference: :destination (default)" do
         it "uses destination content" do
           resolver = described_class.new(template_analysis, dest_analysis)
           result = Ast::Merge::Text::MergeResult.new
@@ -146,12 +146,12 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
         end
       end
 
-      context "with signature_match_preference: :template" do
+      context "with preference: :template" do
         it "uses template content" do
           resolver = described_class.new(
             template_analysis,
             dest_analysis,
-            signature_match_preference: :template
+            preference: :template
           )
           result = Ast::Merge::Text::MergeResult.new
 
@@ -166,7 +166,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
           resolver = described_class.new(
             template_analysis,
             dest_analysis,
-            signature_match_preference: :template
+            preference: :template
           )
           result = Ast::Merge::Text::MergeResult.new
 

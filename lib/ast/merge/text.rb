@@ -1,14 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "text/word_node"
-require_relative "text/line_node"
-require_relative "text/analysis"
-require_relative "text/merge_result"
-require_relative "text/conflict_resolver"
-require_relative "text/smart_merger"
-require_relative "text/section"
-require_relative "text/section_splitter"
-
 module Ast
   module Merge
     # Text-based AST module for ast-merge.
@@ -29,6 +20,16 @@ module Ast
     module Text
       # Default freeze token for text files
       DEFAULT_FREEZE_TOKEN = "text-merge"
+
+      autoload :WordNode, "ast/merge/text/word_node"
+      autoload :LineNode, "ast/merge/text/line_node"
+      autoload :TextAnalysis, "ast/merge/text/analysis"
+      autoload :MergeResult, "ast/merge/text/merge_result"
+      autoload :ConflictResolver, "ast/merge/text/conflict_resolver"
+      autoload :SmartMerger, "ast/merge/text/smart_merger"
+      autoload :Section, "ast/merge/text/section"
+      autoload :SectionSplitter, "ast/merge/text/section_splitter"
+      autoload :LineSectionSplitter, "ast/merge/text/section_splitter"
     end
   end
 end

@@ -103,14 +103,14 @@ RSpec.describe Ast::Merge::SmartMergerBase do
     it "creates a merger with default options" do
       merger = concrete_merger_class.new(template, dest)
 
-      expect(merger.signature_match_preference).to eq(:destination)
+      expect(merger.preference).to eq(:destination)
       expect(merger.add_template_only_nodes).to be false
       expect(merger.freeze_token).to eq("test-merge")
     end
 
-    it "accepts custom signature_match_preference" do
-      merger = concrete_merger_class.new(template, dest, signature_match_preference: :template)
-      expect(merger.signature_match_preference).to eq(:template)
+    it "accepts custom preference" do
+      merger = concrete_merger_class.new(template, dest, preference: :template)
+      expect(merger.preference).to eq(:template)
     end
 
     it "accepts custom add_template_only_nodes" do

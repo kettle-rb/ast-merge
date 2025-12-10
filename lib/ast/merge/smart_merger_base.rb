@@ -12,7 +12,7 @@ module Ast
     #
     # All SmartMerger implementations support these common options:
     #
-    # - `signature_match_preference` - `:destination` (default) or `:template`
+    # - `preference` - `:destination` (default) or `:template`
     # - `add_template_only_nodes` - `false` (default) or `true`
     # - `signature_generator` - Custom signature proc or `nil`
     # - `freeze_token` - Token for freeze block markers
@@ -81,7 +81,7 @@ module Ast
       attr_reader :result
 
       # @return [Symbol, Hash] Preference for signature matches
-      attr_reader :signature_match_preference
+      attr_reader :preference
 
       # @return [Boolean] Whether to add template-only nodes
       attr_reader :add_template_only_nodes
@@ -106,7 +106,7 @@ module Ast
       #   - `nil` to indicate the node should have no signature
       #   - The original node to fall through to default signature computation
       #
-      # @param signature_match_preference [Symbol, Hash] Controls which version to use
+      # @param preference [Symbol, Hash] Controls which version to use
       #   when nodes have matching signatures but different content:
       #   - `:destination` (default) - Use destination version (preserves customizations)
       #   - `:template` - Use template version (applies updates)
@@ -146,7 +146,7 @@ module Ast
         template_content,
         dest_content,
         signature_generator: nil,
-        signature_match_preference: :destination,
+        preference: :destination,
         add_template_only_nodes: false,
         freeze_token: nil,
         match_refiner: nil,
@@ -157,7 +157,7 @@ module Ast
         @template_content = template_content
         @dest_content = dest_content
         @signature_generator = signature_generator
-        @signature_match_preference = signature_match_preference
+        @preference = preference
         @add_template_only_nodes = add_template_only_nodes
         @freeze_token = freeze_token || default_freeze_token
         @match_refiner = match_refiner
@@ -385,7 +385,7 @@ module Ast
         return nil unless resolver_class
 
         options = {
-          preference: @signature_match_preference,
+          preference: @preference,
           template_analysis: @template_analysis,
           dest_analysis: @dest_analysis,
           add_template_only_nodes: @add_template_only_nodes,

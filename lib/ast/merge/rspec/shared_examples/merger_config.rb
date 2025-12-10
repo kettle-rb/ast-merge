@@ -29,8 +29,8 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
   describe "default configuration" do
     let(:config) { build_merger_config.call }
 
-    it "defaults signature_match_preference to :destination" do
-      expect(config.signature_match_preference).to eq(:destination)
+    it "defaults preference to :destination" do
+      expect(config.preference).to eq(:destination)
     end
 
     it "defaults add_template_only_nodes to false" do
@@ -47,9 +47,9 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
   end
 
   describe "custom configuration" do
-    it "accepts signature_match_preference: :template" do
-      config = build_merger_config.call(signature_match_preference: :template)
-      expect(config.signature_match_preference).to eq(:template)
+    it "accepts preference: :template" do
+      config = build_merger_config.call(preference: :template)
+      expect(config.preference).to eq(:template)
     end
 
     it "accepts add_template_only_nodes: true" do
@@ -70,23 +70,23 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
   end
 
   describe "validation" do
-    it "raises ArgumentError for invalid signature_match_preference" do
-      expect { build_merger_config.call(signature_match_preference: :invalid) }
+    it "raises ArgumentError for invalid preference" do
+      expect { build_merger_config.call(preference: :invalid) }
         .to raise_error(ArgumentError, /invalid.*preference/i)
     end
 
     it "accepts :destination preference" do
-      expect { build_merger_config.call(signature_match_preference: :destination) }
+      expect { build_merger_config.call(preference: :destination) }
         .not_to raise_error
     end
 
     it "accepts :template preference" do
-      expect { build_merger_config.call(signature_match_preference: :template) }
+      expect { build_merger_config.call(preference: :template) }
         .not_to raise_error
     end
 
     it "accepts Hash preference" do
-      expect { build_merger_config.call(signature_match_preference: { default: :destination }) }
+      expect { build_merger_config.call(preference: { default: :destination }) }
         .not_to raise_error
     end
 
@@ -98,24 +98,24 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
 
   describe "#prefer_destination?" do
     it "returns true when preference is :destination" do
-      config = build_merger_config.call(signature_match_preference: :destination)
+      config = build_merger_config.call(preference: :destination)
       expect(config.prefer_destination?).to be true
     end
 
     it "returns false when preference is :template" do
-      config = build_merger_config.call(signature_match_preference: :template)
+      config = build_merger_config.call(preference: :template)
       expect(config.prefer_destination?).to be false
     end
   end
 
   describe "#prefer_template?" do
     it "returns true when preference is :template" do
-      config = build_merger_config.call(signature_match_preference: :template)
+      config = build_merger_config.call(preference: :template)
       expect(config.prefer_template?).to be true
     end
 
     it "returns false when preference is :destination" do
-      config = build_merger_config.call(signature_match_preference: :destination)
+      config = build_merger_config.call(preference: :destination)
       expect(config.prefer_template?).to be false
     end
   end
@@ -123,13 +123,13 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
   describe "#to_h" do
     it "returns a hash with configuration options" do
       config = build_merger_config.call(
-        signature_match_preference: :template,
+        preference: :template,
         add_template_only_nodes: true
       )
       hash = config.to_h
 
       expect(hash).to be_a(Hash)
-      expect(hash[:signature_match_preference]).to eq(:template)
+      expect(hash[:preference]).to eq(:template)
       expect(hash[:add_template_only_nodes]).to eq(true)
     end
 
@@ -166,19 +166,19 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
 
   describe "#with" do
     it "creates a new config with updated values" do
-      original = build_merger_config.call(signature_match_preference: :destination)
-      updated = original.with(signature_match_preference: :template)
+      original = build_merger_config.call(preference: :destination)
+      updated = original.with(preference: :template)
 
-      expect(original.signature_match_preference).to eq(:destination)
-      expect(updated.signature_match_preference).to eq(:template)
+      expect(original.preference).to eq(:destination)
+      expect(updated.preference).to eq(:template)
     end
 
     it "preserves unmodified values" do
       original = build_merger_config.call(
-        signature_match_preference: :destination,
+        preference: :destination,
         add_template_only_nodes: true
       )
-      updated = original.with(signature_match_preference: :template)
+      updated = original.with(preference: :template)
 
       expect(updated.add_template_only_nodes).to eq(true)
     end
@@ -186,7 +186,7 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
     it "preserves node_typing" do
       typing = { CallNode: ->(_node) { nil } }
       original = build_merger_config.call(node_typing: typing)
-      updated = original.with(signature_match_preference: :template)
+      updated = original.with(preference: :template)
 
       expect(updated.node_typing).to eq(typing)
     end

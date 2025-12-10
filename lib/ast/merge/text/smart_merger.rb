@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "analysis"
-require_relative "conflict_resolver"
-require_relative "merge_result"
-
 module Ast
   module Merge
     module Text
@@ -21,7 +17,7 @@ module Ast
       #   merger = SmartMerger.new(
       #     template_content,
       #     dest_content,
-      #     signature_match_preference: :template,
+      #     preference: :template,
       #     add_template_only_nodes: true
       #   )
       #   result = merger.merge
@@ -59,7 +55,7 @@ module Ast
         #
         # @param template_content [String] Template text content
         # @param dest_content [String] Destination text content
-        # @param signature_match_preference [Symbol] :destination or :template
+        # @param preference [Symbol] :destination or :template
         # @param add_template_only_nodes [Boolean] Whether to add template-only lines
         # @param freeze_token [String] Token for freeze block markers
         # @param signature_generator [Proc, nil] Custom signature generator
@@ -68,7 +64,7 @@ module Ast
         def initialize(
           template_content,
           dest_content,
-          signature_match_preference: :destination,
+          preference: :destination,
           add_template_only_nodes: false,
           freeze_token: DEFAULT_FREEZE_TOKEN,
           signature_generator: nil,
@@ -79,7 +75,7 @@ module Ast
             template_content,
             dest_content,
             signature_generator: signature_generator,
-            signature_match_preference: signature_match_preference,
+            preference: preference,
             add_template_only_nodes: add_template_only_nodes,
             freeze_token: freeze_token,
             regions: regions,
@@ -135,7 +131,7 @@ module Ast
           ConflictResolver.new(
             @template_analysis,
             @dest_analysis,
-            signature_match_preference: @signature_match_preference,
+            preference: @preference,
             add_template_only_nodes: @add_template_only_nodes,
           )
         end

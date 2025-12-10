@@ -42,17 +42,17 @@ RSpec.describe "Text-based AST merge integration" do
     end
   end
 
-  describe "configuration option: signature_match_preference" do
-    context "with signature_match_preference: :template" do
+  describe "configuration option: preference" do
+    context "with preference: :template" do
       it_behaves_like "a reproducible merge", "config_preference_template", {
-        signature_match_preference: :template
+        preference: :template
       }
     end
 
-    context "with signature_match_preference: :destination (default)" do
+    context "with preference: :destination (default)" do
       # This uses fixture 05 which shows destination changes preserved
       it_behaves_like "a reproducible merge", "05_top_level_changed", {
-        signature_match_preference: :destination
+        preference: :destination
       }
     end
   end
@@ -138,9 +138,9 @@ RSpec.describe "Text-based AST merge integration" do
   end
 
   describe "all configuration options combined" do
-    context "with signature_match_preference: :template and add_template_only_nodes: true" do
+    context "with preference: :template and add_template_only_nodes: true" do
       it_behaves_like "a reproducible merge", "config_all_options", {
-        signature_match_preference: :template,
+        preference: :template,
         add_template_only_nodes: true
       }
     end

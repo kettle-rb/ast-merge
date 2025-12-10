@@ -31,10 +31,10 @@ module Ast
     #
     # @example Batch resolution (psych-merge/json-merge style)
     #   class ConflictResolver < Ast::Merge::ConflictResolverBase
-    #     def initialize(template_analysis, dest_analysis, signature_match_preference: :destination)
+    #     def initialize(template_analysis, dest_analysis, preference: :destination)
     #       super(
     #         strategy: :batch,
-    #         preference: signature_match_preference,
+    #         preference: preference,
     #         template_analysis: template_analysis,
     #         dest_analysis: dest_analysis
     #       )
@@ -48,10 +48,10 @@ module Ast
     #
     # @example Boundary resolution (prism-merge style)
     #   class ConflictResolver < Ast::Merge::ConflictResolverBase
-    #     def initialize(template_analysis, dest_analysis, signature_match_preference: :destination)
+    #     def initialize(template_analysis, dest_analysis, preference: :destination)
     #       super(
     #         strategy: :boundary,
-    #         preference: signature_match_preference,
+    #         preference: preference,
     #         template_analysis: template_analysis,
     #         dest_analysis: dest_analysis
     #       )

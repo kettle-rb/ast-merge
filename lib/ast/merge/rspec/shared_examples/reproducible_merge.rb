@@ -42,9 +42,9 @@
 #   let(:file_extension) { "" }
 #
 # @example With merge options
-#   context "with signature_match_preference: :template" do
+#   context "with preference: :template" do
 #     it_behaves_like "a reproducible merge", "config_preference_template", {
-#       signature_match_preference: :template
+#       preference: :template
 #     }
 #   end
 #

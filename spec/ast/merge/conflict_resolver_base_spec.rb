@@ -367,10 +367,10 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
       end
     end
 
-    describe "#signature_match_preference alias explicit coverage" do
-      it "returns preference via signature_match_preference alias when defined" do
+    describe "#preference alias explicit coverage" do
+      it "returns preference via preference alias when defined" do
         klass = Class.new(described_class) do
-          def signature_match_preference
+          def preference
             @preference
           end
         end
@@ -382,8 +382,8 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           dest_analysis: dest_analysis
         )
 
-        expect(resolver.respond_to?(:signature_match_preference)).to be true
-        expect(resolver.signature_match_preference).to eq(resolver.preference)
+        expect(resolver.respond_to?(:preference)).to be true
+        expect(resolver.preference).to eq(resolver.preference)
       end
     end
 

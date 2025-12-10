@@ -20,17 +20,17 @@ module Ast
         #
         # @param template_analysis [TextAnalysis] Analysis of template
         # @param dest_analysis [TextAnalysis] Analysis of destination
-        # @param signature_match_preference [Symbol] :destination or :template
+        # @param preference [Symbol] :destination or :template
         # @param add_template_only_nodes [Boolean] Whether to add template-only lines
         def initialize(
           template_analysis,
           dest_analysis,
-          signature_match_preference: :destination,
+          preference: :destination,
           add_template_only_nodes: false
         )
           super(
             strategy: :batch,
-            preference: signature_match_preference,
+            preference: preference,
             template_analysis: template_analysis,
             dest_analysis: dest_analysis,
             add_template_only_nodes: add_template_only_nodes
