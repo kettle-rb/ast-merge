@@ -30,10 +30,10 @@ RSpec.describe Ast::Merge::MergerConfig do
       expect(config.signature_generator).to eq(generator)
     end
 
-    it "accepts node_splitter option" do
-      splitter = { CallNode: ->(node) { node } }
-      config = described_class.destination_wins(node_splitter: splitter)
-      expect(config.node_splitter).to eq(splitter)
+    it "accepts node_typing option" do
+      typing = { CallNode: ->(node) { node } }
+      config = described_class.destination_wins(node_typing: typing)
+      expect(config.node_typing).to eq(typing)
     end
   end
 
@@ -59,10 +59,10 @@ RSpec.describe Ast::Merge::MergerConfig do
       expect(config.signature_generator).to eq(generator)
     end
 
-    it "accepts node_splitter option" do
-      splitter = { CallNode: ->(node) { node } }
-      config = described_class.template_wins(node_splitter: splitter)
-      expect(config.node_splitter).to eq(splitter)
+    it "accepts node_typing option" do
+      typing = { CallNode: ->(node) { node } }
+      config = described_class.template_wins(node_typing: typing)
+      expect(config.node_typing).to eq(typing)
     end
   end
 
@@ -180,30 +180,30 @@ RSpec.describe Ast::Merge::MergerConfig do
     end
   end
 
-  describe "#node_splitter" do
-    it "stores node_splitter configuration" do
-      splitter = { CallNode: ->(node) { node } }
-      config = described_class.new(node_splitter: splitter)
-      expect(config.node_splitter).to eq(splitter)
+  describe "#node_typing" do
+    it "stores node_typing configuration" do
+      typing = { CallNode: ->(node) { node } }
+      config = described_class.new(node_typing: typing)
+      expect(config.node_typing).to eq(typing)
     end
 
-    it "validates node_splitter on initialization" do
+    it "validates node_typing on initialization" do
       expect {
-        described_class.new(node_splitter: "not a hash")
+        described_class.new(node_typing: "not a hash")
       }.to raise_error(ArgumentError, /must be a Hash/)
     end
 
-    it "includes node_splitter in to_h" do
-      splitter = { CallNode: ->(node) { node } }
-      config = described_class.new(node_splitter: splitter)
-      expect(config.to_h[:node_splitter]).to eq(splitter)
+    it "includes node_typing in to_h" do
+      typing = { CallNode: ->(node) { node } }
+      config = described_class.new(node_typing: typing)
+      expect(config.to_h[:node_typing]).to eq(typing)
     end
 
-    it "preserves node_splitter in #with" do
-      splitter = { CallNode: ->(node) { node } }
-      config = described_class.new(node_splitter: splitter)
+    it "preserves node_typing in #with" do
+      typing = { CallNode: ->(node) { node } }
+      config = described_class.new(node_typing: typing)
       new_config = config.with(signature_match_preference: :template)
-      expect(new_config.node_splitter).to eq(splitter)
+      expect(new_config.node_typing).to eq(typing)
     end
   end
 end

@@ -23,13 +23,13 @@ module Ast
     #   config = MergerConfig.new(signature_match_preference: :template)
     #   merger = SmartMerger.new(template, dest, **config.to_h)
     #
-    # @example Per-node-type preferences with node_splitter
-    #   node_splitter = {
+    # @example Per-node-type preferences with node_typing
+    #   node_typing = {
     #     CallNode: ->(node) {
     #       return node unless node.name == :gem
     #       gem_name = node.arguments&.arguments&.first&.unescaped
     #       if gem_name&.start_with?("rubocop")
-    #         Ast::Merge::NodeSplitter.with_merge_type(node, :lint_gem)
+    #         Ast::Merge::NodeTyping.with_merge_type(node, :lint_gem)
     #       else
     #         node
     #       end
@@ -37,7 +37,7 @@ module Ast
     #   }
     #
     #   config = MergerConfig.new(
-    #     node_splitter: node_splitter,
+    #     node_typing: node_typing,
     #     signature_match_preference: {
     #       default: :destination,
     #       lint_gem: :template  # Use template versions for lint gems
@@ -52,7 +52,7 @@ module Ast
       #   - :destination (default) - Keep destination version (preserves customizations)
       #   - :template - Use template version (applies updates)
       #   As Hash:
-      #   - Keys are node types (Symbol) or merge_types from node_splitter
+      #   - Keys are node types (Symbol) or merge_types from node_typing
       #   - Values are :destination or :template
       #   - Use :default key for fallback preference
       #   @example { default: :destination, lint_gem: :template, config_call: :template }
@@ -69,10 +69,10 @@ module Ast
       # @return [Proc, nil] Custom signature generator proc
       attr_reader :signature_generator
 
-      # @return [Hash{Symbol,String => #call}, nil] Node splitter configuration.
+      # @return [Hash{Symbol,String => #call}, nil] Node typing configuration.
       #   Maps node type names to callable objects that can transform nodes
       #   and optionally add merge_type attributes for per-node-type preferences.
-      attr_reader :node_splitter
+      attr_reader :node_typing
 
       # Initialize a new MergerConfig.
       #
@@ -83,25 +83,25 @@ module Ast
       # @param add_template_only_nodes [Boolean] Whether to add template-only nodes
       # @param freeze_token [String, nil] Token for freeze block markers (nil uses gem default)
       # @param signature_generator [Proc, nil] Custom signature generator
-      # @param node_splitter [Hash{Symbol,String => #call}, nil] Node splitter configuration
+      # @param node_typing [Hash{Symbol,String => #call}, nil] Node typing configuration
       #
       # @raise [ArgumentError] If signature_match_preference is invalid
-      # @raise [ArgumentError] If node_splitter is invalid
+      # @raise [ArgumentError] If node_typing is invalid
       def initialize(
         signature_match_preference: :destination,
         add_template_only_nodes: false,
         freeze_token: nil,
         signature_generator: nil,
-        node_splitter: nil
+        node_typing: nil
       )
         validate_preference!(signature_match_preference)
-        NodeSplitter.validate!(node_splitter) if node_splitter
+        NodeTyping.validate!(node_typing) if node_typing
 
         @signature_match_preference = signature_match_preference
         @add_template_only_nodes = add_template_only_nodes
         @freeze_token = freeze_token
         @signature_generator = signature_generator
-        @node_splitter = node_splitter
+        @node_typing = node_typing
       end
 
       # Check if destination version should be preferred on signature match.
@@ -174,7 +174,7 @@ module Ast
         }
         result[:freeze_token] = @freeze_token || default_freeze_token if @freeze_token || default_freeze_token
         result[:signature_generator] = @signature_generator if @signature_generator
-        result[:node_splitter] = @node_splitter if @node_splitter
+        result[:node_typing] = @node_typing if @node_typing
         result
       end
 
@@ -188,7 +188,7 @@ module Ast
           add_template_only_nodes: options.fetch(:add_template_only_nodes, @add_template_only_nodes),
           freeze_token: options.fetch(:freeze_token, @freeze_token),
           signature_generator: options.fetch(:signature_generator, @signature_generator),
-          node_splitter: options.fetch(:node_splitter, @node_splitter)
+          node_typing: options.fetch(:node_typing, @node_typing)
         )
       end
 
@@ -197,15 +197,15 @@ module Ast
       #
       # @param freeze_token [String, nil] Optional freeze token
       # @param signature_generator [Proc, nil] Optional signature generator
-      # @param node_splitter [Hash, nil] Optional node splitter configuration
+      # @param node_typing [Hash, nil] Optional node typing configuration
       # @return [MergerConfig] Config preset
-      def self.destination_wins(freeze_token: nil, signature_generator: nil, node_splitter: nil)
+      def self.destination_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
         new(
           signature_match_preference: :destination,
           add_template_only_nodes: false,
           freeze_token: freeze_token,
           signature_generator: signature_generator,
-          node_splitter: node_splitter
+          node_typing: node_typing
         )
       end
 
@@ -214,15 +214,15 @@ module Ast
       #
       # @param freeze_token [String, nil] Optional freeze token
       # @param signature_generator [Proc, nil] Optional signature generator
-      # @param node_splitter [Hash, nil] Optional node splitter configuration
+      # @param node_typing [Hash, nil] Optional node typing configuration
       # @return [MergerConfig] Config preset
-      def self.template_wins(freeze_token: nil, signature_generator: nil, node_splitter: nil)
+      def self.template_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
         new(
           signature_match_preference: :template,
           add_template_only_nodes: true,
           freeze_token: freeze_token,
           signature_generator: signature_generator,
-          node_splitter: node_splitter
+          node_typing: node_typing
         )
       end
 

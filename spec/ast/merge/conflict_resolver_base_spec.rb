@@ -429,13 +429,13 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
 
         it "returns type-specific preference for typed node" do
           node = double("Node")
-          typed_node = Ast::Merge::NodeSplitter.with_merge_type(node, :lint_gem)
+          typed_node = Ast::Merge::NodeTyping.with_merge_type(node, :lint_gem)
           expect(resolver.preference_for_node(typed_node)).to eq(:template)
         end
 
         it "returns default for typed node with unknown merge_type" do
           node = double("Node")
-          typed_node = Ast::Merge::NodeSplitter.with_merge_type(node, :unknown_type)
+          typed_node = Ast::Merge::NodeTyping.with_merge_type(node, :unknown_type)
           expect(resolver.preference_for_node(typed_node)).to eq(:destination)
         end
       end
@@ -511,7 +511,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         end
 
         it "uses template_node's merge_type when template is typed" do
-          template = Ast::Merge::NodeSplitter.with_merge_type(double("T"), :special_type)
+          template = Ast::Merge::NodeTyping.with_merge_type(double("T"), :special_type)
           dest = double("DestNode")
 
           result = resolver.send(:preference_resolution, template_node: template, dest_node: dest)
@@ -522,7 +522,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
 
         it "uses dest_node's merge_type when only dest is typed" do
           template = double("TemplateNode")
-          dest = Ast::Merge::NodeSplitter.with_merge_type(double("D"), :special_type)
+          dest = Ast::Merge::NodeTyping.with_merge_type(double("D"), :special_type)
 
           result = resolver.send(:preference_resolution, template_node: template, dest_node: dest)
 
@@ -541,8 +541,8 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         end
 
         it "template_node takes precedence over dest_node" do
-          template = Ast::Merge::NodeSplitter.with_merge_type(double("T"), :special_type)
-          dest = Ast::Merge::NodeSplitter.with_merge_type(double("D"), :other_type)
+          template = Ast::Merge::NodeTyping.with_merge_type(double("T"), :special_type)
+          dest = Ast::Merge::NodeTyping.with_merge_type(double("D"), :other_type)
 
           result = resolver.send(:preference_resolution, template_node: template, dest_node: dest)
 

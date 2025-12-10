@@ -90,8 +90,8 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
         .not_to raise_error
     end
 
-    it "validates node_splitter if provided" do
-      expect { build_merger_config.call(node_splitter: "not a hash") }
+    it "validates node_typing if provided" do
+      expect { build_merger_config.call(node_typing: "not a hash") }
         .to raise_error(ArgumentError, /must be a Hash/)
     end
   end
@@ -155,12 +155,12 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
       expect(hash[:signature_generator]).to eq(generator)
     end
 
-    it "includes node_splitter when set" do
-      splitter = { CallNode: ->(_node) { nil } }
-      config = build_merger_config.call(node_splitter: splitter)
+    it "includes node_typing when set" do
+      typing = { CallNode: ->(_node) { nil } }
+      config = build_merger_config.call(node_typing: typing)
       hash = config.to_h
 
-      expect(hash[:node_splitter]).to eq(splitter)
+      expect(hash[:node_typing]).to eq(typing)
     end
   end
 
@@ -183,12 +183,12 @@ RSpec.shared_examples "Ast::Merge::MergerConfig" do
       expect(updated.add_template_only_nodes).to eq(true)
     end
 
-    it "preserves node_splitter" do
-      splitter = { CallNode: ->(_node) { nil } }
-      original = build_merger_config.call(node_splitter: splitter)
+    it "preserves node_typing" do
+      typing = { CallNode: ->(_node) { nil } }
+      original = build_merger_config.call(node_typing: typing)
       updated = original.with(signature_match_preference: :template)
 
-      expect(updated.node_splitter).to eq(splitter)
+      expect(updated.node_typing).to eq(typing)
     end
   end
 

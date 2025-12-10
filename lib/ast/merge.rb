@@ -145,7 +145,7 @@ module Ast
     autoload :MatchScoreBase, "ast/merge/match_score_base"
     autoload :MergeResultBase, "ast/merge/merge_result_base"
     autoload :MergerConfig, "ast/merge/merger_config"
-    autoload :NodeSplitter, "ast/merge/node_splitter"
+    autoload :NodeTyping, "ast/merge/node_typing"
     autoload :Region, "ast/merge/region"
     autoload :RegionDetectorBase, "ast/merge/region_detector_base"
     autoload :RegionMergeable, "ast/merge/region_mergeable"

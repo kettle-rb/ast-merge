@@ -173,7 +173,7 @@ module Ast
       # Get the preference for a specific node.
       #
       # When preference is a Hash, looks up the preference for the node's
-      # merge_type (if wrapped with NodeSplitter) or falls back to :default.
+      # merge_type (if wrapped with NodeTyping) or falls back to :default.
       #
       # @param node [Object, nil] The node to get preference for
       # @return [Symbol] :destination or :template
@@ -189,8 +189,8 @@ module Ast
         return default_preference unless @preference.is_a?(Hash)
         return default_preference unless node
 
-        # Check if node has a merge_type (from NodeSplitter)
-        merge_type = NodeSplitter.merge_type_for(node)
+        # Check if node has a merge_type (from NodeTyping)
+        merge_type = NodeTyping.merge_type_for(node)
         return @preference.fetch(merge_type) { default_preference } if merge_type
 
         # Fall back to default
@@ -328,18 +328,18 @@ module Ast
       # Supports per-node-type preferences when a Hash is configured.
       #
       # When per-type preferences are configured, checks template_node for
-      # merge_type (from NodeSplitter wrapping). If template_node has no merge_type,
+      # merge_type (from NodeTyping wrapping). If template_node has no merge_type,
       # falls back to dest_node's merge_type, then to the default preference.
       #
-      # @param template_node [Object] Template node (may be a TypedNodeWrapper)
-      # @param dest_node [Object] Destination node (may be a TypedNodeWrapper)
+      # @param template_node [Object] Template node (may be a Wrapper)
+      # @param dest_node [Object] Destination node (may be a Wrapper)
       # @return [Hash] Resolution hash
       def preference_resolution(template_node:, dest_node:)
         # Get the appropriate preference for this node pair
         # Template node's merge_type takes precedence, then dest_node's
-        node_preference = if NodeSplitter.typed_node?(template_node)
+        node_preference = if NodeTyping.typed_node?(template_node)
           preference_for_node(template_node)
-        elsif NodeSplitter.typed_node?(dest_node)
+        elsif NodeTyping.typed_node?(dest_node)
           preference_for_node(dest_node)
         else
           default_preference

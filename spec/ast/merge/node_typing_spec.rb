@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::NodeSplitter do
-  describe Ast::Merge::NodeSplitter::TypedNodeWrapper do
+RSpec.describe Ast::Merge::NodeTyping do
+  describe Ast::Merge::NodeTyping::Wrapper do
     let(:mock_node) do
       double("MockNode", name: :test_method, class: Class.new { def self.name = "TestNode" })
     end
@@ -69,7 +69,7 @@ RSpec.describe Ast::Merge::NodeSplitter do
       it "includes merge_type and node info" do
         wrapper = described_class.new(mock_node, :custom_type)
 
-        expect(wrapper.inspect).to include("TypedNodeWrapper")
+        expect(wrapper.inspect).to include("Wrapper")
         expect(wrapper.inspect).to include("custom_type")
       end
     end
@@ -118,10 +118,10 @@ RSpec.describe Ast::Merge::NodeSplitter do
   describe ".with_merge_type" do
     let(:mock_node) { double("MockNode") }
 
-    it "creates a TypedNodeWrapper with the given merge_type" do
+    it "creates a Wrapper with the given merge_type" do
       result = described_class.with_merge_type(mock_node, :my_type)
 
-      expect(result).to be_a(Ast::Merge::NodeSplitter::TypedNodeWrapper)
+      expect(result).to be_a(Ast::Merge::NodeTyping::Wrapper)
       expect(result.merge_type).to eq(:my_type)
       expect(result.node).to eq(mock_node)
     end

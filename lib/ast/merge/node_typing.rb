@@ -2,9 +2,9 @@
 
 module Ast
   module Merge
-    # Provides node transformation support for SmartMerger implementations.
+    # Provides node type wrapping support for SmartMerger implementations.
     #
-    # NodeSplitter allows custom callable objects to be associated with specific
+    # NodeTyping allows custom callable objects to be associated with specific
     # node types. When a node is processed, the corresponding callable can:
     # - Return the node unchanged (passthrough)
     # - Return a modified node with a custom `merge_type` attribute
@@ -13,18 +13,18 @@ module Ast
     # The `merge_type` attribute can then be used by other merge tools like
     # `signature_generator`, `match_refiner`, and per-node-type `preference` settings.
     #
-    # @example Basic node splitting for different gem types
-    #   node_splitter = {
+    # @example Basic node typing for different gem types
+    #   node_typing = {
     #     CallNode: ->(node) {
     #       return node unless node.name == :gem
     #       first_arg = node.arguments&.arguments&.first
     #       return node unless first_arg.is_a?(StringNode)
-    #       
+    #
     #       gem_name = first_arg.unescaped
     #       if gem_name.start_with?("rubocop")
-    #         NodeSplitter.with_merge_type(node, :lint_gem)
+    #         NodeTyping.with_merge_type(node, :lint_gem)
     #       elsif gem_name.start_with?("rspec")
-    #         NodeSplitter.with_merge_type(node, :test_gem)
+    #         NodeTyping.with_merge_type(node, :test_gem)
     #       else
     #         node
     #       end
@@ -35,7 +35,7 @@ module Ast
     #   merger = SmartMerger.new(
     #     template,
     #     destination,
-    #     node_splitter: node_splitter,
+    #     node_typing: node_typing,
     #     preference: {
     #       default: :destination,
     #       lint_gem: :template,  # Use template versions for lint gems
@@ -45,18 +45,18 @@ module Ast
     #
     # @see MergerConfig
     # @see ConflictResolverBase
-    module NodeSplitter
+    module NodeTyping
       # Node wrapper that adds a merge_type attribute to an existing node.
       # This uses a simple delegation pattern to preserve all original node
       # behavior while adding the merge_type.
-      class TypedNodeWrapper
+      class Wrapper
         # @return [Object] The original node being wrapped
         attr_reader :node
 
         # @return [Symbol] The custom merge type for this node
         attr_reader :merge_type
 
-        # Create a new typed node wrapper.
+        # Create a new node type wrapper.
         #
         # @param node [Object] The original node to wrap
         # @param merge_type [Symbol] The custom merge type
@@ -80,7 +80,7 @@ module Ast
           @node.respond_to?(method, include_private) || super
         end
 
-        # Returns true to indicate this is a typed node wrapper.
+        # Returns true to indicate this is a node type wrapper.
         def typed_node?
           true
         end
@@ -93,7 +93,7 @@ module Ast
 
         # Forward equality check to the wrapped node.
         def ==(other)
-          if other.is_a?(TypedNodeWrapper)
+          if other.is_a?(Wrapper)
             @node == other.node && @merge_type == other.merge_type
           else
             @node == other
@@ -112,7 +112,7 @@ module Ast
 
         # Forward inspect to show both the type and node.
         def inspect
-          "#<TypedNodeWrapper merge_type=#{@merge_type.inspect} node=#{@node.inspect}>"
+          "#<NodeTyping::Wrapper merge_type=#{@merge_type.inspect} node=#{@node.inspect}>"
         end
       end
 
@@ -121,20 +121,20 @@ module Ast
         #
         # @param node [Object] The node to wrap
         # @param merge_type [Symbol] The merge type to assign
-        # @return [TypedNodeWrapper] The wrapped node
+        # @return [Wrapper] The wrapped node
         #
         # @example
-        #   typed_node = NodeSplitter.with_merge_type(call_node, :config_call)
+        #   typed_node = NodeTyping.with_merge_type(call_node, :config_call)
         #   typed_node.merge_type  # => :config_call
         #   typed_node.name        # => delegates to call_node.name
         def with_merge_type(node, merge_type)
-          TypedNodeWrapper.new(node, merge_type)
+          Wrapper.new(node, merge_type)
         end
 
-        # Check if a node is a typed node wrapper.
+        # Check if a node is a node type wrapper.
         #
         # @param node [Object] The node to check
-        # @return [Boolean] true if the node is a TypedNodeWrapper
+        # @return [Boolean] true if the node is a Wrapper
         def typed_node?(node)
           node.respond_to?(:typed_node?) && node.typed_node?
         end
@@ -156,10 +156,10 @@ module Ast
           typed_node?(node) ? node.unwrap : node
         end
 
-        # Process a node through a splitter configuration.
+        # Process a node through a typing configuration.
         #
         # @param node [Object] The node to process
-        # @param splitter_config [Hash{Symbol,String => #call}, nil] Hash mapping node type names
+        # @param typing_config [Hash{Symbol,String => #call}, nil] Hash mapping node type names
         #   to callables. Keys can be symbols or strings representing node class names
         #   (e.g., :CallNode, "DefNode", :Prism_CallNode for fully qualified names)
         # @return [Object, nil] The processed node (possibly wrapped with merge_type),
@@ -167,47 +167,47 @@ module Ast
         #
         # @example
         #   config = {
-        #     CallNode: ->(node) { 
-        #       NodeSplitter.with_merge_type(node, :special_call) 
+        #     CallNode: ->(node) {
+        #       NodeTyping.with_merge_type(node, :special_call)
         #     }
         #   }
-        #   result = NodeSplitter.process(call_node, config)
-        def process(node, splitter_config)
-          return node unless splitter_config
-          return node if splitter_config.empty?
+        #   result = NodeTyping.process(call_node, config)
+        def process(node, typing_config)
+          return node unless typing_config
+          return node if typing_config.empty?
 
           # Get the node type name for lookup
           type_key = node_type_key(node)
 
-          # Try to find a matching splitter
-          callable = find_splitter(splitter_config, type_key, node)
+          # Try to find a matching typing callable
+          callable = find_typing_callable(typing_config, type_key, node)
           return node unless callable
 
-          # Call the splitter with the node
+          # Call the typing callable with the node
           callable.call(node)
         end
 
-        # Validate a splitter configuration hash.
+        # Validate a typing configuration hash.
         #
-        # @param splitter_config [Hash, nil] The configuration to validate
+        # @param typing_config [Hash, nil] The configuration to validate
         # @raise [ArgumentError] If the configuration is invalid
         # @return [void]
-        def validate!(splitter_config)
-          return if splitter_config.nil?
+        def validate!(typing_config)
+          return if typing_config.nil?
 
-          unless splitter_config.is_a?(Hash)
-            raise ArgumentError, "node_splitter must be a Hash, got #{splitter_config.class}"
+          unless typing_config.is_a?(Hash)
+            raise ArgumentError, "node_typing must be a Hash, got #{typing_config.class}"
           end
 
-          splitter_config.each do |key, value|
+          typing_config.each do |key, value|
             unless key.is_a?(Symbol) || key.is_a?(String)
               raise ArgumentError,
-                    "node_splitter keys must be Symbol or String, got #{key.class} for #{key.inspect}"
+                    "node_typing keys must be Symbol or String, got #{key.class} for #{key.inspect}"
             end
 
             unless value.respond_to?(:call)
               raise ArgumentError,
-                    "node_splitter values must be callable (respond to #call), " \
+                    "node_typing values must be callable (respond to #call), " \
                     "got #{value.class} for key #{key.inspect}"
             end
           end
@@ -215,24 +215,24 @@ module Ast
 
         private
 
-        # Get the type key for looking up a splitter.
+        # Get the type key for looking up a typing callable.
         # Handles both simple class names and fully-qualified names.
         #
         # @param node [Object] The node to get the type key for
         # @return [String] The type key
         def node_type_key(node)
-          # Handle TypedNodeWrapper - use the wrapped node's class
+          # Handle Wrapper - use the wrapped node's class
           actual_node = typed_node?(node) ? node.unwrap : node
           actual_node.class.name&.split("::")&.last || actual_node.class.to_s
         end
 
-        # Find a splitter for the given type key.
+        # Find a typing callable for the given type key.
         #
-        # @param config [Hash] The splitter configuration
+        # @param config [Hash] The typing configuration
         # @param type_key [String] The type key to look up
         # @param node [Object] The original node (for fully-qualified lookup)
-        # @return [#call, nil] The splitter callable or nil
-        def find_splitter(config, type_key, node)
+        # @return [#call, nil] The typing callable or nil
+        def find_typing_callable(config, type_key, node)
           # Try exact match with symbol key
           return config[type_key.to_sym] if config.key?(type_key.to_sym)
 

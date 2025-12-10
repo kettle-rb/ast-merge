@@ -266,7 +266,7 @@ merger = SomeFormat::Merge::SmartMerger.new(
   # Add nodes that only exist in template
   add_template_only_nodes: true,    # default: false
   # Custom node type handling
-  node_splitter: {},                # optional, for per-node-type preference
+  node_typing: {},                # optional, for per-node-type preference
 )
 ```
 
@@ -361,28 +361,28 @@ using the appropriate pattern for each format:
 | CSS only supports block comments (`/* */`), not line comments.                                      |
 | JSON does not support comments; use JSONC for JSON with comments.                                   |
 
-### Per-Node-Type Preference with `node_splitter`
+### Per-Node-Type Preference with `node_typing`
 
-The `node_splitter` option allows you to customize merge behavior on a per-node-type basis.
+The `node_typing` option allows you to customize merge behavior on a per-node-type basis.
 When combined with a Hash-based `signature_match_preference`, you can specify different merge
 preferences for different types of nodes (e.g., prefer template for linter configs but destination for everything else).
 
 #### How It Works
 
-1. **Define a `node_splitter`**: A Hash mapping node type symbols to callables that receive a node and return either:
+1. **Define a `node_typing`**: A Hash mapping node type symbols to callables that receive a node and return either:
    - The original node (no special handling)
-   - A wrapped node with a `merge_type` attribute (via `Ast::Merge::NodeSplitter::TypedNodeWrapper`)
+   - A wrapped node with a `merge_type` attribute (via `Ast::Merge::NodeTyping::Wrapper`)
 
 2. **Use a Hash-based preference**: Instead of a simple `:destination` or `:template` Symbol, pass a Hash with:
    - `:default` key for the fallback preference
-   - Custom keys matching the `merge_type` values from your `node_splitter`
+   - Custom keys matching the `merge_type` values from your `node_typing`
 
 ```ruby
 # Example: Prefer template for lint gem configs, destination for everything else
-node_splitter = {
+node_typing = {
   call_node: ->(node) {
     if node.name == :gem && node.arguments&.arguments&.first&.unescaped&.match?(/rubocop|standard|reek/)
-      Ast::Merge::NodeSplitter::TypedNodeWrapper.new(node, merge_type: :lint_gem)
+      Ast::Merge::NodeTyping::Wrapper.new(node, :lint_gem)
     else
       node
     end
@@ -392,7 +392,7 @@ node_splitter = {
 merger = Prism::Merge::SmartMerger.new(
   template_content,
   dest_content,
-  node_splitter: node_splitter,
+  node_typing: node_typing,
   preference: {
     default: :destination,
     lint_gem: :template
@@ -400,38 +400,38 @@ merger = Prism::Merge::SmartMerger.new(
 )
 ```
 
-#### TypedNodeWrapper
+#### NodeTyping::Wrapper
 
-The `Ast::Merge::NodeSplitter::TypedNodeWrapper` class wraps an AST node and adds a `merge_type` attribute.
+The `Ast::Merge::NodeTyping::Wrapper` class wraps an AST node and adds a `merge_type` attribute.
 It delegates all method calls to the wrapped node, so it can be used transparently in place of the original node.
 
 ```ruby
 # Wrap a node with a custom merge_type
-wrapped = Ast::Merge::NodeSplitter::TypedNodeWrapper.new(original_node, merge_type: :special_config)
+wrapped = Ast::Merge::NodeTyping::Wrapper.new(original_node, :special_config)
 wrapped.merge_type  # => :special_config
-wrapped.class       # => Ast::Merge::NodeSplitter::TypedNodeWrapper
+wrapped.class       # => Ast::Merge::NodeTyping::Wrapper
 wrapped.location    # => delegates to original_node.location
 ```
 
-#### NodeSplitter Utility Methods
+#### NodeTyping Utility Methods
 
 ```ruby
-# Process a node through the node_splitter configuration
-processed = Ast::Merge::NodeSplitter.process(node, node_splitter_config)
+# Process a node through the node_typing configuration
+processed = Ast::Merge::NodeTyping.process(node, node_typing_config)
 
 # Check if a node has been wrapped with a merge_type
-Ast::Merge::NodeSplitter.typed_node?(node)  # => true/false
+Ast::Merge::NodeTyping.typed_node?(node)  # => true/false
 
 # Get the merge_type from a wrapped node (or nil)
-Ast::Merge::NodeSplitter.merge_type_for(node)  # => Symbol or nil
+Ast::Merge::NodeTyping.merge_type_for(node)  # => Symbol or nil
 
-# Unwrap a typed node to get the original
-Ast::Merge::NodeSplitter.unwrap(wrapped_node)  # => original_node
+# Unwrap a node type wrapper to get the original
+Ast::Merge::NodeTyping.unwrap(wrapped_node)  # => original_node
 ```
 
-### Hash-Based Preference (without node_splitter)
+### Hash-Based Preference (without node_typing)
 
-Even without `node_splitter`, you can use a Hash-based preference to set a default
+Even without `node_typing`, you can use a Hash-based preference to set a default
 and document your intention for future per-type customization:
 
 ```ruby
@@ -452,14 +452,14 @@ The `MergerConfig` class provides factory methods that support all options:
 config = Ast::Merge::MergerConfig.destination_wins(
   freeze_token: "my-freeze",
   signature_generator: my_generator,
-  node_splitter: my_splitter
+  node_typing: my_typing
 )
 
 # Create config preferring template
 config = Ast::Merge::MergerConfig.template_wins(
   freeze_token: "my-freeze",
   signature_generator: my_generator,
-  node_splitter: my_splitter
+  node_typing: my_typing
 )
 ```
 
