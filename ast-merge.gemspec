@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   spec.name = "ast-merge"
   spec.version = gem_version
   spec.authors = ["Peter H. Boling"]
-  spec.email = ["peter.boling@gmail.com"]
+  spec.email = ["floss@galtzo.com"]
 
   spec.summary = "☯️ Shared infrastructure for the *-merge gem family"
   spec.description = "☯️ Ast::Merge provides base classes, modules, and RSpec shared examples for building intelligent file mergers using AST analysis. It powers prism-merge, psych-merge, json-merge, and other format-specific merge gems."
