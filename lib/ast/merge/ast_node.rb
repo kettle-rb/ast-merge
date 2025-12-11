@@ -17,7 +17,14 @@ module Ast
     # @abstract
     class AstNode
       # Simple location struct for nodes that don't have a native location object
-      Location = Struct.new(:start_line, :end_line, :start_column, :end_column, keyword_init: true)
+      Location = Struct.new(:start_line, :end_line, :start_column, :end_column, keyword_init: true) do
+        # Check if a line number falls within this location
+        # @param line_number [Integer] The line number to check
+        # @return [Boolean] true if the line number is within the range
+        def cover?(line_number)
+          line_number >= start_line && line_number <= end_line
+        end
+      end
 
       # @return [Location] The location of this node in source
       attr_reader :location

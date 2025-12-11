@@ -153,9 +153,9 @@ module Ast
               actual_node = custom_result.respond_to?(:unwrap) ? custom_result.unwrap : custom_result
               compute_node_signature(actual_node)
             else
-              # Unknown result type - fall back to default computation on original node
-              # This handles cases where the generator returns invalid/unexpected values
-              compute_node_signature(node)
+              # Non-fallthrough values are passed through as-is
+              # This allows custom generators to return arbitrary signature types
+              custom_result
             end
           end
         else

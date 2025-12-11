@@ -308,15 +308,16 @@ RSpec.describe "Ast::Merge Branch Coverage" do
     end
 
     describe "#generate_signature with non-fallthrough result" do
-      it "uses default computation when generator returns non-node non-array" do
-        # Test when custom generator returns something that is not Array, nil, or a FreezeNode
+      it "passes through arbitrary values from custom generator" do
+        # Test when custom generator returns something that is not Array, nil, or a fallthrough node
+        # Non-fallthrough values are passed through as-is, allowing custom signature types
         custom_gen = ->(_node) { "string result" }
         analysis = test_analysis_class.new("content", signature_generator: custom_gen)
 
         node = double("Node", hash: 99_999)
         result = analysis.generate_signature(node)
-        # Should use the original node for default computation since "string" is not a fallthrough node
-        expect(result).to eq([:default, node.hash])
+        # Should pass through the string result directly
+        expect(result).to eq("string result")
       end
     end
 
