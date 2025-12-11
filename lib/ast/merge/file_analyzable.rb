@@ -153,8 +153,9 @@ module Ast
               actual_node = custom_result.respond_to?(:unwrap) ? custom_result.unwrap : custom_result
               compute_node_signature(actual_node)
             else
-              # Unknown result type - return as-is (shouldn't happen)
-              custom_result
+              # Unknown result type - fall back to default computation on original node
+              # This handles cases where the generator returns invalid/unexpected values
+              compute_node_signature(node)
             end
           end
         else
@@ -176,6 +177,7 @@ module Ast
       # When a signature_generator returns a non-Array/nil value, we check if it's
       # a "fallthrough" node that should be passed to compute_node_signature.
       # This includes:
+      # - AstNode instances (custom AST nodes like Comment::Line)
       # - Freezable nodes (frozen wrappers)
       # - FreezeNodeBase instances
       # - NodeTyping::Wrapper instances (unwrapped to get the underlying node)
@@ -185,7 +187,10 @@ module Ast
       # @param value [Object] The value to check
       # @return [Boolean] true if this is a fallthrough node
       def fallthrough_node?(value)
-        value.is_a?(Freezable) || value.is_a?(FreezeNodeBase) || value.is_a?(NodeTyping::Wrapper)
+        value.is_a?(AstNode) ||
+          value.is_a?(Freezable) ||
+          value.is_a?(FreezeNodeBase) ||
+          value.is_a?(NodeTyping::Wrapper)
       end
 
       # Compute default signature for a node.

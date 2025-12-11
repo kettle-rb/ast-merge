@@ -17,17 +17,7 @@ module Ast
     # @abstract
     class AstNode
       # Simple location struct for nodes that don't have a native location object
-      Location = Struct.new(:start_line, :end_line, :start_column, :end_column, keyword_init: true) do
-        # @return [Array<Object>] Empty array - custom nodes don't have Prism-style attached comments
-        def leading_comments
-          []
-        end
-
-        # @return [Array<Object>] Empty array - custom nodes don't have Prism-style attached comments
-        def trailing_comments
-          []
-        end
-      end
+      Location = Struct.new(:start_line, :end_line, :start_column, :end_column, keyword_init: true)
 
       # @return [Location] The location of this node in source
       attr_reader :location
