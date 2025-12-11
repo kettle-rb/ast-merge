@@ -106,3 +106,30 @@ This runs tests with coverage instrumentation and generates detailed coverage re
 2. **Magic comments** - Ruby-specific, belong in prism-merge not ast-merge
 3. **`content_string` is legacy** - Use `to_s` instead
 4. **`merged_source` doesn't exist** - `merge` returns a String directly
+
+## Terminal Command Restrictions
+
+### NEVER Pipe Test Commands Through head/tail
+
+**CRITICAL**: NEVER use `head`, `tail`, or any output truncation with test commands (`rspec`, `rake`, `bundle exec rspec`, etc.).
+
+❌ **ABSOLUTELY FORBIDDEN**:
+```bash
+bundle exec rspec 2>&1 | tail -50
+bin/rake coverage 2>&1 | head -100
+bin/rspec | tail -200
+```
+
+✅ **CORRECT** - Run commands without truncation:
+```bash
+bundle exec rspec
+bin/rake coverage
+bin/rspec
+```
+
+**Why**: 
+- You cannot predict how much output a test run will produce
+- Your predictions are ALWAYS wrong
+- You cannot see terminal output anyway - the user will copy relevant portions for you
+- Truncating output often hides the actual errors or relevant information
+- The user knows what's important and will share it with you
