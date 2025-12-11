@@ -207,7 +207,8 @@ RSpec.describe Ast::Merge::RegionMergeable do
       it "prefers destination content (preserves customizations)" do
         merger = merger_class.new(template, dest, regions: [{detector: detector}])
 
-        template_processed = merger.extract_template_regions(template)
+        # Extract regions (template_processed not needed for this test)
+        merger.extract_template_regions(template)
         dest_processed = merger.extract_dest_regions(dest)
 
         # Simulate merge - in real use, this would be the merged body
@@ -396,7 +397,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
         ],
       )
 
-      result = merger.extract_template_regions(source)
+      merger.extract_template_regions(source)
       extracted = merger.instance_variable_get(:@extracted_template_regions)
 
       expect(extracted.size).to eq(2)

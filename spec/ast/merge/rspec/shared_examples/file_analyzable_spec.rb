@@ -6,7 +6,8 @@ require "ast/merge/rspec/shared_examples/file_analyzable"
 class TestFileAnalysis
   include Ast::Merge::FileAnalyzable
 
-  attr_reader :source, :lines, :freeze_token, :signature_generator, :statements
+  # Note: :source, :lines, :freeze_token, :signature_generator are provided by FileAnalyzable
+  attr_reader :statements
 
   def initialize(source, freeze_token: "test-merge", signature_generator: nil)
     @source = source
