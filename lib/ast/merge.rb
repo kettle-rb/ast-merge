@@ -136,10 +136,13 @@ module Ast
       end
     end
 
+    autoload :AstNode, "ast/merge/ast_node"
+    autoload :Comment, "ast/merge/comment"
     autoload :ConflictResolverBase, "ast/merge/conflict_resolver_base"
     autoload :DebugLogger, "ast/merge/debug_logger"
     autoload :FencedCodeBlockDetector, "ast/merge/fenced_code_block_detector"
     autoload :FileAnalyzable, "ast/merge/file_analyzable"
+    autoload :Freezable, "ast/merge/freezable"
     autoload :FreezeNodeBase, "ast/merge/freeze_node_base"
     autoload :MatchRefinerBase, "ast/merge/match_refiner_base"
     autoload :MatchScoreBase, "ast/merge/match_score_base"
@@ -160,3 +163,4 @@ end
 Ast::Merge::Version.class_eval do
   extend VersionGem::Basic
 end
+

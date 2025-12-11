@@ -53,10 +53,6 @@ RSpec.describe Ast::Merge::SmartMergerBase do
         @content
       end
 
-      def content_string
-        @content
-      end
-
       def decision_summary
         {lines: @lines.size}
       end
@@ -382,7 +378,7 @@ RSpec.describe Ast::Merge::SmartMergerBase do
       result = merger.merge_result
 
       merger.send(:update_result_content, result, "new content")
-      expect(result.content_string).to eq("new content")
+      expect(result.to_s).to eq("new content")
     end
   end
 
@@ -421,10 +417,6 @@ RSpec.describe Ast::Merge::SmartMergerBase do
 
           def initialize
             @content = "zero arity"
-          end
-
-          def content_string
-            @content
           end
 
           def to_s

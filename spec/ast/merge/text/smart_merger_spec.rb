@@ -53,9 +53,9 @@ RSpec.describe Ast::Merge::Text::SmartMerger do
     let(:dest) { "line two" }
 
     describe "#analysis_class" do
-      it "returns TextAnalysis" do
+      it "returns FileAnalysis" do
         merger = described_class.new(template, dest)
-        expect(merger.send(:analysis_class)).to eq(Ast::Merge::Text::TextAnalysis)
+        expect(merger.send(:analysis_class)).to eq(Ast::Merge::Text::FileAnalysis)
       end
     end
 

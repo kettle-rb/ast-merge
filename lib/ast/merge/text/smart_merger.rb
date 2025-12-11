@@ -100,7 +100,7 @@ module Ast
 
         # @return [Class] The analysis class for text files
         def analysis_class
-          TextAnalysis
+          FileAnalysis
         end
 
         # @return [String] The default freeze token

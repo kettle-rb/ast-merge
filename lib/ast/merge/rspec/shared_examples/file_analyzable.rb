@@ -152,5 +152,42 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
     it "responds to the method" do
       expect(analysis).to respond_to(:generate_signature)
     end
+
+    context "with NodeTyping::Wrapper" do
+      let(:analysis) { build_file_analysis.call(sample_source) }
+
+      it "unwraps NodeTyping::Wrapper and computes signature from underlying node" do
+        # Skip if no statements to test with
+        skip "No statements available for testing" if analysis.statements.empty?
+
+        node = analysis.statements.first
+
+        # Create a NodeTyping::Wrapper around the node
+        wrapper = Ast::Merge::NodeTyping::Wrapper.new(node, :test_type)
+
+        # Create a signature generator that returns the wrapper
+        wrapped_analysis = build_file_analysis.call(
+          sample_source,
+          signature_generator: ->(_n) { wrapper }
+        )
+
+        # The signature should be computed from the unwrapped node, not the wrapper itself
+        # Get the expected signature from the unwrapped node
+        expected_sig = analysis.generate_signature(node)
+
+        # The wrapped analysis should produce the same signature
+        actual_sig = wrapped_analysis.generate_signature(node)
+
+        expect(actual_sig).to eq(expected_sig)
+        expect(actual_sig).not_to be_a(Ast::Merge::NodeTyping::Wrapper)
+      end
+
+      it "recognizes NodeTyping::Wrapper in fallthrough_node?" do
+        node = analysis.statements.first || { type: :test }
+        wrapper = Ast::Merge::NodeTyping::Wrapper.new(node, :test_type)
+
+        expect(analysis.send(:fallthrough_node?, wrapper)).to be true
+      end
+    end
   end
 end

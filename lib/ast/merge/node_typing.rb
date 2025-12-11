@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "freezable"
+
 module Ast
   module Merge
     # Provides node type wrapping support for SmartMerger implementations.
@@ -116,6 +118,64 @@ module Ast
         end
       end
 
+      # Wrapper for frozen AST nodes that includes Freezable behavior.
+      #
+      # FrozenWrapper extends Wrapper to add freeze node semantics, making the
+      # wrapped node satisfy both the NodeTyping API and the Freezable API.
+      # This enables composition where frozen nodes are:
+      # - Wrapped AST nodes (can unwrap to get original)
+      # - Typed nodes (have merge_type)
+      # - Freeze nodes (satisfy is_a?(Freezable) and freeze_node?)
+      #
+      # @example Creating a frozen wrapper
+      #   frozen = NodeTyping::FrozenWrapper.new(prism_node, :frozen)
+      #   frozen.freeze_node?  # => true
+      #   frozen.is_a?(Ast::Merge::Freezable)  # => true
+      #   frozen.unwrap  # => prism_node
+      #
+      # @see Wrapper
+      # @see Ast::Merge::Freezable
+      class FrozenWrapper < Wrapper
+        include Ast::Merge::Freezable
+
+        # Create a frozen wrapper for an AST node.
+        #
+        # @param node [Object] The AST node to wrap
+        # @param merge_type [Symbol] The merge type (defaults to :frozen)
+        def initialize(node, merge_type = :frozen)
+          super(node, merge_type)
+        end
+
+        # Returns true to indicate this is a frozen node.
+        # Overrides both Wrapper#typed_node? context and provides freeze_node? from Freezable.
+        #
+        # @return [Boolean] true
+        def frozen_node?
+          true
+        end
+
+        # Returns the content of this frozen node.
+        # Delegates to the wrapped node's slice method.
+        #
+        # @return [String] The node content
+        def slice
+          @node.slice
+        end
+
+        # Returns the signature for this frozen node.
+        # Uses the freeze_signature from Freezable module.
+        #
+        # @return [Array] Signature in the form [:FreezeNode, content]
+        def signature
+          freeze_signature
+        end
+
+        # Forward inspect to show frozen status.
+        def inspect
+          "#<NodeTyping::FrozenWrapper merge_type=#{@merge_type.inspect} node=#{@node.inspect}>"
+        end
+      end
+
       class << self
         # Wrap a node with a custom merge_type.
         #
@@ -129,6 +189,28 @@ module Ast
         #   typed_node.name        # => delegates to call_node.name
         def with_merge_type(node, merge_type)
           Wrapper.new(node, merge_type)
+        end
+
+        # Wrap a node as frozen with the Freezable behavior.
+        #
+        # @param node [Object] The node to wrap as frozen
+        # @param merge_type [Symbol] The merge type (defaults to :frozen)
+        # @return [FrozenWrapper] The frozen wrapped node
+        #
+        # @example
+        #   frozen_node = NodeTyping.frozen(call_node)
+        #   frozen_node.freeze_node?  # => true
+        #   frozen_node.is_a?(Ast::Merge::Freezable)  # => true
+        def frozen(node, merge_type = :frozen)
+          FrozenWrapper.new(node, merge_type)
+        end
+
+        # Check if a node is a frozen wrapper.
+        #
+        # @param node [Object] The node to check
+        # @return [Boolean] true if the node is a FrozenWrapper or includes Freezable
+        def frozen_node?(node)
+          node.is_a?(Freezable)
         end
 
         # Check if a node is a node type wrapper.

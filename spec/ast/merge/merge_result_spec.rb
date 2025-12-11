@@ -130,12 +130,12 @@ RSpec.describe Ast::Merge::MergeResultBase do
     end
   end
 
-  describe "#content_string" do
+  describe "#to_s" do
     subject(:result) { described_class.new }
 
     context "when lines is empty" do
       it "returns empty string" do
-        expect(result.content_string).to eq("")
+        expect(result.to_s).to eq("")
       end
     end
 
@@ -146,7 +146,7 @@ RSpec.describe Ast::Merge::MergeResultBase do
       end
 
       it "joins lines with newlines" do
-        expect(result.content_string).to eq("line1\nline2")
+        expect(result.to_s).to eq("line1\nline2")
       end
     end
   end

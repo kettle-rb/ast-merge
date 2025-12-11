@@ -116,7 +116,7 @@ module MyFormat
     class MergeResult < Ast::Merge::MergeResult
       # Add format-specific output methods
       def to_my_format
-        content_string
+        to_s
       end
     end
 

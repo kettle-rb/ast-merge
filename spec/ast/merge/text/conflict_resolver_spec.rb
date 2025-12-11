@@ -5,8 +5,8 @@ require "ast/merge/text"
 RSpec.describe Ast::Merge::Text::ConflictResolver do
   let(:template_source) { "Line one\nLine two\nLine three" }
   let(:dest_source) { "Line one\nLine two\nLine three" }
-  let(:template_analysis) { Ast::Merge::Text::TextAnalysis.new(template_source) }
-  let(:dest_analysis) { Ast::Merge::Text::TextAnalysis.new(dest_source) }
+  let(:template_analysis) { Ast::Merge::Text::FileAnalysis.new(template_source) }
+  let(:dest_analysis) { Ast::Merge::Text::FileAnalysis.new(dest_source) }
 
   describe "#initialize" do
     it "accepts preference option" do

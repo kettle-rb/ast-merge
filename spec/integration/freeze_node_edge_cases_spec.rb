@@ -461,8 +461,8 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         expect(result.content).to eq([])
       end
 
-      it "returns content_string" do
-        expect(result.content_string).to eq("")
+      it "returns to_s" do
+        expect(result.to_s).to eq("")
       end
     end
 

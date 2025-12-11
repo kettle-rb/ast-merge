@@ -203,7 +203,7 @@ module Ast
           result = perform_merge
 
           # Substitute merged regions back into the result if configured
-          if regions_configured? && (merged_content = result.content_string)
+          if regions_configured? && (merged_content = result.to_s)
             final_content = substitute_merged_regions(merged_content)
             update_result_content(result, final_content)
           end

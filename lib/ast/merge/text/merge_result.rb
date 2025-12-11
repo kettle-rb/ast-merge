@@ -36,13 +36,6 @@ module Ast
             line: @lines.length
           }
         end
-
-        # Get the final merged content as a string
-        #
-        # @return [String] Merged content
-        def to_s
-          @lines.join("\n")
-        end
       end
     end
   end

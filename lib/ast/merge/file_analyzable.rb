@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "freezable"
+
 module Ast
   module Merge
     # Mixin module for file analysis classes across all *-merge gems.
@@ -61,11 +63,12 @@ module Ast
         @statements ||= []
       end
 
-      # Get all freeze blocks from statements.
+      # Get all freeze blocks/nodes from statements.
+      # Includes both traditional FreezeNodeBase blocks and Freezable-wrapped nodes.
       #
-      # @return [Array<FreezeNodeBase>] All freeze block nodes
+      # @return [Array<Freezable>] All freeze nodes
       def freeze_blocks
-        statements.select { |node| node.is_a?(FreezeNodeBase) }
+        statements.select { |node| node.is_a?(Freezable) }
       end
 
       # Check if a line is within a freeze block.
@@ -136,26 +139,53 @@ module Ast
       #     end
       #   }
       def generate_signature(node)
-        if signature_generator
-          result = signature_generator.call(node)
-          case result
+        result = if signature_generator
+          custom_result = signature_generator.call(node)
+          case custom_result
           when Array, nil
-            return result
+            # Custom result is either an array signature or nil
+            custom_result
+          else
+            # Check for fallthrough nodes (parser-specific nodes, NodeTyping::Wrapper, etc.)
+            if fallthrough_node?(custom_result)
+              # Unwrap NodeTyping::Wrapper to get the underlying node for signature generation
+              # (Wrappers include the full node which would cause signature mismatches)
+              actual_node = custom_result.respond_to?(:unwrap) ? custom_result.unwrap : custom_result
+              compute_node_signature(actual_node)
+            else
+              # Unknown result type - return as-is (shouldn't happen)
+              custom_result
+            end
           end
-          # If result is a node (fallthrough), use it for default computation
-          node = result if fallthrough_node?(result)
+        else
+          compute_node_signature(node)
         end
 
-        compute_node_signature(node)
+        DebugLogger.debug("Generated signature", {
+          node_type: node.class.name.split("::").last,
+          signature: result,
+          generator: signature_generator ? "custom" : "default",
+        }) if result
+
+        result
       end
 
-      # Check if a value represents a fallthrough node (parser node or FreezeNodeBase).
+      # Check if a value represents a fallthrough node that should be used for
+      # default signature computation.
+      #
+      # When a signature_generator returns a non-Array/nil value, we check if it's
+      # a "fallthrough" node that should be passed to compute_node_signature.
+      # This includes:
+      # - Freezable nodes (frozen wrappers)
+      # - FreezeNodeBase instances
+      # - NodeTyping::Wrapper instances (unwrapped to get the underlying node)
+      #
       # Override this method to add custom node type detection for your parser.
       #
       # @param value [Object] The value to check
       # @return [Boolean] true if this is a fallthrough node
       def fallthrough_node?(value)
-        value.is_a?(FreezeNodeBase)
+        value.is_a?(Freezable) || value.is_a?(FreezeNodeBase) || value.is_a?(NodeTyping::Wrapper)
       end
 
       # Compute default signature for a node.

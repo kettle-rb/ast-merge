@@ -18,8 +18,8 @@ module Ast
       class ConflictResolver < ConflictResolverBase
         # Initialize the conflict resolver
         #
-        # @param template_analysis [TextAnalysis] Analysis of template
-        # @param dest_analysis [TextAnalysis] Analysis of destination
+        # @param template_analysis [FileAnalysis] Analysis of template
+        # @param dest_analysis [FileAnalysis] Analysis of destination
         # @param preference [Symbol] :destination or :template
         # @param add_template_only_nodes [Boolean] Whether to add template-only lines
         def initialize(

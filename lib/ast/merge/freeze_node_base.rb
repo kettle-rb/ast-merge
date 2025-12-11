@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "freezable"
+
 module Ast
   module Merge
     # Base class for freeze block nodes in AST merge libraries.
@@ -31,6 +33,7 @@ module Ast
     #     end_pattern: /^--\s*freeze-end/i
     #   )
     class FreezeNodeBase
+      include Freezable
       # Error raised when a freeze block has invalid structure
       class InvalidStructureError < StandardError
         # @return [Integer, nil] Starting line of the freeze block

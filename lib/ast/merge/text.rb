@@ -23,7 +23,7 @@ module Ast
 
       autoload :WordNode, "ast/merge/text/word_node"
       autoload :LineNode, "ast/merge/text/line_node"
-      autoload :TextAnalysis, "ast/merge/text/analysis"
+      autoload :FileAnalysis, "ast/merge/text/file_analysis"
       autoload :MergeResult, "ast/merge/text/merge_result"
       autoload :ConflictResolver, "ast/merge/text/conflict_resolver"
       autoload :SmartMerger, "ast/merge/text/smart_merger"

@@ -2,7 +2,7 @@
 
 require "ast/merge/text"
 
-RSpec.describe Ast::Merge::Text::TextAnalysis do
+RSpec.describe Ast::Merge::Text::FileAnalysis do
   describe "#initialize" do
     it "parses source into line statements" do
       source = "Hello world\nGoodbye world"

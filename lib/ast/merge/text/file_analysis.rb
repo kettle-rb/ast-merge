@@ -16,7 +16,7 @@ module Ast
       # the merge infrastructure with any text-based content.
       #
       # @example Basic usage
-      #   analysis = TextAnalysis.new("Hello world\nGoodbye world")
+      #   analysis = FileAnalysis.new("Hello world\nGoodbye world")
       #   analysis.statements.size  # => 2
       #   analysis.statements[0].words.size  # => 2
       #
@@ -28,15 +28,15 @@ module Ast
       #     # text-merge:unfreeze
       #     Line four
       #   TEXT
-      #   analysis = TextAnalysis.new(content, freeze_token: "text-merge")
+      #   analysis = FileAnalysis.new(content, freeze_token: "text-merge")
       #   analysis.freeze_blocks.size  # => 1
-      class TextAnalysis
+      class FileAnalysis
         include FileAnalyzable
 
         # Default freeze token for text files
         DEFAULT_FREEZE_TOKEN = "text-merge"
 
-        # Initialize a new TextAnalysis
+        # Initialize a new FileAnalysis
         #
         # @param source [String] Source text content
         # @param freeze_token [String] Token for freeze block markers
@@ -78,7 +78,7 @@ module Ast
         # @param value [Object] Value to check
         # @return [Boolean] True if fallthrough node
         def fallthrough_node?(value)
-          value.is_a?(LineNode) || value.is_a?(FreezeNodeBase)
+          value.is_a?(LineNode) || value.is_a?(FreezeNodeBase) || super
         end
 
         private

@@ -108,10 +108,12 @@ module Ast
         @lines = value.to_s.split("\n", -1)
       end
 
-      # Get content as a string (useful for debugging and file output).
+      # Get content as a string.
+      # This is the canonical method for converting the merge result to a string.
+      # Subclasses may override to customize string output (e.g., adding trailing newline).
       #
       # @return [String] Content as string joined with newlines
-      def content_string
+      def to_s
         @lines.join("\n")
       end
 
