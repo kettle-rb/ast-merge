@@ -42,7 +42,7 @@
 
 # ☯️ Ast::Merge
 
-[![Version][👽versioni]][👽version] [![GitHub tag (latest SemVer)][⛳️tag-img]][⛳️tag] [![License: MIT][📄license-img]][📄license-ref] [![Downloads Rank][👽dl-ranki]][👽dl-rank] [![Open Source Helpers][👽oss-helpi]][👽oss-help] [![CodeCov Test Coverage][🏀codecovi]][🏀codecov] [![Coveralls Test Coverage][🏀coveralls-img]][🏀coveralls] [![QLTY Test Coverage][🏀qlty-covi]][🏀qlty-cov] [![QLTY Maintainability][🏀qlty-mnti]][🏀qlty-mnt] [![CI Heads][🚎3-hd-wfi]][🚎3-hd-wf] [![CI Runtime Dependencies @ HEAD][🚎12-crh-wfi]][🚎12-crh-wf] [![CI Current][🚎11-c-wfi]][🚎11-c-wf] [![CI Truffle Ruby][🚎9-t-wfi]][🚎9-t-wf] [![CI JRuby][🚎10-j-wfi]][🚎10-j-wf] [![Deps Locked][🚎13-🔒️-wfi]][🚎13-🔒️-wf] [![Deps Unlocked][🚎14-🔓️-wfi]][🚎14-🔓️-wf] [![CI Supported][🚎6-s-wfi]][🚎6-s-wf] [![CI Legacy][🚎4-lg-wfi]][🚎4-lg-wf] [![CI Unsupported][🚎7-us-wfi]][🚎7-us-wf] [![CI Ancient][🚎1-an-wfi]][🚎1-an-wf] [![CI Test Coverage][🚎2-cov-wfi]][🚎2-cov-wf] [![CI Style][🚎5-st-wfi]][🚎5-st-wf] [![CodeQL][🖐codeQL-img]][🖐codeQL] [![Apache SkyWalking Eyes License Compatibility Check][🚎15-🪪-wfi]][🚎15-🪪-wf]
+[![Version][👽versioni]][👽version] [![GitHub tag (latest SemVer)][⛳️tag-img]][⛳️tag] [![License: MIT][📄license-img]][📄license-ref] [![Downloads Rank][👽dl-ranki]][👽dl-rank] [![Open Source Helpers][👽oss-helpi]][👽oss-help] [![CodeCov Test Coverage][🏀codecovi]][🏀codecov] [![Coveralls Test Coverage][🏀coveralls-img]][🏀coveralls] [![QLTY Test Coverage][🏀qlty-covi]][🏀qlty-cov] [![QLTY Maintainability][🏀qlty-mnti]][🏀qlty-mnt] [![CI Heads][🚎3-hd-wfi]][🚎3-hd-wf] [![CI Runtime Dependencies @ HEAD][🚎12-crh-wfi]][🚎12-crh-wf] [![CI Current][🚎11-c-wfi]][🚎11-c-wf] [![CI Truffle Ruby][🚎9-t-wfi]][🚎9-t-wf] [![Deps Locked][🚎13-🔒️-wfi]][🚎13-🔒️-wf] [![Deps Unlocked][🚎14-🔓️-wfi]][🚎14-🔓️-wf] [![CI Supported][🚎6-s-wfi]][🚎6-s-wf] [![CI Test Coverage][🚎2-cov-wfi]][🚎2-cov-wf] [![CI Style][🚎5-st-wfi]][🚎5-st-wf] [![CodeQL][🖐codeQL-img]][🖐codeQL] [![Apache SkyWalking Eyes License Compatibility Check][🚎15-🪪-wfi]][🚎15-🪪-wf]
 
 `if ci_badges.map(&:color).detect { it != "green"}` ☝️ [let me know][🖼️galtzo-discord], as I may have missed the [discord notification][🖼️galtzo-discord].
 
@@ -765,26 +765,16 @@ Thanks for RTFM. ☺️
 [🏀coveralls-img]: https://coveralls.io/repos/github/kettle-rb/ast-merge/badge.svg?branch=main
 [🖐codeQL]: https://github.com/kettle-rb/ast-merge/security/code-scanning
 [🖐codeQL-img]: https://github.com/kettle-rb/ast-merge/actions/workflows/codeql-analysis.yml/badge.svg
-[🚎1-an-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/ancient.yml
-[🚎1-an-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/ancient.yml/badge.svg
 [🚎2-cov-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/coverage.yml
 [🚎2-cov-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/coverage.yml/badge.svg
 [🚎3-hd-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/heads.yml
 [🚎3-hd-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/heads.yml/badge.svg
-[🚎4-lg-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/legacy.yml
-[🚎4-lg-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/legacy.yml/badge.svg
 [🚎5-st-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/style.yml
 [🚎5-st-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/style.yml/badge.svg
 [🚎6-s-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/supported.yml
 [🚎6-s-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/supported.yml/badge.svg
-[🚎7-us-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/unsupported.yml
-[🚎7-us-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/unsupported.yml/badge.svg
-[🚎8-ho-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/hoary.yml
-[🚎8-ho-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/hoary.yml/badge.svg
 [🚎9-t-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/truffle.yml
 [🚎9-t-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/truffle.yml/badge.svg
-[🚎10-j-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/jruby.yml
-[🚎10-j-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/jruby.yml/badge.svg
 [🚎11-c-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/current.yml
 [🚎11-c-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/current.yml/badge.svg
 [🚎12-crh-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/dep-heads.yml
