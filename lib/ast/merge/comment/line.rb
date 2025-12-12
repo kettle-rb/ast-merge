@@ -52,7 +52,7 @@ module Ast
             start_line: line_number,
             end_line: line_number,
             start_column: 0,
-            end_column: @text.length
+            end_column: @text.length,
           )
 
           super(slice: @text, location: location)

@@ -50,7 +50,7 @@ module Ast
       #   @return [Proc, nil] Custom signature generator, or nil to use default
       def self.included(base)
         base.class_eval do
-          attr_reader :source, :lines, :freeze_token, :signature_generator
+          attr_reader(:source, :lines, :freeze_token, :signature_generator)
         end
       end
 
@@ -92,7 +92,7 @@ module Ast
       # @param index [Integer] Statement index (0-based)
       # @return [Array, nil] Signature array or nil if index out of bounds
       def signature_at(index)
-        return nil if index < 0 || index >= statements.length
+        return if index < 0 || index >= statements.length
 
         generate_signature(statements[index])
       end
@@ -102,7 +102,7 @@ module Ast
       # @param line_num [Integer] Line number (1-indexed)
       # @return [String, nil] The line content or nil if out of bounds
       def line_at(line_num)
-        return nil if line_num < 1
+        return if line_num < 1
 
         lines[line_num - 1]
       end

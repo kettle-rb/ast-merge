@@ -108,11 +108,11 @@ module Ast
             indent = ""
           else
             # Accumulate content lines (strip the indent if present)
-            if indent.empty?
-              content_lines << line
+            content_lines << if indent.empty?
+              line
             else
               # Strip the common indent from content lines
-              content_lines << line.sub(/^#{Regexp.escape(indent)}/, "")
+              line.sub(/^#{Regexp.escape(indent)}/, "")
             end
           end
         end

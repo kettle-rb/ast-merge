@@ -161,7 +161,7 @@ module Ast
           decision: decision,
           source: source,
           line: line,
-          timestamp: Time.now
+          timestamp: Time.now,
         }
       end
     end

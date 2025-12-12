@@ -129,7 +129,8 @@ RSpec.describe Ast::Merge::RegionMergeable do
 
       it "can be avoided with custom placeholder" do
         merger = merger_class.new(
-          "t", "d",
+          "t",
+          "d",
           regions: [{detector: Ast::Merge::YamlFrontmatterDetector.new}],
           region_placeholder: "###MY_PLACEHOLDER_",
         )
@@ -390,7 +391,8 @@ RSpec.describe Ast::Merge::RegionMergeable do
 
     it "extracts multiple region types" do
       merger = merger_class.new(
-        "t", "d",
+        "t",
+        "d",
         regions: [
           {detector: yaml_detector},
           {detector: ruby_detector},

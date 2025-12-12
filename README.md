@@ -294,7 +294,7 @@ Control whether to add nodes that only exist in the template:
 require "ast/merge/rspec/shared_examples"
 
 # spec/my_format/merge/freeze_node_spec.rb
-RSpec.describe MyFormat::Merge::FreezeNode do
+RSpec.describe(MyFormat::Merge::FreezeNode) do
   it_behaves_like "Ast::Merge::FreezeNode" do
     let(:freeze_node_class) { described_class }
     let(:default_pattern_type) { :hash_comment }
@@ -386,7 +386,7 @@ node_typing = {
     else
       node
     end
-  }
+  },
 }
 
 merger = Prism::Merge::SmartMerger.new(
@@ -395,8 +395,8 @@ merger = Prism::Merge::SmartMerger.new(
   node_typing: node_typing,
   preference: {
     default: :destination,
-    lint_gem: :template
-  }
+    lint_gem: :template,
+  },
 )
 ```
 
@@ -439,7 +439,7 @@ and document your intention for future per-type customization:
 merger = MyMerger.new(
   template_content,
   dest_content,
-  preference: { default: :destination }
+  preference: {default: :destination},
 )
 ```
 
@@ -452,14 +452,14 @@ The `MergerConfig` class provides factory methods that support all options:
 config = Ast::Merge::MergerConfig.destination_wins(
   freeze_token: "my-freeze",
   signature_generator: my_generator,
-  node_typing: my_typing
+  node_typing: my_typing,
 )
 
 # Create config preferring template
 config = Ast::Merge::MergerConfig.template_wins(
   freeze_token: "my-freeze",
   signature_generator: my_generator,
-  node_typing: my_typing
+  node_typing: my_typing,
 )
 ```
 

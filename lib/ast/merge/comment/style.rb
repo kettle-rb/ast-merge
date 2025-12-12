@@ -140,7 +140,7 @@ module Ast
           # @return [Hash] The registered style configuration
           # @raise [ArgumentError] if name already exists
           def register(name, line_start: nil, line_end: nil, block_start: nil, block_end: nil,
-                       line_pattern: nil, block_start_pattern: nil, block_end_pattern: nil)
+            line_pattern: nil, block_start_pattern: nil, block_end_pattern: nil)
             name = name.to_sym
             if STYLES.key?(name)
               raise ArgumentError, "Style :#{name} already registered"
@@ -203,7 +203,7 @@ module Ast
         # @param block_start_pattern [Regexp, nil] Pattern to match block start
         # @param block_end_pattern [Regexp, nil] Pattern to match block end
         def initialize(name, line_start: nil, line_end: nil, block_start: nil, block_end: nil,
-                       line_pattern: nil, block_start_pattern: nil, block_end_pattern: nil)
+          line_pattern: nil, block_start_pattern: nil, block_end_pattern: nil)
           @name = name
           @line_start = line_start
           @line_end = line_end

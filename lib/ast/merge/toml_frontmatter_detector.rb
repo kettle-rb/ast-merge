@@ -29,7 +29,7 @@ module Ast
       # - Content is captured (non-greedy)
       # - Closing delimiter is `+++` at start of line, followed by optional whitespace and newline/EOF
       #
-      FRONTMATTER_PATTERN = /\A(?:\xEF\xBB\xBF)?(\+\+\+[ \t]*\r?\n)(.*?)(^\+\+\+[ \t]*(?:\r?\n|\z))/m.freeze
+      FRONTMATTER_PATTERN = /\A(?:\xEF\xBB\xBF)?(\+\+\+[ \t]*\r?\n)(.*?)(^\+\+\+[ \t]*(?:\r?\n|\z))/m
 
       ##
       # @return [Symbol] the type identifier for TOML frontmatter regions
@@ -62,7 +62,7 @@ module Ast
         total_newlines = full_match.count("\n")
         end_line = total_newlines + (full_match.end_with?("\n") ? 0 : 1)
 
-[
+        [
           Region.new(
             type: region_type,
             content: content,

@@ -55,7 +55,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
       described_class.register_pattern(
         :test_pattern,
         start: /^--\s*freeze/,
-        end_pattern: /^--\s*unfreeze/
+        end_pattern: /^--\s*unfreeze/,
       )
 
       expect(described_class::MARKER_PATTERNS).to have_key(:test_pattern)
@@ -66,7 +66,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
         described_class.register_pattern(
           :hash_comment,
           start: /test/,
-          end_pattern: /test/
+          end_pattern: /test/,
         )
       end.to raise_error(ArgumentError, /already registered/)
     end
@@ -76,7 +76,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
         described_class.register_pattern(
           :bad_pattern,
           start: "not a regex",
-          end_pattern: /test/
+          end_pattern: /test/,
         )
       end.to raise_error(ArgumentError, /Start pattern must be a Regexp/)
     end
@@ -86,7 +86,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
         described_class.register_pattern(
           :bad_pattern,
           start: /test/,
-          end_pattern: "not a regex"
+          end_pattern: "not a regex",
         )
       end.to raise_error(ArgumentError, /End pattern must be a Regexp/)
     end
@@ -299,7 +299,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
       error = Ast::Merge::FreezeNodeBase::InvalidStructureError.new(
         "test",
         start_line: 5,
-        end_line: 10
+        end_line: 10,
       )
       expect(error.start_line).to eq(5)
       expect(error.end_line).to eq(10)
@@ -308,7 +308,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
     it "accepts unclosed_nodes keyword argument" do
       error = Ast::Merge::FreezeNodeBase::InvalidStructureError.new(
         "test",
-        unclosed_nodes: %i[node1 node2]
+        unclosed_nodes: %i[node1 node2],
       )
       expect(error.unclosed_nodes).to eq(%i[node1 node2])
     end
@@ -332,7 +332,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
         start_line: 5,
         end_line: 10,
         start_marker: "# freeze",
-        end_marker: "# unfreeze"
+        end_marker: "# unfreeze",
       )
 
       expect(node.start_marker).to eq("# freeze")
@@ -448,7 +448,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
           start_line: 1,
           end_line: 5,
           start_marker: "# token:freeze marker reason",
-          reason: "explicit reason"
+          reason: "explicit reason",
         )
 
         expect(node.reason).to eq("explicit reason")
@@ -467,7 +467,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
           start_line: 1,
           end_line: 1,
           lines: %w[direct_line],
-          analysis: mock_analysis
+          analysis: mock_analysis,
         )
 
         expect(node.lines).to eq(%w[direct_line])
@@ -478,7 +478,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
           start_line: 1,
           end_line: 1,
           lines: %w[line_content],
-          content: "direct_content"
+          content: "direct_content",
         )
 
         expect(node.content).to eq("direct_content")

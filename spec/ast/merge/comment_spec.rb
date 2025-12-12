@@ -207,7 +207,7 @@ RSpec.describe Ast::Merge::Comment do
         lines = [
           "# First line",
           "# Second line",
-          "# Third line"
+          "# Third line",
         ]
         nodes = described_class.parse(lines)
 
@@ -220,7 +220,7 @@ RSpec.describe Ast::Merge::Comment do
         lines = [
           "# Block one",
           "",
-          "# Block two"
+          "# Block two",
         ]
         nodes = described_class.parse(lines)
 
@@ -235,7 +235,7 @@ RSpec.describe Ast::Merge::Comment do
           "# Comment",
           "",
           "",
-          "# Another"
+          "# Another",
         ]
         nodes = described_class.parse(lines)
 
@@ -281,7 +281,7 @@ RSpec.describe Ast::Merge::Comment do
         lines = [
           "/* Start of block",
           " * Middle line",
-          " */"
+          " */",
         ]
         nodes = described_class.parse(lines, style: :c_style_block)
 

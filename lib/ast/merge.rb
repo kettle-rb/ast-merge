@@ -131,7 +131,7 @@ module Ast
         @placeholder = placeholder
         super(
           "Document contains placeholder text '#{placeholder}'. " \
-          "Use the :region_placeholder option to specify a custom placeholder."
+            "Use the :region_placeholder option to specify a custom placeholder."
         )
       end
     end
@@ -163,4 +163,3 @@ end
 Ast::Merge::Version.class_eval do
   extend VersionGem::Basic
 end
-

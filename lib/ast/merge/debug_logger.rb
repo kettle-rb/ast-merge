@@ -131,7 +131,7 @@ module Ast
       def env_var_name
         if is_a?(Module) && singleton_class.method_defined?(:env_var_name)
           # Called as module method on a module that extended us
-          self.class.superclass == Module ? @env_var_name : self.class.env_var_name
+          (self.class.superclass == Module) ? @env_var_name : self.class.env_var_name
         elsif self.class.respond_to?(:env_var_name)
           self.class.env_var_name
         else
@@ -147,7 +147,7 @@ module Ast
       def log_prefix
         if is_a?(Module) && singleton_class.method_defined?(:log_prefix)
           # Called as module method on a module that extended us
-          self.class.superclass == Module ? @log_prefix : self.class.log_prefix
+          (self.class.superclass == Module) ? @log_prefix : self.class.log_prefix
         elsif self.class.respond_to?(:log_prefix)
           self.class.log_prefix
         else
@@ -164,7 +164,7 @@ module Ast
 
         output = "#{log_prefix} #{message}"
         output += " #{context.inspect}" unless context.empty?
-        warn output
+        warn(output)
       end
 
       # Log an info message (always shown when debug is enabled)
@@ -173,14 +173,14 @@ module Ast
       def info(message)
         return unless enabled?
 
-        warn "#{log_prefix} INFO] #{message}"
+        warn("#{log_prefix} INFO] #{message}")
       end
 
       # Log a warning message (always shown)
       #
       # @param message [String] The warning message
       def warning(message)
-        warn "#{log_prefix} WARNING] #{message}"
+        warn("#{log_prefix} WARNING] #{message}")
       end
 
       # Time a block and log the duration
@@ -200,10 +200,10 @@ module Ast
         result = nil
         timing = Benchmark.measure { result = yield }
         debug("Completed: #{operation}", {
-                real_ms: (timing.real * 1000).round(2),
-                user_ms: (timing.utime * 1000).round(2),
-                system_ms: (timing.stime * 1000).round(2)
-              })
+          real_ms: (timing.real * 1000).round(2),
+          user_ms: (timing.utime * 1000).round(2),
+          system_ms: (timing.stime * 1000).round(2),
+        })
         result
       end
 
@@ -227,7 +227,7 @@ module Ast
         type_name = safe_type_name(node)
         lines = extract_lines(node)
 
-        info = { type: type_name }
+        info = {type: type_name}
         info[:lines] = lines if lines
         info
       end

@@ -334,7 +334,7 @@ module Ast
         # Don't re-wrap our own parse errors
         raise if e.is_a?(template_parse_error_class) || e.is_a?(destination_parse_error_class)
 
-        error_class = source == :template ? template_parse_error_class : destination_parse_error_class
+        error_class = (source == :template) ? template_parse_error_class : destination_parse_error_class
         raise error_class.new(errors: [e], content: content)
       end
 
@@ -382,7 +382,7 @@ module Ast
       #
       # @return [Object, nil] The resolver instance
       def build_resolver
-        return nil unless resolver_class
+        return unless resolver_class
 
         options = {
           preference: @preference,
@@ -401,7 +401,7 @@ module Ast
       #
       # @return [Object, nil] The result instance
       def build_result
-        return nil unless result_class
+        return unless result_class
 
         if result_class.instance_method(:initialize).arity == 0
           result_class.new

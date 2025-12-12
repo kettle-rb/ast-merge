@@ -74,7 +74,7 @@ RSpec.describe Ast::Merge::DebugLogger do
 
     it "includes context when provided" do
       stub_env("TEST_DEBUG" => "1")
-      expect { test_class.debug("hello", { key: "value" }) }.to output(/key.*value/).to_stderr
+      expect { test_class.debug("hello", {key: "value"}) }.to output(/key.*value/).to_stderr
     end
   end
 
@@ -318,6 +318,7 @@ RSpec.describe Ast::Merge::DebugLogger do
       let(:extended_module) do
         Module.new do
           extend Ast::Merge::DebugLogger
+
           self.env_var_name = "MODULE_ENV_VAR"
           self.log_prefix = "[ModulePrefix]"
         end

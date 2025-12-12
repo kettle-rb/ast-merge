@@ -13,7 +13,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
       resolver = described_class.new(
         template_analysis,
         dest_analysis,
-        preference: :template
+        preference: :template,
       )
 
       expect(resolver.instance_variable_get(:@preference)).to eq(:template)
@@ -23,7 +23,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
       resolver = described_class.new(
         template_analysis,
         dest_analysis,
-        add_template_only_nodes: true
+        add_template_only_nodes: true,
       )
 
       expect(resolver.instance_variable_get(:@add_template_only_nodes)).to be true
@@ -94,7 +94,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
           resolver = described_class.new(
             template_analysis,
             dest_analysis,
-            add_template_only_nodes: true
+            add_template_only_nodes: true,
           )
           result = Ast::Merge::Text::MergeResult.new
 
@@ -107,7 +107,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
           resolver = described_class.new(
             template_analysis,
             dest_analysis,
-            add_template_only_nodes: true
+            add_template_only_nodes: true,
           )
           result = Ast::Merge::Text::MergeResult.new
 
@@ -151,7 +151,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
           resolver = described_class.new(
             template_analysis,
             dest_analysis,
-            preference: :template
+            preference: :template,
           )
           result = Ast::Merge::Text::MergeResult.new
 
@@ -166,7 +166,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
           resolver = described_class.new(
             template_analysis,
             dest_analysis,
-            preference: :template
+            preference: :template,
           )
           result = Ast::Merge::Text::MergeResult.new
 
@@ -227,7 +227,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
           resolver = described_class.new(
             template_analysis,
             dest_analysis,
-            add_template_only_nodes: true
+            add_template_only_nodes: true,
           )
           result = Ast::Merge::Text::MergeResult.new
 

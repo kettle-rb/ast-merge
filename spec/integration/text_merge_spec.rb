@@ -45,14 +45,14 @@ RSpec.describe "Text-based AST merge integration" do
   describe "configuration option: preference" do
     context "with preference: :template" do
       it_behaves_like "a reproducible merge", "config_preference_template", {
-        preference: :template
+        preference: :template,
       }
     end
 
     context "with preference: :destination (default)" do
       # This uses fixture 05 which shows destination changes preserved
       it_behaves_like "a reproducible merge", "05_top_level_changed", {
-        preference: :destination
+        preference: :destination,
       }
     end
   end
@@ -60,7 +60,7 @@ RSpec.describe "Text-based AST merge integration" do
   describe "configuration option: add_template_only_nodes" do
     context "with add_template_only_nodes: true" do
       it_behaves_like "a reproducible merge", "config_add_template_only", {
-        add_template_only_nodes: true
+        add_template_only_nodes: true,
       }
     end
 
@@ -86,7 +86,7 @@ RSpec.describe "Text-based AST merge integration" do
         merger = Ast::Merge::Text::SmartMerger.new(
           template,
           destination,
-          add_template_only_nodes: false
+          add_template_only_nodes: false,
         )
         result = merger.merge
 
@@ -126,7 +126,7 @@ RSpec.describe "Text-based AST merge integration" do
         merger = Ast::Merge::Text::SmartMerger.new(
           template,
           destination,
-          freeze_token: "custom-token"
+          freeze_token: "custom-token",
         )
         result = merger.merge
 
@@ -141,7 +141,7 @@ RSpec.describe "Text-based AST merge integration" do
     context "with preference: :template and add_template_only_nodes: true" do
       it_behaves_like "a reproducible merge", "config_all_options", {
         preference: :template,
-        add_template_only_nodes: true
+        add_template_only_nodes: true,
       }
     end
   end
@@ -177,7 +177,7 @@ RSpec.describe "Text-based AST merge integration" do
         merger = Ast::Merge::Text::SmartMerger.new(
           template,
           destination,
-          add_template_only_nodes: false
+          add_template_only_nodes: false,
         )
         result = merger.merge
 
@@ -188,7 +188,7 @@ RSpec.describe "Text-based AST merge integration" do
         merger = Ast::Merge::Text::SmartMerger.new(
           template,
           destination,
-          add_template_only_nodes: true
+          add_template_only_nodes: true,
         )
         result = merger.merge
 

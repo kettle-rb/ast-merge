@@ -58,7 +58,7 @@ RSpec.describe Ast::Merge::MatchScoreBase do
     let(:node_b) { double("node_b", value: 10) }
 
     it "computes score using algorithm" do
-      algorithm = ->(a, b) { a.value == b.value ? 1.0 : 0.0 }
+      algorithm = ->(a, b) { (a.value == b.value) ? 1.0 : 0.0 }
       scorer = described_class.new(node_a, node_b, algorithm: algorithm)
       expect(scorer.score).to eq(1.0)
     end
@@ -141,7 +141,7 @@ RSpec.describe Ast::Merge::MatchScoreBase do
       scorers = [
         described_class.new(node_a, node_b, algorithm: ->(_a, _b) { 0.5 }),
         described_class.new(node_a, node_b, algorithm: ->(_a, _b) { 0.9 }),
-        described_class.new(node_a, node_b, algorithm: ->(_a, _b) { 0.1 })
+        described_class.new(node_a, node_b, algorithm: ->(_a, _b) { 0.1 }),
       ]
 
       sorted = scorers.sort
@@ -312,7 +312,7 @@ RSpec.describe Ast::Merge::MatchScoreBase do
       scorer1 = described_class.new(node_a1, node_b1, algorithm: algorithm)
       scorer2 = described_class.new(node_a2, node_b2, algorithm: algorithm)
 
-      hash = { scorer1 => "value1" }
+      hash = {scorer1 => "value1"}
       expect(hash[scorer2]).to eq("value1")
     end
   end
@@ -394,7 +394,7 @@ RSpec.describe Ast::Merge::MatchScoreBase do
       scorer1 = described_class.new(node_a1, node_b1, algorithm: algorithm)
       scorer2 = described_class.new(node_a2, node_b2, algorithm: algorithm)
 
-      hash = { scorer1 => "value" }
+      hash = {scorer1 => "value"}
       expect(hash.key?(scorer2)).to be true
     end
 
@@ -417,19 +417,19 @@ RSpec.describe Ast::Merge::MatchScoreBase do
   describe "algorithm examples" do
     context "with type-based matching" do
       let(:algorithm) do
-        ->(a, b) { a[:type] == b[:type] ? 1.0 : 0.0 }
+        ->(a, b) { (a[:type] == b[:type]) ? 1.0 : 0.0 }
       end
 
       it "scores matching types as 1.0" do
-        node_a = { type: :heading }
-        node_b = { type: :heading }
+        node_a = {type: :heading}
+        node_b = {type: :heading}
         scorer = described_class.new(node_a, node_b, algorithm: algorithm)
         expect(scorer.score).to eq(1.0)
       end
 
       it "scores non-matching types as 0.0" do
-        node_a = { type: :heading }
-        node_b = { type: :paragraph }
+        node_a = {type: :heading}
+        node_b = {type: :paragraph}
         scorer = described_class.new(node_a, node_b, algorithm: algorithm)
         expect(scorer.score).to eq(0.0)
       end
@@ -440,29 +440,29 @@ RSpec.describe Ast::Merge::MatchScoreBase do
         lambda { |a, b|
           common = (a[:words] & b[:words]).size
           total = (a[:words] | b[:words]).size
-          total > 0 ? common.to_f / total : 0.0
+          (total > 0) ? common.to_f / total : 0.0
         }
       end
 
       it "scores identical content as 1.0" do
         words = %w[hello world]
-        node_a = { words: words }
-        node_b = { words: words }
+        node_a = {words: words}
+        node_b = {words: words}
         scorer = described_class.new(node_a, node_b, algorithm: algorithm)
         expect(scorer.score).to eq(1.0)
       end
 
       it "scores partial overlap appropriately" do
-        node_a = { words: %w[hello world foo] }
-        node_b = { words: %w[hello world bar] }
+        node_a = {words: %w[hello world foo]}
+        node_b = {words: %w[hello world bar]}
         scorer = described_class.new(node_a, node_b, algorithm: algorithm)
         # 2 common (hello, world) / 4 total (hello, world, foo, bar) = 0.5
         expect(scorer.score).to eq(0.5)
       end
 
       it "scores no overlap as 0.0" do
-        node_a = { words: %w[foo bar] }
-        node_b = { words: %w[baz qux] }
+        node_a = {words: %w[foo bar]}
+        node_b = {words: %w[baz qux]}
         scorer = described_class.new(node_a, node_b, algorithm: algorithm)
         expect(scorer.score).to eq(0.0)
       end

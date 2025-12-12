@@ -49,8 +49,7 @@ module Ast
       # @return [Hash, nil] Optional metadata for detector-specific information
       #   (e.g., { language: "ruby" }, { format: :yaml })
       :metadata,
-
-      keyword_init: true
+      keyword_init: true,
     ) do
       # Returns the line range covered by this region.
       #
@@ -118,7 +117,7 @@ module Ast
         else
           content.inspect
         end
-        "#{to_s} #{truncated}"
+        "#{self} #{truncated}"
       end
     end
   end

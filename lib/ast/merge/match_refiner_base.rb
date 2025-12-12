@@ -232,7 +232,7 @@ module Ast
           template_node: template_node,
           dest_node: dest_node,
           score: score,
-          metadata: metadata
+          metadata: metadata,
         )
       end
 
@@ -259,7 +259,7 @@ module Ast
           best_match = dest_node
         end
 
-        return nil unless best_match
+        return unless best_match
 
         match_result(template_node, best_match, best_score)
       end
@@ -283,7 +283,7 @@ module Ast
             score = yield(t_node, d_node)
             next unless score && score >= threshold
 
-            candidates << { template: t_node, dest: d_node, score: score }
+            candidates << {template: t_node, dest: d_node, score: score}
           end
         end
 
@@ -299,7 +299,7 @@ module Ast
           matches << match_result(
             candidate[:template],
             candidate[:dest],
-            candidate[:score]
+            candidate[:score],
           )
           used_template_nodes << candidate[:template]
           used_dest_nodes << candidate[:dest]

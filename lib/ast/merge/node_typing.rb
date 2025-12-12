@@ -284,13 +284,13 @@ module Ast
           typing_config.each do |key, value|
             unless key.is_a?(Symbol) || key.is_a?(String)
               raise ArgumentError,
-                    "node_typing keys must be Symbol or String, got #{key.class} for #{key.inspect}"
+                "node_typing keys must be Symbol or String, got #{key.class} for #{key.inspect}"
             end
 
             unless value.respond_to?(:call)
               raise ArgumentError,
-                    "node_typing values must be callable (respond to #call), " \
-                    "got #{value.class} for key #{key.inspect}"
+                "node_typing values must be callable (respond to #call), " \
+                  "got #{value.class} for key #{key.inspect}"
             end
           end
         end

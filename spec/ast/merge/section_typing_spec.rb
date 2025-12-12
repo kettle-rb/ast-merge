@@ -8,7 +8,7 @@ RSpec.describe Ast::Merge::SectionTyping do
           type: :appraise_block,
           name: "coverage",
           node: double("Node"),
-          metadata: { has_gems: true }
+          metadata: {has_gems: true},
         )
       end
 
@@ -25,7 +25,7 @@ RSpec.describe Ast::Merge::SectionTyping do
       end
 
       it "sets metadata" do
-        expect(section.metadata).to eq({ has_gems: true })
+        expect(section.metadata).to eq({has_gems: true})
       end
     end
 
@@ -68,13 +68,13 @@ RSpec.describe Ast::Merge::SectionTyping do
     let(:concrete_classifier_class) do
       Class.new(described_class) do
         def classify(node)
-          return nil unless node.respond_to?(:name) && node.name == :special
+          return unless node.respond_to?(:name) && node.name == :special
 
           Ast::Merge::SectionTyping::TypedSection.new(
             type: :special_block,
             name: node.id,
             node: node,
-            metadata: nil
+            metadata: nil,
           )
         end
       end
@@ -121,7 +121,7 @@ RSpec.describe Ast::Merge::SectionTyping do
       it "classifies matching nodes" do
         nodes = [
           double("Node1", name: :special, id: "block1"),
-          double("Node2", name: :special, id: "block2")
+          double("Node2", name: :special, id: "block2"),
         ]
 
         sections = classifier.classify_all(nodes)
@@ -133,7 +133,7 @@ RSpec.describe Ast::Merge::SectionTyping do
         nodes = [
           double("Node1", name: :other),
           double("Node2", name: :other),
-          double("Node3", name: :special, id: "block1")
+          double("Node3", name: :special, id: "block1"),
         ]
 
         sections = classifier.classify_all(nodes)
@@ -146,7 +146,7 @@ RSpec.describe Ast::Merge::SectionTyping do
       it "handles trailing unclassified nodes" do
         nodes = [
           double("Node1", name: :special, id: "block1"),
-          double("Node2", name: :other)
+          double("Node2", name: :other),
         ]
 
         sections = classifier.classify_all(nodes)
@@ -158,7 +158,7 @@ RSpec.describe Ast::Merge::SectionTyping do
       it "handles all unclassified nodes" do
         nodes = [
           double("Node1", name: :other),
-          double("Node2", name: :other)
+          double("Node2", name: :other),
         ]
 
         sections = classifier.classify_all(nodes)
@@ -197,12 +197,12 @@ RSpec.describe Ast::Merge::SectionTyping do
             type: :block,
             name: node[:name],
             node: node,
-            metadata: nil
+            metadata: nil,
           )
         }
         classifier = described_class.new(callable)
 
-        result = classifier.classify({ type: :block, name: "test" })
+        result = classifier.classify({type: :block, name: "test"})
         expect(result.name).to eq("test")
       end
 
@@ -214,11 +214,11 @@ RSpec.describe Ast::Merge::SectionTyping do
 
       it "converts Hash return to TypedSection" do
         callable = ->(node) {
-          { type: :block, name: node[:name], node: node, metadata: nil }
+          {type: :block, name: node[:name], node: node, metadata: nil}
         }
         classifier = described_class.new(callable)
 
-        result = classifier.classify({ name: "converted" })
+        result = classifier.classify({name: "converted"})
         expect(result).to be_a(Ast::Merge::SectionTyping::TypedSection)
         expect(result.name).to eq("converted")
       end
@@ -229,14 +229,14 @@ RSpec.describe Ast::Merge::SectionTyping do
     let(:classifier1) do
       Ast::Merge::SectionTyping::CallableClassifier.new(->(node) {
         next nil unless node[:type] == :type_a
-        { type: :type_a, name: node[:name], node: node, metadata: nil }
+        {type: :type_a, name: node[:name], node: node, metadata: nil}
       })
     end
 
     let(:classifier2) do
       Ast::Merge::SectionTyping::CallableClassifier.new(->(node) {
         next nil unless node[:type] == :type_b
-        { type: :type_b, name: node[:name], node: node, metadata: nil }
+        {type: :type_b, name: node[:name], node: node, metadata: nil}
       })
     end
 
@@ -255,19 +255,19 @@ RSpec.describe Ast::Merge::SectionTyping do
 
     describe "#classify" do
       it "returns result from first matching classifier" do
-        node = { type: :type_a, name: "first" }
+        node = {type: :type_a, name: "first"}
         result = composite.classify(node)
         expect(result.type).to eq(:type_a)
       end
 
       it "tries subsequent classifiers" do
-        node = { type: :type_b, name: "second" }
+        node = {type: :type_b, name: "second"}
         result = composite.classify(node)
         expect(result.type).to eq(:type_b)
       end
 
       it "returns nil when no classifier matches" do
-        node = { type: :unknown, name: "none" }
+        node = {type: :unknown, name: "none"}
         expect(composite.classify(node)).to be_nil
       end
     end
@@ -278,7 +278,7 @@ RSpec.describe Ast::Merge::SectionTyping do
       [
         Ast::Merge::SectionTyping::TypedSection.new(type: :block, name: "coverage", node: double("T1"), metadata: nil),
         Ast::Merge::SectionTyping::TypedSection.new(type: :block, name: "style", node: double("T2"), metadata: nil),
-        Ast::Merge::SectionTyping::TypedSection.new(type: :block, name: "template_only", node: double("T3"), metadata: nil)
+        Ast::Merge::SectionTyping::TypedSection.new(type: :block, name: "template_only", node: double("T3"), metadata: nil),
       ]
     end
 
@@ -286,7 +286,7 @@ RSpec.describe Ast::Merge::SectionTyping do
       [
         Ast::Merge::SectionTyping::TypedSection.new(type: :block, name: "coverage", node: double("D1"), metadata: nil),
         Ast::Merge::SectionTyping::TypedSection.new(type: :block, name: "style", node: double("D2"), metadata: nil),
-        Ast::Merge::SectionTyping::TypedSection.new(type: :block, name: "dest_only", node: double("D3"), metadata: nil)
+        Ast::Merge::SectionTyping::TypedSection.new(type: :block, name: "dest_only", node: double("D3"), metadata: nil),
       ]
     end
 
@@ -328,7 +328,7 @@ RSpec.describe Ast::Merge::SectionTyping do
 
     context "with per-section preferences" do
       it "applies different preferences per section" do
-        pref = { default: :destination, "style" => :template }
+        pref = {:default => :destination, "style" => :template}
         merged = described_class.merge_sections(template_sections, dest_sections, preference: pref)
 
         coverage = merged.find { |s| s.name == "coverage" }
@@ -343,7 +343,7 @@ RSpec.describe Ast::Merge::SectionTyping do
       it "skips unclassified template sections by default" do
         template_with_unclassified = [
           Ast::Merge::SectionTyping::TypedSection.new(type: :unclassified, name: :unclassified, node: double("U"), metadata: nil),
-          *template_sections
+          *template_sections,
         ]
 
         merged = described_class.merge_sections(template_with_unclassified, dest_sections, preference: :destination)
@@ -354,7 +354,7 @@ RSpec.describe Ast::Merge::SectionTyping do
       it "includes unclassified template sections when add_template_only is true" do
         template_with_unclassified = [
           Ast::Merge::SectionTyping::TypedSection.new(type: :unclassified, name: :unclassified, node: double("U"), metadata: nil),
-          *template_sections
+          *template_sections,
         ]
 
         merged = described_class.merge_sections(template_with_unclassified, dest_sections, preference: :destination, add_template_only: true)
@@ -370,37 +370,37 @@ RSpec.describe Ast::Merge::SectionTyping do
     end
 
     it "returns exact match from hash with string key" do
-      pref = { "coverage" => :template, default: :destination }
+      pref = {"coverage" => :template, :default => :destination}
       expect(described_class.preference_for("coverage", pref)).to eq(:template)
     end
 
     it "returns exact match from hash with symbol key" do
-      pref = { coverage: :template, default: :destination }
+      pref = {coverage: :template, default: :destination}
       expect(described_class.preference_for("coverage", pref)).to eq(:template)
     end
 
     it "normalizes uppercase keys to match lowercase names" do
-      pref = { "COVERAGE" => :template, default: :destination }
+      pref = {"COVERAGE" => :template, :default => :destination}
       expect(described_class.preference_for("coverage", pref)).to eq(:template)
     end
 
     it "normalizes keys with whitespace" do
-      pref = { "  coverage  " => :template, default: :destination }
+      pref = {"  coverage  " => :template, :default => :destination}
       expect(described_class.preference_for("coverage", pref)).to eq(:template)
     end
 
     it "normalizes section name with whitespace to match key" do
-      pref = { "coverage" => :template, default: :destination }
+      pref = {"coverage" => :template, :default => :destination}
       expect(described_class.preference_for("  coverage  ", pref)).to eq(:template)
     end
 
     it "returns default when no match" do
-      pref = { "other" => :template, default: :destination }
+      pref = {"other" => :template, :default => :destination}
       expect(described_class.preference_for("coverage", pref)).to eq(:destination)
     end
 
     it "defaults to :destination when no default specified" do
-      pref = { "other" => :template }
+      pref = {"other" => :template}
       expect(described_class.preference_for("coverage", pref)).to eq(:destination)
     end
   end

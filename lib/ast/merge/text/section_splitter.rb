@@ -125,7 +125,7 @@ module Ast
             template_sections,
             dest_sections,
             preference: preference,
-            add_template_only: add_template_only
+            add_template_only: add_template_only,
           )
 
           join(merged_sections)
@@ -216,7 +216,7 @@ module Ast
             body: dest_section.body,
             start_line: dest_section.start_line,
             end_line: dest_section.end_line,
-            metadata: dest_section.metadata&.merge(template_section.metadata || {})
+            metadata: dest_section.metadata&.merge(template_section.metadata || {}),
           )
         end
 
@@ -334,7 +334,7 @@ module Ast
                   body: preamble_lines.join,
                   start_line: 1,
                   end_line: line_num - 1,
-                  metadata: { type: :preamble }
+                  metadata: {type: :preamble},
                 )
               end
 
@@ -343,7 +343,7 @@ module Ast
                 name: section_name.strip,
                 header: line,
                 body_lines: [],
-                start_line: line_num
+                start_line: line_num,
               }
             elsif current_section
               current_section[:body_lines] << line
@@ -364,7 +364,7 @@ module Ast
               body: preamble_lines.join,
               start_line: 1,
               end_line: lines.length,
-              metadata: { type: :preamble }
+              metadata: {type: :preamble},
             )
           end
 
@@ -388,7 +388,7 @@ module Ast
             body: section_data[:body_lines].join,
             start_line: section_data[:start_line],
             end_line: section_data[:end_line] || section_data[:start_line] + section_data[:body_lines].length,
-            metadata: nil
+            metadata: nil,
           )
         end
       end

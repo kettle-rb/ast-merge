@@ -28,7 +28,7 @@ module Ast
       # - Content is captured (non-greedy)
       # - Closing delimiter is `---` at start of line, followed by optional whitespace and newline/EOF
       #
-      FRONTMATTER_PATTERN = /\A(?:\xEF\xBB\xBF)?(---[ \t]*\r?\n)(.*?)(^---[ \t]*(?:\r?\n|\z))/m.freeze
+      FRONTMATTER_PATTERN = /\A(?:\xEF\xBB\xBF)?(---[ \t]*\r?\n)(.*?)(^---[ \t]*(?:\r?\n|\z))/m
 
       ##
       # @return [Symbol] the type identifier for YAML frontmatter regions
@@ -65,15 +65,17 @@ module Ast
         end_line = start_line + 1 + content_newlines
 
         # Adjust if content ends without newline
-        end_line -= 1 if content.end_with?("\n") && content_newlines > 0
+        end_line - 1 if content.end_with?("\n") && content_newlines > 0
 
         # Actually, let's calculate more carefully
         # Line 1: ---
         # Line 2 to N: content
         # Line N+1: ---
-        lines_in_opening = 1
-        lines_in_content = content.empty? ? 0 : content.count("\n") + (content.end_with?("\n") ? 0 : 1)
-        end_line = lines_in_opening + lines_in_content + 1
+        if content.empty?
+          0
+        else
+          content.count("\n") + (content.end_with?("\n") ? 0 : 1)
+        end
 
         # Simplify: count total newlines in the full match to determine end line
         full_match = match[0]

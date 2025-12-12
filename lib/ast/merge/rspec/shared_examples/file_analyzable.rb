@@ -26,7 +26,7 @@
 #
 # @note The extending class should include Ast::Merge::FileAnalyzable
 
-RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
+RSpec.shared_examples("Ast::Merge::FileAnalyzable") do
   # Required let blocks:
   # - file_analysis_class: The class under test (e.g., MyMerge::FileAnalysis)
   # - freeze_node_class: The freeze node class (e.g., MyMerge::FreezeNode)
@@ -36,7 +36,7 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
 
   describe "module inclusion" do
     it "includes Ast::Merge::FileAnalyzable" do
-      expect(file_analysis_class.ancestors).to include(Ast::Merge::FileAnalyzable)
+      expect(file_analysis_class.ancestors).to(include(Ast::Merge::FileAnalyzable))
     end
   end
 
@@ -44,23 +44,23 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
     let(:analysis) { build_file_analysis.call(sample_source) }
 
     it "has #source reader" do
-      expect(analysis).to respond_to(:source)
+      expect(analysis).to(respond_to(:source))
     end
 
     it "has #lines reader" do
-      expect(analysis).to respond_to(:lines)
+      expect(analysis).to(respond_to(:lines))
     end
 
     it "has #freeze_token reader" do
-      expect(analysis).to respond_to(:freeze_token)
+      expect(analysis).to(respond_to(:freeze_token))
     end
 
     it "has #signature_generator reader" do
-      expect(analysis).to respond_to(:signature_generator)
+      expect(analysis).to(respond_to(:signature_generator))
     end
 
     it "has #statements reader" do
-      expect(analysis).to respond_to(:statements)
+      expect(analysis).to(respond_to(:statements))
     end
   end
 
@@ -69,7 +69,7 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
       let(:analysis) { build_file_analysis.call(sample_source) }
 
       it "returns an empty array" do
-        expect(analysis.freeze_blocks).to eq([])
+        expect(analysis.freeze_blocks).to(eq([]))
       end
     end
 
@@ -77,9 +77,9 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
       let(:analysis) { build_file_analysis.call(sample_source_with_freeze) }
 
       it "returns an array of FreezeNode instances" do
-        expect(analysis.freeze_blocks).to be_an(Array)
+        expect(analysis.freeze_blocks).to(be_an(Array))
         analysis.freeze_blocks.each do |block|
-          expect(block).to be_a(freeze_node_class)
+          expect(block).to(be_a(freeze_node_class))
         end
       end
     end
@@ -89,11 +89,11 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
     let(:analysis) { build_file_analysis.call(sample_source_with_freeze) }
 
     it "returns false for lines outside freeze blocks" do
-      expect(analysis.in_freeze_block?(1)).to be false
+      expect(analysis.in_freeze_block?(1)).to(be(false))
     end
 
     it "responds to the method" do
-      expect(analysis).to respond_to(:in_freeze_block?)
+      expect(analysis).to(respond_to(:in_freeze_block?))
     end
   end
 
@@ -101,11 +101,11 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
     let(:analysis) { build_file_analysis.call(sample_source_with_freeze) }
 
     it "returns nil for lines outside freeze blocks" do
-      expect(analysis.freeze_block_at(1)).to be_nil
+      expect(analysis.freeze_block_at(1)).to(be_nil)
     end
 
     it "responds to the method" do
-      expect(analysis).to respond_to(:freeze_block_at)
+      expect(analysis).to(respond_to(:freeze_block_at))
     end
   end
 
@@ -113,12 +113,12 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
     let(:analysis) { build_file_analysis.call(sample_source) }
 
     it "returns nil for invalid index" do
-      expect(analysis.signature_at(-1)).to be_nil
-      expect(analysis.signature_at(9999)).to be_nil
+      expect(analysis.signature_at(-1)).to(be_nil)
+      expect(analysis.signature_at(9999)).to(be_nil)
     end
 
     it "responds to the method" do
-      expect(analysis).to respond_to(:signature_at)
+      expect(analysis).to(respond_to(:signature_at))
     end
   end
 
@@ -126,15 +126,15 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
     let(:analysis) { build_file_analysis.call(sample_source) }
 
     it "returns nil for line 0" do
-      expect(analysis.line_at(0)).to be_nil
+      expect(analysis.line_at(0)).to(be_nil)
     end
 
     it "returns nil for negative line" do
-      expect(analysis.line_at(-1)).to be_nil
+      expect(analysis.line_at(-1)).to(be_nil)
     end
 
     it "responds to the method" do
-      expect(analysis).to respond_to(:line_at)
+      expect(analysis).to(respond_to(:line_at))
     end
   end
 
@@ -142,7 +142,7 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
     let(:analysis) { build_file_analysis.call(sample_source) }
 
     it "responds to the method" do
-      expect(analysis).to respond_to(:normalized_line)
+      expect(analysis).to(respond_to(:normalized_line))
     end
   end
 
@@ -150,7 +150,7 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
     let(:analysis) { build_file_analysis.call(sample_source) }
 
     it "responds to the method" do
-      expect(analysis).to respond_to(:generate_signature)
+      expect(analysis).to(respond_to(:generate_signature))
     end
 
     context "with NodeTyping::Wrapper" do
@@ -168,7 +168,7 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
         # Create a signature generator that returns the wrapper
         wrapped_analysis = build_file_analysis.call(
           sample_source,
-          signature_generator: ->(_n) { wrapper }
+          signature_generator: ->(_n) { wrapper },
         )
 
         # The signature should be computed from the unwrapped node, not the wrapper itself
@@ -178,15 +178,15 @@ RSpec.shared_examples "Ast::Merge::FileAnalyzable" do
         # The wrapped analysis should produce the same signature
         actual_sig = wrapped_analysis.generate_signature(node)
 
-        expect(actual_sig).to eq(expected_sig)
-        expect(actual_sig).not_to be_a(Ast::Merge::NodeTyping::Wrapper)
+        expect(actual_sig).to(eq(expected_sig))
+        expect(actual_sig).not_to(be_a(Ast::Merge::NodeTyping::Wrapper))
       end
 
       it "recognizes NodeTyping::Wrapper in fallthrough_node?" do
-        node = analysis.statements.first || { type: :test }
+        node = analysis.statements.first || {type: :test}
         wrapper = Ast::Merge::NodeTyping::Wrapper.new(node, :test_type)
 
-        expect(analysis.send(:fallthrough_node?, wrapper)).to be true
+        expect(analysis.send(:fallthrough_node?, wrapper)).to(be(true))
       end
     end
   end

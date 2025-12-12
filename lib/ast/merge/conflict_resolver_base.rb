@@ -265,7 +265,7 @@ module Ast
           next unless sig
 
           map[sig] ||= []
-          map[sig] << { node: node, index: idx }
+          map[sig] << {node: node, index: idx}
         end
         map
       end
@@ -306,7 +306,7 @@ module Ast
           decision: DECISION_FROZEN,
           template_node: template_node,
           dest_node: dest_node,
-          reason: reason
+          reason: reason,
         }
       end
 
@@ -320,7 +320,7 @@ module Ast
           source: :destination,
           decision: DECISION_IDENTICAL,
           template_node: template_node,
-          dest_node: dest_node
+          dest_node: dest_node,
         }
       end
 
@@ -350,14 +350,14 @@ module Ast
             source: :template,
             decision: DECISION_TEMPLATE,
             template_node: template_node,
-            dest_node: dest_node
+            dest_node: dest_node,
           }
         else
           {
             source: :destination,
             decision: DECISION_DESTINATION,
             template_node: template_node,
-            dest_node: dest_node
+            dest_node: dest_node,
           }
         end
       end
@@ -384,13 +384,13 @@ module Ast
         preference.each do |key, value|
           unless key.is_a?(Symbol)
             raise ArgumentError,
-                  "preference Hash keys must be Symbols, got #{key.class} for #{key.inspect}"
+              "preference Hash keys must be Symbols, got #{key.class} for #{key.inspect}"
           end
 
           unless %i[destination template].include?(value)
             raise ArgumentError,
-                  "preference Hash values must be :destination or :template, " \
-                  "got #{value.inspect} for key #{key.inspect}"
+              "preference Hash values must be :destination or :template, " \
+                "got #{value.inspect} for key #{key.inspect}"
           end
         end
       end

@@ -31,7 +31,7 @@ RSpec.describe Ast::Merge::MergerConfig do
     end
 
     it "accepts node_typing option" do
-      typing = { CallNode: ->(node) { node } }
+      typing = {CallNode: ->(node) { node }}
       config = described_class.destination_wins(node_typing: typing)
       expect(config.node_typing).to eq(typing)
     end
@@ -60,7 +60,7 @@ RSpec.describe Ast::Merge::MergerConfig do
     end
 
     it "accepts node_typing option" do
-      typing = { CallNode: ->(node) { node } }
+      typing = {CallNode: ->(node) { node }}
       config = described_class.template_wins(node_typing: typing)
       expect(config.node_typing).to eq(typing)
     end
@@ -69,29 +69,29 @@ RSpec.describe Ast::Merge::MergerConfig do
   describe "Hash-based preference" do
     it "accepts a Hash for preference" do
       config = described_class.new(
-        preference: { default: :destination, lint_gem: :template }
+        preference: {default: :destination, lint_gem: :template},
       )
-      expect(config.preference).to eq({ default: :destination, lint_gem: :template })
+      expect(config.preference).to eq({default: :destination, lint_gem: :template})
     end
 
     describe "#prefer_destination?" do
       it "returns true when default is :destination" do
         config = described_class.new(
-          preference: { default: :destination, other: :template }
+          preference: {default: :destination, other: :template},
         )
         expect(config.prefer_destination?).to be true
       end
 
       it "returns false when default is :template" do
         config = described_class.new(
-          preference: { default: :template }
+          preference: {default: :template},
         )
         expect(config.prefer_destination?).to be false
       end
 
       it "returns true when :default key is missing (implicit :destination)" do
         config = described_class.new(
-          preference: { lint_gem: :template }
+          preference: {lint_gem: :template},
         )
         expect(config.prefer_destination?).to be true
       end
@@ -100,14 +100,14 @@ RSpec.describe Ast::Merge::MergerConfig do
     describe "#prefer_template?" do
       it "returns true when default is :template" do
         config = described_class.new(
-          preference: { default: :template }
+          preference: {default: :template},
         )
         expect(config.prefer_template?).to be true
       end
 
       it "returns false when default is :destination" do
         config = described_class.new(
-          preference: { default: :destination }
+          preference: {default: :destination},
         )
         expect(config.prefer_template?).to be false
       end
@@ -119,8 +119,8 @@ RSpec.describe Ast::Merge::MergerConfig do
           preference: {
             default: :destination,
             lint_gem: :template,
-            test_gem: :destination
-          }
+            test_gem: :destination,
+          },
         )
       end
 
@@ -135,7 +135,7 @@ RSpec.describe Ast::Merge::MergerConfig do
 
       it "returns :destination when no :default key and unknown type" do
         config = described_class.new(
-          preference: { lint_gem: :template }
+          preference: {lint_gem: :template},
         )
         expect(config.preference_for(:unknown_type)).to eq(:destination)
       end
@@ -152,7 +152,7 @@ RSpec.describe Ast::Merge::MergerConfig do
     describe "#per_type_preference?" do
       it "returns true for Hash preference" do
         config = described_class.new(
-          preference: { default: :destination }
+          preference: {default: :destination},
         )
         expect(config.per_type_preference?).to be true
       end
@@ -166,7 +166,7 @@ RSpec.describe Ast::Merge::MergerConfig do
     it "raises ArgumentError for invalid Hash values" do
       expect {
         described_class.new(
-          preference: { default: :invalid }
+          preference: {default: :invalid},
         )
       }.to raise_error(ArgumentError, /must be :destination or :template/)
     end
@@ -174,7 +174,7 @@ RSpec.describe Ast::Merge::MergerConfig do
     it "raises ArgumentError for non-Symbol Hash keys" do
       expect {
         described_class.new(
-          preference: { "string_key" => :destination }
+          preference: {"string_key" => :destination},
         )
       }.to raise_error(ArgumentError, /keys must be Symbols/)
     end
@@ -182,7 +182,7 @@ RSpec.describe Ast::Merge::MergerConfig do
 
   describe "#node_typing" do
     it "stores node_typing configuration" do
-      typing = { CallNode: ->(node) { node } }
+      typing = {CallNode: ->(node) { node }}
       config = described_class.new(node_typing: typing)
       expect(config.node_typing).to eq(typing)
     end
@@ -194,13 +194,13 @@ RSpec.describe Ast::Merge::MergerConfig do
     end
 
     it "includes node_typing in to_h" do
-      typing = { CallNode: ->(node) { node } }
+      typing = {CallNode: ->(node) { node }}
       config = described_class.new(node_typing: typing)
       expect(config.to_h[:node_typing]).to eq(typing)
     end
 
     it "preserves node_typing in #with" do
-      typing = { CallNode: ->(node) { node } }
+      typing = {CallNode: ->(node) { node }}
       config = described_class.new(node_typing: typing)
       new_config = config.with(preference: :template)
       expect(new_config.node_typing).to eq(typing)

@@ -51,7 +51,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         Ast::Merge::FreezeNodeBase.register_pattern(
           custom_name,
           start: /^--\s*freeze-begin/i,
-          end_pattern: /^--\s*freeze-end/i
+          end_pattern: /^--\s*freeze-end/i,
         )
 
         # Should raise when trying to build token-specific pattern for custom type
@@ -69,6 +69,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
     let(:test_logger) do
       Module.new do
         extend Ast::Merge::DebugLogger
+
         self.env_var_name = "TEST_BRANCH_DEBUG"
         self.log_prefix = "[TestBranch]"
       end
@@ -246,7 +247,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         freeze_node = Ast::Merge::FreezeNodeBase.new(
           start_line: 1,
           end_line: 3,
-          content: "frozen content"
+          content: "frozen content",
         )
         custom_gen = ->(_node) { freeze_node }
         analysis = test_analysis_class.new("content", signature_generator: custom_gen)
@@ -416,6 +417,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         # Create a class that includes FileAnalyzable but doesn't implement compute_node_signature
         bare_class = Class.new do
           include Ast::Merge::FileAnalyzable
+
           attr_reader :source, :lines, :freeze_token, :signature_generator, :statements
 
           def initialize
@@ -481,7 +483,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
       end
 
       it "accepts conflicts array" do
-        conflicts = [{ type: :conflict }]
+        conflicts = [{type: :conflict}]
         result = Ast::Merge::MergeResultBase.new(conflicts: conflicts)
         expect(result.conflicts).to eq(conflicts)
       end
@@ -493,7 +495,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
       end
 
       it "accepts stats hash" do
-        stats = { merged: 5 }
+        stats = {merged: 5}
         result = Ast::Merge::MergeResultBase.new(stats: stats)
         expect(result.stats).to eq(stats)
       end
@@ -509,7 +511,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         start_line: 1,
         end_line: 3,
         content: "frozen content",
-        reason: "explicit reason provided"
+        reason: "explicit reason provided",
       )
       expect(freeze_node.reason).to eq("explicit reason provided")
     end
@@ -519,7 +521,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
       freeze_node = Ast::Merge::FreezeNodeBase.new(
         start_line: 1,
         end_line: 3,
-        content: "frozen content"
+        content: "frozen content",
       )
       expect(freeze_node.reason).to be_nil
     end
@@ -530,7 +532,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         start_line: 1,
         end_line: 3,
         content: "frozen content",
-        start_marker: "invalid marker without token"
+        start_marker: "invalid marker without token",
       )
       expect(freeze_node.reason).to be_nil
     end
@@ -542,7 +544,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         end_line: 3,
         content: "frozen content",
         start_marker: "# some-token:freeze",
-        pattern_type: :c_style_line # Wrong pattern type for hash comment
+        pattern_type: :c_style_line, # Wrong pattern type for hash comment
       )
       expect(freeze_node.reason).to be_nil
     end
@@ -554,7 +556,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         end_line: 3,
         content: "frozen content",
         start_marker: "# test-token:freeze   ", # Only whitespace after marker
-        pattern_type: :hash_comment
+        pattern_type: :hash_comment,
       )
       expect(freeze_node.reason).to be_nil
     end
@@ -565,7 +567,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         end_line: 3,
         content: "frozen content",
         start_marker: "# test-token:freeze keep this section",
-        pattern_type: :hash_comment
+        pattern_type: :hash_comment,
       )
       expect(freeze_node.reason).to eq("keep this section")
     end
@@ -576,7 +578,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         end_line: 3,
         content: "frozen content",
         start_marker: "<!-- test-token:freeze -->",
-        pattern_type: :html_comment
+        pattern_type: :html_comment,
       )
       expect(freeze_node.reason).to be_nil
     end
@@ -587,7 +589,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         end_line: 3,
         content: "frozen content",
         start_marker: "<!-- test-token:freeze keep this section -->",
-        pattern_type: :html_comment
+        pattern_type: :html_comment,
       )
       expect(freeze_node.reason).to eq("keep this section")
     end
@@ -598,7 +600,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         end_line: 3,
         content: "frozen content",
         start_marker: "// test-token:freeze keep this",
-        pattern_type: :c_style_line
+        pattern_type: :c_style_line,
       )
       expect(freeze_node.reason).to eq("keep this")
     end
@@ -609,7 +611,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         end_line: 3,
         content: "frozen content",
         start_marker: "// test-token:freeze",
-        pattern_type: :c_style_line
+        pattern_type: :c_style_line,
       )
       expect(freeze_node.reason).to be_nil
     end
@@ -620,7 +622,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         end_line: 3,
         content: "frozen content",
         start_marker: "/* test-token:freeze keep this */",
-        pattern_type: :c_style_block
+        pattern_type: :c_style_block,
       )
       expect(freeze_node.reason).to eq("keep this")
     end
@@ -631,7 +633,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         end_line: 3,
         content: "frozen content",
         start_marker: "/* test-token:freeze */",
-        pattern_type: :c_style_block
+        pattern_type: :c_style_block,
       )
       expect(freeze_node.reason).to be_nil
     end
@@ -643,7 +645,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         start_line: 1,
         end_line: 3,
         content: "content",
-        start_marker: "not a valid marker"
+        start_marker: "not a valid marker",
       )
       # The private method returns nil, which causes reason to return nil
       expect(freeze_node.reason).to be_nil
@@ -691,6 +693,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
       let(:extended_module) do
         Module.new do
           extend Ast::Merge::DebugLogger
+
           self.env_var_name = "EXTENDED_DEBUG"
           self.log_prefix = "[Extended]"
         end
@@ -724,7 +727,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         "Unclosed freeze block",
         start_line: 5,
         end_line: 10,
-        unclosed_nodes: %i[node1 node2]
+        unclosed_nodes: %i[node1 node2],
       )
       expect(error.unclosed_nodes).to eq(%i[node1 node2])
       expect(error.start_line).to eq(5)
@@ -756,7 +759,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         start_line: 1,
         end_line: 2,
         analysis: analysis_with_nil_lines,
-        content: "line1\nline2"
+        content: "line1\nline2",
       )
 
       # Should fall through to content.split since all_lines is nil
@@ -772,7 +775,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
       freeze_node = Ast::Merge::FreezeNodeBase.new(
         start_line: 1,
         end_line: 3,
-        content: "content"
+        content: "content",
         # start_marker is not provided, so it's nil
       )
 

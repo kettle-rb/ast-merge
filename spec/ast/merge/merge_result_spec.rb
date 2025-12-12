@@ -68,7 +68,7 @@ RSpec.describe Ast::Merge::MergeResultBase do
       subject(:result) do
         described_class.new(
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
       end
 
@@ -87,7 +87,7 @@ RSpec.describe Ast::Merge::MergeResultBase do
     context "with conflicts" do
       subject(:result) { described_class.new(conflicts: conflicts) }
 
-      let(:conflicts) { [{ location: 1, message: "test" }] }
+      let(:conflicts) { [{location: 1, message: "test"}] }
 
       it "stores conflicts" do
         expect(result.conflicts).to eq(conflicts)
@@ -97,7 +97,7 @@ RSpec.describe Ast::Merge::MergeResultBase do
     context "with frozen_blocks" do
       subject(:result) { described_class.new(frozen_blocks: frozen_blocks) }
 
-      let(:frozen_blocks) { [{ start: 1, end: 5 }] }
+      let(:frozen_blocks) { [{start: 1, end: 5}] }
 
       it "stores frozen_blocks" do
         expect(result.frozen_blocks).to eq(frozen_blocks)
@@ -107,7 +107,7 @@ RSpec.describe Ast::Merge::MergeResultBase do
     context "with stats" do
       subject(:result) { described_class.new(stats: stats) }
 
-      let(:stats) { { nodes_added: 5, nodes_removed: 2 } }
+      let(:stats) { {nodes_added: 5, nodes_removed: 2} }
 
       it "stores stats" do
         expect(result.stats).to eq(stats)
@@ -206,9 +206,9 @@ RSpec.describe Ast::Merge::MergeResultBase do
     it "summarizes decisions by type" do
       result = described_class.new
       decisions = result.instance_variable_get(:@decisions)
-      decisions << { decision: :kept_template }
-      decisions << { decision: :kept_template }
-      decisions << { decision: :kept_destination }
+      decisions << {decision: :kept_template}
+      decisions << {decision: :kept_template}
+      decisions << {decision: :kept_destination}
 
       summary = result.decision_summary
       expect(summary[:kept_template]).to eq(2)

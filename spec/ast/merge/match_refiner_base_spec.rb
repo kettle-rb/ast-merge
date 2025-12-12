@@ -7,7 +7,7 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
         template_node: :template,
         dest_node: :dest,
         score: 0.85,
-        metadata: { reason: "test" }
+        metadata: {reason: "test"},
       )
     end
 
@@ -31,7 +31,7 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
           template_node: :t2,
           dest_node: :d2,
           score: 0.5,
-          metadata: {}
+          metadata: {},
         )
       end
 
@@ -91,7 +91,7 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
     it "raises NotImplementedError" do
       expect { refiner.call([], [], {}) }.to raise_error(
         NotImplementedError,
-        /must be implemented/
+        /must be implemented/,
       )
     end
   end
@@ -129,7 +129,7 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
       Class.new(described_class) do
         def call(template_nodes, dest_nodes, _context = {})
           greedy_match(template_nodes, dest_nodes) do |t, d|
-            t == d ? 1.0 : 0.0
+            (t == d) ? 1.0 : 0.0
           end
         end
       end
@@ -175,7 +175,7 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
           Struct.new(:type).new(:table),
           Struct.new(:type).new(:list),
           Struct.new(:type).new(:table),
-          Struct.new(:type).new(:paragraph)
+          Struct.new(:type).new(:paragraph),
         ]
       end
 
@@ -205,13 +205,13 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
 
     describe "#match_result" do
       it "creates a MatchResult struct" do
-        result = refiner.match_result(:t, :d, 0.9, { key: "value" })
+        result = refiner.match_result(:t, :d, 0.9, {key: "value"})
 
         expect(result).to be_a(described_class::MatchResult)
         expect(result.template_node).to eq(:t)
         expect(result.dest_node).to eq(:d)
         expect(result.score).to eq(0.9)
-        expect(result.metadata).to eq({ key: "value" })
+        expect(result.metadata).to eq({key: "value"})
       end
     end
 
@@ -265,7 +265,7 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
           %i[t1 d2] => 0.6,
           %i[t2 d1] => 0.9, # Best overall, t2->d1
           %i[t2 d2] => 0.7,
-          %i[t3 d3] => 0.75
+          %i[t3 d3] => 0.75,
         }
 
         results = refiner.greedy_match(template_nodes, dest_nodes) do |t, d|
@@ -296,7 +296,7 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
       it "ensures each node is matched at most once" do
         # All template nodes want d1
         results = refiner.greedy_match(template_nodes, dest_nodes) do |_t, d|
-          d == :d1 ? 0.9 : 0.6
+          (d == :d1) ? 0.9 : 0.6
         end
 
         dest_nodes_matched = results.map(&:dest_node)
@@ -320,7 +320,7 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
               template_node: t,
               dest_node: d,
               score: 1.0,
-              metadata: {}
+              metadata: {},
             )
           end
         end

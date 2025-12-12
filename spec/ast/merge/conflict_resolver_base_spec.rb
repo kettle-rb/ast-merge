@@ -15,9 +15,9 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
             # Minimal implementation for testing
             {
               source: @preference,
-              decision: @preference == :destination ? DECISION_DESTINATION : DECISION_TEMPLATE,
+              decision: (@preference == :destination) ? DECISION_DESTINATION : DECISION_TEMPLATE,
               template_node: template_node,
-              dest_node: dest_node
+              dest_node: dest_node,
             }
           end
         end
@@ -27,7 +27,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           preference: preference,
           template_analysis: template_analysis,
           dest_analysis: dest_analysis,
-          **opts
+          **opts,
         )
       }
     end
@@ -45,11 +45,16 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
       lambda { |preference:, template_analysis:, dest_analysis:, **opts|
         klass = Class.new(described_class) do
           def resolve_node_pair(_template_node, _dest_node, template_index:, dest_index:)
-            { source: @preference, decision: :test }
+            {source: @preference, decision: :test}
           end
         end
-        klass.new(strategy: :node, preference: preference,
-                  template_analysis: template_analysis, dest_analysis: dest_analysis, **opts)
+        klass.new(
+          strategy: :node,
+          preference: preference,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+**opts,
+        )
       }
     end
     let(:build_mock_analysis) { -> { double("Analysis") } }
@@ -61,11 +66,16 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
       lambda { |preference:, template_analysis:, dest_analysis:, **opts|
         klass = Class.new(described_class) do
           def resolve_batch(_result)
-            { decision: :batch_test }
+            {decision: :batch_test}
           end
         end
-        klass.new(strategy: :batch, preference: preference,
-                  template_analysis: template_analysis, dest_analysis: dest_analysis, **opts)
+        klass.new(
+          strategy: :batch,
+          preference: preference,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+**opts,
+        )
       }
     end
     let(:build_mock_analysis) { -> { double("Analysis") } }
@@ -77,11 +87,16 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
       lambda { |preference:, template_analysis:, dest_analysis:, **opts|
         klass = Class.new(described_class) do
           def resolve_boundary(_boundary, _result)
-            { decision: :boundary_test }
+            {decision: :boundary_test}
           end
         end
-        klass.new(strategy: :boundary, preference: preference,
-                  template_analysis: template_analysis, dest_analysis: dest_analysis, **opts)
+        klass.new(
+          strategy: :boundary,
+          preference: preference,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+**opts,
+        )
       }
     end
     let(:build_mock_analysis) { -> { double("Analysis") } }
@@ -97,7 +112,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :node,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
 
         expect do
@@ -112,7 +127,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :batch,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
 
         expect do
@@ -127,7 +142,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :boundary,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
 
         expect do
@@ -142,7 +157,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :batch,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
 
         node1 = double("Node1")
@@ -169,7 +184,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :batch,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
 
         node1 = double("Node1")
@@ -191,13 +206,13 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :boundary,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
 
         node_infos = [
-          { signature: %i[sig a], index: 0, node: double("Node1") },
-          { signature: %i[sig b], index: 1, node: double("Node2") },
-          { signature: %i[sig a], index: 2, node: double("Node3") }
+          {signature: %i[sig a], index: 0, node: double("Node1")},
+          {signature: %i[sig b], index: 1, node: double("Node2")},
+          {signature: %i[sig a], index: 2, node: double("Node3")},
         ]
 
         map = resolver.send(:build_signature_map_from_infos, node_infos)
@@ -213,12 +228,12 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :boundary,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
 
         node_infos = [
-          { signature: nil, index: 0, node: double("Node1") },
-          { signature: %i[sig b], index: 1, node: double("Node2") }
+          {signature: nil, index: 0, node: double("Node1")},
+          {signature: %i[sig b], index: 1, node: double("Node2")},
         ]
 
         map = resolver.send(:build_signature_map_from_infos, node_infos)
@@ -233,7 +248,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :boundary,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
       end
 
@@ -263,7 +278,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :node,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
       end
 
@@ -277,7 +292,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
             source: :destination,
             template_node: template_node,
             dest_node: dest_node,
-            reason: "user requested freeze"
+            reason: "user requested freeze",
           )
 
           expect(result[:source]).to eq(:destination)
@@ -296,7 +311,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           result = resolver.send(
             :identical_resolution,
             template_node: template_node,
-            dest_node: dest_node
+            dest_node: dest_node,
           )
 
           expect(result[:source]).to eq(:destination)
@@ -315,7 +330,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
             result = resolver.send(
               :preference_resolution,
               template_node: template_node,
-              dest_node: dest_node
+              dest_node: dest_node,
             )
 
             expect(result[:source]).to eq(:destination)
@@ -329,7 +344,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
               strategy: :node,
               preference: :template,
               template_analysis: template_analysis,
-              dest_analysis: dest_analysis
+              dest_analysis: dest_analysis,
             )
           end
 
@@ -340,7 +355,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
             result = resolver.send(
               :preference_resolution,
               template_node: template_node,
-              dest_node: dest_node
+              dest_node: dest_node,
             )
 
             expect(result[:source]).to eq(:template)
@@ -357,7 +372,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :node,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
         resolver.instance_variable_set(:@strategy, :unknown)
 
@@ -374,7 +389,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
             strategy: :node,
             preference: :destination,
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
         end
 
@@ -392,9 +407,9 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         let(:resolver) do
           described_class.new(
             strategy: :node,
-            preference: { default: :destination, lint_gem: :template, test_type: :template },
+            preference: {default: :destination, lint_gem: :template, test_type: :template},
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
         end
 
@@ -428,7 +443,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
             strategy: :node,
             preference: :template,
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
           expect(resolver.default_preference).to eq(:template)
         end
@@ -438,9 +453,9 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         it "returns :default value from hash" do
           resolver = described_class.new(
             strategy: :node,
-            preference: { default: :template, other: :destination },
+            preference: {default: :template, other: :destination},
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
           expect(resolver.default_preference).to eq(:template)
         end
@@ -448,9 +463,9 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         it "returns :destination when :default key is missing" do
           resolver = described_class.new(
             strategy: :node,
-            preference: { lint_gem: :template },
+            preference: {lint_gem: :template},
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
           expect(resolver.default_preference).to eq(:destination)
         end
@@ -461,9 +476,9 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
       it "returns true for Hash preference" do
         resolver = described_class.new(
           strategy: :node,
-          preference: { default: :destination },
+          preference: {default: :destination},
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
         expect(resolver.per_type_preference?).to be true
       end
@@ -473,7 +488,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
           strategy: :node,
           preference: :destination,
           template_analysis: template_analysis,
-          dest_analysis: dest_analysis
+          dest_analysis: dest_analysis,
         )
         expect(resolver.per_type_preference?).to be false
       end
@@ -484,9 +499,9 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         let(:resolver) do
           described_class.new(
             strategy: :node,
-            preference: { default: :destination, special_type: :template },
+            preference: {default: :destination, special_type: :template},
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
         end
 
@@ -537,9 +552,9 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         expect do
           described_class.new(
             strategy: :node,
-            preference: { default: :destination, custom: :template },
+            preference: {default: :destination, custom: :template},
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
         end.not_to raise_error
       end
@@ -548,9 +563,9 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         expect do
           described_class.new(
             strategy: :node,
-            preference: { "string_key" => :destination },
+            preference: {"string_key" => :destination},
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
         end.to raise_error(ArgumentError, /keys must be Symbols/)
       end
@@ -559,9 +574,9 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
         expect do
           described_class.new(
             strategy: :node,
-            preference: { default: :invalid_value },
+            preference: {default: :invalid_value},
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
         end.to raise_error(ArgumentError, /values must be :destination or :template/)
       end
@@ -572,7 +587,7 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
             strategy: :node,
             preference: :invalid_symbol,
             template_analysis: template_analysis,
-            dest_analysis: dest_analysis
+            dest_analysis: dest_analysis,
           )
         end.to raise_error(ArgumentError, /Invalid preference/)
       end

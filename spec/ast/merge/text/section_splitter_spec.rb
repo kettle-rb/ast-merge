@@ -9,7 +9,7 @@ RSpec.describe Ast::Merge::Text::Section do
         body: "Run `gem install`\n",
         start_line: 10,
         end_line: 15,
-        metadata: { heading_level: 2 }
+        metadata: {heading_level: 2},
       )
     end
 
@@ -34,7 +34,7 @@ RSpec.describe Ast::Merge::Text::Section do
     end
 
     it "sets metadata" do
-      expect(section.metadata).to eq({ heading_level: 2 })
+      expect(section.metadata).to eq({heading_level: 2})
     end
   end
 
@@ -47,7 +47,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: "content",
           start_line: 5,
           end_line: 10,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -64,7 +64,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: "content",
           start_line: nil,
           end_line: 10,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -81,7 +81,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: "content",
           start_line: 5,
           end_line: nil,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -100,7 +100,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: "content",
           start_line: 5,
           end_line: 10,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -117,7 +117,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: "content",
           start_line: nil,
           end_line: nil,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -136,7 +136,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: "Content here\n",
           start_line: 1,
           end_line: 2,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -153,7 +153,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: "Content only\n",
           start_line: 1,
           end_line: 1,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -170,7 +170,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: nil,
           start_line: 1,
           end_line: 1,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -189,7 +189,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: "Content",
           start_line: 1,
           end_line: 5,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -206,7 +206,7 @@ RSpec.describe Ast::Merge::Text::Section do
           body: "Content",
           start_line: 1,
           end_line: 5,
-          metadata: nil
+          metadata: nil,
         )
       end
 
@@ -257,7 +257,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
   describe "#initialize" do
     it "accepts options" do
       splitter = concrete_splitter_class.new(custom: "option")
-      expect(splitter.options).to eq({ custom: "option" })
+      expect(splitter.options).to eq({custom: "option"})
     end
   end
 
@@ -291,7 +291,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
       it "reconstructs content" do
         sections = [
           Ast::Merge::Text::Section.new(name: :preamble, header: nil, body: "hello ", start_line: nil, end_line: nil, metadata: nil),
-          Ast::Merge::Text::Section.new(name: :second, header: "## Second\n", body: "world", start_line: nil, end_line: nil, metadata: nil)
+          Ast::Merge::Text::Section.new(name: :second, header: "## Second\n", body: "world", start_line: nil, end_line: nil, metadata: nil),
         ]
         expect(splitter.join(sections)).to eq("hello ## Second\nworld")
       end
@@ -330,22 +330,22 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
 
     context "with hash preference" do
       it "returns exact match" do
-        pref = { "Installation" => :template, default: :destination }
+        pref = {"Installation" => :template, :default => :destination}
         expect(splitter.preference_for_section("Installation", pref)).to eq(:template)
       end
 
       it "returns normalized match" do
-        pref = { "installation" => :template, default: :destination }
+        pref = {"installation" => :template, :default => :destination}
         expect(splitter.preference_for_section("  Installation  ", pref)).to eq(:template)
       end
 
       it "returns default when no match" do
-        pref = { "Installation" => :template, default: :destination }
+        pref = {"Installation" => :template, :default => :destination}
         expect(splitter.preference_for_section("Usage", pref)).to eq(:destination)
       end
 
       it "uses DEFAULT_PREFERENCE when no default specified" do
-        pref = { "Installation" => :template }
+        pref = {"Installation" => :template}
         expect(splitter.preference_for_section("Usage", pref)).to eq(:destination)
       end
     end
@@ -366,7 +366,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Template body\n",
         start_line: 1,
         end_line: 2,
-        metadata: { source: :template }
+        metadata: {source: :template},
       )
     end
 
@@ -377,7 +377,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Destination body\n",
         start_line: 10,
         end_line: 11,
-        metadata: { source: :dest }
+        metadata: {source: :dest},
       )
     end
 
@@ -420,7 +420,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Template body\n",
         start_line: 1,
         end_line: 2,
-        metadata: { from: :template }
+        metadata: {from: :template},
       )
       dest = Ast::Merge::Text::Section.new(
         name: "Test",
@@ -428,7 +428,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Dest body\n",
         start_line: 10,
         end_line: 11,
-        metadata: { from: :dest }
+        metadata: {from: :dest},
       )
 
       result = splitter.merge_section_content(template, dest)
@@ -443,7 +443,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Template body\n",
         start_line: 1,
         end_line: 2,
-        metadata: { from: :template }
+        metadata: {from: :template},
       )
       dest = Ast::Merge::Text::Section.new(
         name: "Test",
@@ -451,7 +451,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Dest body\n",
         start_line: 10,
         end_line: 11,
-        metadata: nil
+        metadata: nil,
       )
 
       result = splitter.merge_section_content(template, dest)
@@ -466,7 +466,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Template body\n",
         start_line: 1,
         end_line: 2,
-        metadata: nil
+        metadata: nil,
       )
       dest = Ast::Merge::Text::Section.new(
         name: "Test",
@@ -474,12 +474,12 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Dest body\n",
         start_line: 10,
         end_line: 11,
-        metadata: { from: :dest }
+        metadata: {from: :dest},
       )
 
       result = splitter.merge_section_content(template, dest)
       # Merges dest metadata with empty hash from template
-      expect(result.metadata).to eq({ from: :dest })
+      expect(result.metadata).to eq({from: :dest})
     end
 
     it "handles both nil metadata" do
@@ -489,7 +489,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Template body\n",
         start_line: 1,
         end_line: 2,
-        metadata: nil
+        metadata: nil,
       )
       dest = Ast::Merge::Text::Section.new(
         name: "Test",
@@ -497,7 +497,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Dest body\n",
         start_line: 10,
         end_line: 11,
-        metadata: nil
+        metadata: nil,
       )
 
       result = splitter.merge_section_content(template, dest)
@@ -512,7 +512,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Template body\n",
         start_line: 1,
         end_line: 2,
-        metadata: nil
+        metadata: nil,
       )
       dest = Ast::Merge::Text::Section.new(
         name: "Test",
@@ -520,7 +520,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
         body: "Dest body\n",
         start_line: 10,
         end_line: 11,
-        metadata: nil
+        metadata: nil,
       )
 
       result = splitter.merge_section_content(template, dest)
@@ -533,7 +533,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
       [
         Ast::Merge::Text::Section.new(name: "Intro", header: "## Intro\n", body: "T intro\n", start_line: 1, end_line: 2, metadata: nil),
         Ast::Merge::Text::Section.new(name: "Install", header: "## Install\n", body: "T install\n", start_line: 3, end_line: 4, metadata: nil),
-        Ast::Merge::Text::Section.new(name: "NewSection", header: "## New\n", body: "T new\n", start_line: 5, end_line: 6, metadata: nil)
+        Ast::Merge::Text::Section.new(name: "NewSection", header: "## New\n", body: "T new\n", start_line: 5, end_line: 6, metadata: nil),
       ]
     end
 
@@ -541,7 +541,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
       [
         Ast::Merge::Text::Section.new(name: "Intro", header: "## Intro\n", body: "D intro\n", start_line: 1, end_line: 2, metadata: nil),
         Ast::Merge::Text::Section.new(name: "Install", header: "## Install\n", body: "D install\n", start_line: 3, end_line: 4, metadata: nil),
-        Ast::Merge::Text::Section.new(name: "DestOnly", header: "## DestOnly\n", body: "D custom\n", start_line: 5, end_line: 6, metadata: nil)
+        Ast::Merge::Text::Section.new(name: "DestOnly", header: "## DestOnly\n", body: "D custom\n", start_line: 5, end_line: 6, metadata: nil),
       ]
     end
 
@@ -586,8 +586,8 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
     context "with per-section preferences" do
       it "applies different preferences per section" do
         pref = {
-          default: :destination,
-          "Install" => :template
+          :default => :destination,
+          "Install" => :template,
         }
         merged = splitter.merge_section_lists(template_sections, dest_sections, preference: pref)
 
@@ -620,7 +620,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
                   body: preamble_lines.join,
                   start_line: 1,
                   end_line: index,
-                  metadata: nil
+                  metadata: nil,
                 )
               end
               current_section = Ast::Merge::Text::Section.new(
@@ -629,7 +629,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
                 body: "",
                 start_line: index + 1,
                 end_line: nil,
-                metadata: nil
+                metadata: nil,
               )
             elsif current_section
               current_section = Ast::Merge::Text::Section.new(
@@ -638,7 +638,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
                 body: current_section.body + line,
                 start_line: current_section.start_line,
                 end_line: index + 1,
-                metadata: nil
+                metadata: nil,
               )
             else
               preamble_lines << line
@@ -710,7 +710,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
     end
 
     it "applies per-section preferences" do
-      result = advanced_splitter.merge(template, destination, preference: { default: :destination, "Installation" => :template })
+      result = advanced_splitter.merge(template, destination, preference: {:default => :destination, "Installation" => :template})
       expect(result).to include("Template install instructions")
       expect(result).to include("Custom usage with project-specific info")
     end
@@ -722,7 +722,7 @@ RSpec.describe Ast::Merge::Text::SectionSplitter do
     end
 
     it "accepts Hash" do
-      expect { described_class.validate!({ key: "value" }) }.not_to raise_error
+      expect { described_class.validate!({key: "value"}) }.not_to raise_error
     end
 
     it "raises for non-Hash" do
@@ -816,7 +816,7 @@ RSpec.describe Ast::Merge::Text::LineSectionSplitter do
     it "reconstructs content from sections" do
       sections = [
         Ast::Merge::Text::Section.new(name: :preamble, header: nil, body: "Intro\n\n", start_line: nil, end_line: nil, metadata: nil),
-        Ast::Merge::Text::Section.new(name: "Test", header: "## Test\n", body: "\nContent\n", start_line: nil, end_line: nil, metadata: nil)
+        Ast::Merge::Text::Section.new(name: "Test", header: "## Test\n", body: "\nContent\n", start_line: nil, end_line: nil, metadata: nil),
       ]
       expect(splitter.join(sections)).to eq("Intro\n\n## Test\n\nContent\n")
     end

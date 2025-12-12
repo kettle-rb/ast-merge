@@ -104,7 +104,7 @@ module Ast
         # @param matched_indices [Set] Already matched indices
         # @return [Hash, nil] First unmatched entry or nil
         def find_unmatched(entries, matched_indices)
-          return nil unless entries
+          return unless entries
 
           entries.find { |e| !matched_indices.include?(e[:index]) }
         end

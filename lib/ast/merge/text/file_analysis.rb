@@ -54,9 +54,7 @@ module Ast
         # Get all top-level statements (LineNodes and FreezeNodes)
         #
         # @return [Array<LineNode, FreezeNodeBase>] All top-level statements
-        def statements
-          @statements
-        end
+        attr_reader :statements
 
         # Compute signature for a node
         #
@@ -68,8 +66,6 @@ module Ast
             node.signature
           when FreezeNodeBase
             [:freeze_block, node.start_line, node.end_line]
-          else
-            nil
           end
         end
 
@@ -109,7 +105,7 @@ module Ast
                   start_line: freeze_start,
                   end_line: line_number,
                   content: freeze_content,
-                  reason: extract_freeze_reason(freeze_start_line)
+                  reason: extract_freeze_reason(freeze_start_line),
                 )
                 freeze_start = nil
                 freeze_start_line = nil
@@ -128,7 +124,7 @@ module Ast
           if freeze_start
             raise FreezeNodeBase::InvalidStructureError.new(
               "Unclosed freeze block starting at line #{freeze_start}",
-              start_line: freeze_start
+              start_line: freeze_start,
             )
           end
 
@@ -164,7 +160,7 @@ module Ast
           pattern = FreezeNodeBase.pattern_for(:hash_comment, @freeze_token)
           match = line.match(pattern)
           reason = match[2]&.strip
-          reason.nil? || reason.empty? ? nil : reason
+          (reason.nil? || reason.empty?) ? nil : reason
         end
       end
     end

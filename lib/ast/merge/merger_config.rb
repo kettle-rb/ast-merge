@@ -171,7 +171,7 @@ module Ast
       def to_h(default_freeze_token: nil)
         result = {
           preference: @preference,
-          add_template_only_nodes: @add_template_only_nodes
+          add_template_only_nodes: @add_template_only_nodes,
         }
         result[:freeze_token] = @freeze_token || default_freeze_token if @freeze_token || default_freeze_token
         result[:signature_generator] = @signature_generator if @signature_generator
@@ -189,7 +189,7 @@ module Ast
           add_template_only_nodes: options.fetch(:add_template_only_nodes, @add_template_only_nodes),
           freeze_token: options.fetch(:freeze_token, @freeze_token),
           signature_generator: options.fetch(:signature_generator, @signature_generator),
-          node_typing: options.fetch(:node_typing, @node_typing)
+          node_typing: options.fetch(:node_typing, @node_typing),
         )
       end
 
@@ -206,7 +206,7 @@ module Ast
           add_template_only_nodes: false,
           freeze_token: freeze_token,
           signature_generator: signature_generator,
-          node_typing: node_typing
+          node_typing: node_typing,
         )
       end
 
@@ -223,7 +223,7 @@ module Ast
           add_template_only_nodes: true,
           freeze_token: freeze_token,
           signature_generator: signature_generator,
-          node_typing: node_typing
+          node_typing: node_typing,
         )
       end
 
@@ -234,8 +234,8 @@ module Ast
           validate_hash_preference!(preference)
         elsif !VALID_PREFERENCES.include?(preference)
           raise ArgumentError,
-                "Invalid preference: #{preference.inspect}. " \
-                "Must be one of: #{VALID_PREFERENCES.map(&:inspect).join(", ")} or a Hash"
+            "Invalid preference: #{preference.inspect}. " \
+              "Must be one of: #{VALID_PREFERENCES.map(&:inspect).join(", ")} or a Hash"
         end
       end
 
@@ -243,13 +243,13 @@ module Ast
         preference.each do |key, value|
           unless key.is_a?(Symbol)
             raise ArgumentError,
-                  "preference Hash keys must be Symbols, got #{key.class} for #{key.inspect}"
+              "preference Hash keys must be Symbols, got #{key.class} for #{key.inspect}"
           end
 
           unless VALID_PREFERENCES.include?(value)
             raise ArgumentError,
-                  "preference Hash values must be :destination or :template, " \
-                  "got #{value.inspect} for key #{key.inspect}"
+              "preference Hash values must be :destination or :template, " \
+                "got #{value.inspect} for key #{key.inspect}"
           end
         end
       end

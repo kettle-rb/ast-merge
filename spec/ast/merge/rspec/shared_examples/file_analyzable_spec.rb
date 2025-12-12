@@ -50,7 +50,7 @@ class TestFileAnalysis
       next if line.strip.empty?
       next if line.strip.start_with?("#") && !line.include?(":freeze") && !line.include?(":unfreeze")
 
-      result << { type: :statement, value: line, line: idx + 1 }
+      result << {type: :statement, value: line, line: idx + 1}
     end
     result
   end
@@ -79,7 +79,7 @@ class TestFileAnalysis
             content: content_lines.join("\n"),
             start_marker: start_marker,
             end_marker: line,
-            pattern_type: :hash_comment
+            pattern_type: :hash_comment,
           )
           in_freeze = false
           start_line = nil

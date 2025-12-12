@@ -48,17 +48,15 @@
 #     }
 #   end
 #
-RSpec.shared_examples "a reproducible merge" do |scenario, options = {}|
+RSpec.shared_examples("a reproducible merge") do |scenario, options = {}|
   let(:scenario_name) { scenario }
   let(:merge_options) { options }
   # file_extension should be defined by the including spec
   # Default: "" (no extension). Override with let(:file_extension) { "rb" } etc.
   let(:file_extension) do
-    begin
-      super()
-    rescue NoMethodError
-      ""
-    end
+    super()
+  rescue NoMethodError
+    ""
   end
   let(:fixture_filename) do
     ->(name) { file_extension.to_s.empty? ? name : "#{name}.#{file_extension}" }
@@ -74,7 +72,7 @@ RSpec.shared_examples "a reproducible merge" do |scenario, options = {}|
     merger = merger_class.new(
       fixture[:template],
       fixture[:destination],
-      **merge_options
+      **merge_options,
     )
     result = merger.merge
 
@@ -82,10 +80,12 @@ RSpec.shared_examples "a reproducible merge" do |scenario, options = {}|
     expected = fixture[:expected]
     actual = result.to_s
 
-    expect(actual).to eq(expected),
+    expect(actual).to(
+      eq(expected),
       "Merge result did not match expected.\n" \
-      "Expected:\n#{expected.inspect}\n" \
-      "Got:\n#{actual.inspect}"
+        "Expected:\n#{expected.inspect}\n" \
+        "Got:\n#{actual.inspect}",
+    )
   end
 
   it "is idempotent (merging again produces same result)" do
@@ -93,7 +93,7 @@ RSpec.shared_examples "a reproducible merge" do |scenario, options = {}|
     merger1 = merger_class.new(
       fixture[:template],
       fixture[:destination],
-      **merge_options
+      **merge_options,
     )
     result1 = merger1.merge
 
@@ -101,13 +101,15 @@ RSpec.shared_examples "a reproducible merge" do |scenario, options = {}|
     merger2 = merger_class.new(
       fixture[:template],
       result1,
-      **merge_options
+      **merge_options,
     )
     result2 = merger2.merge
 
-    expect(result2).to eq(result1),
+    expect(result2).to(
+      eq(result1),
       "Merge is not idempotent!\n" \
-      "First merge:\n#{result1.inspect}\n" \
-      "Second merge:\n#{result2.inspect}"
+        "First merge:\n#{result1.inspect}\n" \
+        "Second merge:\n#{result2.inspect}",
+    )
   end
 end

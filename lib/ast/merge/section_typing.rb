@@ -65,8 +65,7 @@ module Ast
 
         # @return [Hash, nil] Additional metadata from classification
         :metadata,
-
-        keyword_init: true
+        keyword_init: true,
       ) do
         # Normalize the section name for matching.
         #
@@ -152,8 +151,8 @@ module Ast
           TypedSection.new(
             type: :unclassified,
             name: :unclassified,
-            node: nodes.length == 1 ? nodes.first : nodes,
-            metadata: { node_count: nodes.length }
+            node: (nodes.length == 1) ? nodes.first : nodes,
+            metadata: {node_count: nodes.length},
           )
         end
       end
@@ -185,7 +184,7 @@ module Ast
         # @return [TypedSection, nil]
         def classify(node)
           result = callable.call(node)
-          return nil if result.nil?
+          return if result.nil?
 
           # Allow callable to return a Hash and convert to TypedSection
           if result.is_a?(Hash)
@@ -267,7 +266,7 @@ module Ast
           if dest_section
             # Section exists in both - choose based on preference
             section_pref = preference_for(template_section.name, preference)
-            merged << (section_pref == :template ? template_section : dest_section)
+            merged << ((section_pref == :template) ? template_section : dest_section)
           elsif add_template_only
             merged << template_section
           end

@@ -129,7 +129,7 @@ module Ast
               line_number: @line_number,
               word_index: word_index,
               start_col: start_col,
-              end_col: end_col
+              end_col: end_col,
             )
             word_index += 1
           end

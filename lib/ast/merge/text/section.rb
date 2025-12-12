@@ -43,14 +43,13 @@ module Ast
         # @return [Hash, nil] Optional metadata for splitter-specific information
         #   (e.g., { heading_level: 2 }, { marker_type: :comment })
         :metadata,
-
-        keyword_init: true
+        keyword_init: true,
       ) do
         # Returns the line range covered by this section.
         #
         # @return [Range, nil] The range from start_line to end_line (inclusive)
         def line_range
-          return nil unless start_line && end_line
+          return unless start_line && end_line
           start_line..end_line
         end
 
@@ -58,7 +57,7 @@ module Ast
         #
         # @return [Integer, nil] The number of lines
         def line_count
-          return nil unless start_line && end_line
+          return unless start_line && end_line
           end_line - start_line + 1
         end
 

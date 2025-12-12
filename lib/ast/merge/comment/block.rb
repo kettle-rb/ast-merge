@@ -74,7 +74,7 @@ module Ast
             start_line: @start_line,
             end_line: @end_line,
             start_column: 0,
-            end_column: combined_slice.split("\n").last&.length || 0
+            end_column: combined_slice.split("\n").last&.length || 0,
           )
 
           super(slice: combined_slice, location: location)

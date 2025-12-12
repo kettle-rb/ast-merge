@@ -86,7 +86,7 @@ RSpec.describe Ast::Merge::Text::FileAnalysis do
 
       expect { described_class.new(source) }.to raise_error(
         Ast::Merge::FreezeNodeBase::InvalidStructureError,
-        /Unclosed freeze block/
+        /Unclosed freeze block/,
       )
     end
 
@@ -188,7 +188,7 @@ RSpec.describe Ast::Merge::Text::FileAnalysis do
       # and we should just get the regular lines
       statements = analysis.statements
       line_contents = statements.map { |s| s.respond_to?(:content) ? s.content : s.to_s }
-      
+
       expect(statements.size).to eq(2)
       expect(line_contents).to contain_exactly("Line before", "Line after")
     end

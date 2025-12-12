@@ -312,7 +312,7 @@ module Ast
       #
       def merge_region(template_extracted, dest_extracted)
         config = template_extracted&.config || dest_extracted&.config
-        return nil unless config
+        return unless config
 
         template_region = template_extracted&.region
         dest_region = dest_extracted&.region

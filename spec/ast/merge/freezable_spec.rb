@@ -51,7 +51,7 @@ RSpec.describe Ast::Merge::Freezable do
       freeze_node = Ast::Merge::FreezeNodeBase.new(
         start_line: 1,
         end_line: 3,
-        content: "frozen content"
+        content: "frozen content",
       )
       expect(freeze_node).to be_a(described_class)
       expect(freeze_node.freeze_node?).to be true

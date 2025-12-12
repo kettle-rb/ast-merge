@@ -34,6 +34,7 @@ module Ast
     #   )
     class FreezeNodeBase
       include Freezable
+
       # Error raised when a freeze block has invalid structure
       class InvalidStructureError < StandardError
         # @return [Integer, nil] Starting line of the freeze block
@@ -73,20 +74,20 @@ module Ast
       MARKER_PATTERNS = {
         hash_comment: {
           start: /^\s*#\s*[\w-]+:freeze\b/i,
-          end: /^\s*#\s*[\w-]+:unfreeze\b/i
+          end: /^\s*#\s*[\w-]+:unfreeze\b/i,
         },
         html_comment: {
           start: /^\s*<!--\s*[\w-]+:freeze\b.*-->/i,
-          end: /^\s*<!--\s*[\w-]+:unfreeze\b.*-->/i
+          end: /^\s*<!--\s*[\w-]+:unfreeze\b.*-->/i,
         },
         c_style_line: {
           start: %r{^\s*//\s*[\w-]+:freeze\b}i,
-          end: %r{^\s*//\s*[\w-]+:unfreeze\b}i
+          end: %r{^\s*//\s*[\w-]+:unfreeze\b}i,
         },
         c_style_block: {
           start: %r{^\s*/\*\s*[\w-]+:freeze\b.*\*/}i,
-          end: %r{^\s*/\*\s*[\w-]+:unfreeze\b.*\*/}i
-        }
+          end: %r{^\s*/\*\s*[\w-]+:unfreeze\b.*\*/}i,
+        },
       }
 
       # Default pattern when none specified
@@ -105,7 +106,7 @@ module Ast
           raise ArgumentError, "Start pattern must be a Regexp" unless start.is_a?(Regexp)
           raise ArgumentError, "End pattern must be a Regexp" unless end_pattern.is_a?(Regexp)
 
-          MARKER_PATTERNS[name] = { start: start, end: end_pattern }
+          MARKER_PATTERNS[name] = {start: start, end: end_pattern}
         end
 
         # Get start marker pattern for a given pattern type
@@ -301,16 +302,16 @@ module Ast
         # Return explicit reason if provided at initialization
         return @explicit_reason if @explicit_reason
 
-        return nil unless @start_marker
+        return unless @start_marker
 
         # Use the canonical pattern which has capture group 2 for reason
         # We need to extract the token from the marker first
         token = extract_token_from_marker
-        return nil unless token
+        return unless token
 
         pattern = self.class.pattern_for(@pattern_type, token)
         match = @start_marker.match(pattern)
-        return nil unless match
+        return unless match
 
         # Capture group 2 is the reason text
         reason_text = match[2]&.strip
@@ -357,7 +358,7 @@ module Ast
         raise InvalidStructureError.new(
           "Freeze block end line (#{@end_line}) is before start line (#{@start_line})",
           start_line: @start_line,
-          end_line: @end_line
+          end_line: @end_line,
         )
       end
 
@@ -395,7 +396,7 @@ module Ast
       def extract_token_from_marker
         # :nocov:
         # Defensive: @start_marker is always set in normal usage, nil check is for safety
-        return nil unless @start_marker
+        return unless @start_marker
         # :nocov:
 
         # Match the token before :freeze

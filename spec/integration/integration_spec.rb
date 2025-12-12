@@ -42,14 +42,21 @@ RSpec.describe "Ast::Merge integration examples" do
 
         # These are the behavior methods that should NOT be redefined
         behavior_methods = %i[
-          enabled? debug info warning time
-          log_node extract_node_info safe_type_name extract_lines
+          enabled?
+          debug
+          info
+          warning
+          time
+          log_node
+          extract_node_info
+          safe_type_name
+          extract_lines
         ]
 
         # Verify that none of the behavior methods are redefined as singleton methods
         redefined = own_methods & behavior_methods
         expect(redefined).to be_empty,
-                             "Expected no redefined behavior methods, but found: #{redefined.join(", ")}"
+          "Expected no redefined behavior methods, but found: #{redefined.join(", ")}"
       end
 
       it "has configuration accessors from extended hook" do
@@ -62,14 +69,22 @@ RSpec.describe "Ast::Merge integration examples" do
 
       it "inherits all base methods via extend" do
         base_methods = %i[
-          enabled? debug info warning time
-          log_node extract_node_info safe_type_name extract_lines
-          env_var_name log_prefix
+          enabled?
+          debug
+          info
+          warning
+          time
+          log_node
+          extract_node_info
+          safe_type_name
+          extract_lines
+          env_var_name
+          log_prefix
         ]
 
         base_methods.each do |method|
           expect(ExampleMergeDebugLogger).to respond_to(method),
-                                             "Expected to inherit #{method} from Ast::Merge::DebugLogger"
+            "Expected to inherit #{method} from Ast::Merge::DebugLogger"
         end
       end
 

@@ -195,7 +195,7 @@ RSpec.describe Ast::Merge::NodeTyping do
 
     it "returns node unchanged when no matching splitter is found" do
       config = {
-        DefNode: ->(node) { described_class.with_merge_type(node, :method) }
+        DefNode: ->(node) { described_class.with_merge_type(node, :method) },
       }
 
       result = described_class.process(mock_node, config)
@@ -205,7 +205,7 @@ RSpec.describe Ast::Merge::NodeTyping do
 
     it "processes node through matching splitter by symbol key" do
       config = {
-        CallNode: ->(node) { described_class.with_merge_type(node, :call_type) }
+        CallNode: ->(node) { described_class.with_merge_type(node, :call_type) },
       }
 
       result = described_class.process(mock_node, config)
@@ -216,7 +216,7 @@ RSpec.describe Ast::Merge::NodeTyping do
 
     it "processes node through matching splitter by string key" do
       config = {
-        "CallNode" => ->(node) { described_class.with_merge_type(node, :string_key_type) }
+        "CallNode" => ->(node) { described_class.with_merge_type(node, :string_key_type) },
       }
 
       result = described_class.process(mock_node, config)
@@ -226,7 +226,7 @@ RSpec.describe Ast::Merge::NodeTyping do
 
     it "allows splitter to return node unchanged" do
       config = {
-        CallNode: ->(node) { node }
+        CallNode: ->(node) { node },
       }
 
       result = described_class.process(mock_node, config)
@@ -237,7 +237,7 @@ RSpec.describe Ast::Merge::NodeTyping do
 
     it "allows splitter to return nil" do
       config = {
-        CallNode: ->(_node) { nil }
+        CallNode: ->(_node) { nil },
       }
 
       result = described_class.process(mock_node, config)
@@ -257,7 +257,7 @@ RSpec.describe Ast::Merge::NodeTyping do
 
       it "finds splitter by fully-qualified symbol key" do
         config = {
-          "Prism::CallNode": ->(node) { described_class.with_merge_type(node, :fq_type) }
+          "Prism::CallNode": ->(node) { described_class.with_merge_type(node, :fq_type) },
         }
 
         result = described_class.process(namespaced_node, config)
@@ -267,7 +267,7 @@ RSpec.describe Ast::Merge::NodeTyping do
 
       it "finds splitter by fully-qualified string key" do
         config = {
-          "Prism::CallNode" => ->(node) { described_class.with_merge_type(node, :fq_string_type) }
+          "Prism::CallNode" => ->(node) { described_class.with_merge_type(node, :fq_string_type) },
         }
 
         result = described_class.process(namespaced_node, config)
@@ -277,7 +277,7 @@ RSpec.describe Ast::Merge::NodeTyping do
 
       it "finds splitter by underscored naming convention" do
         config = {
-          prism_call_node: ->(node) { described_class.with_merge_type(node, :underscored_type) }
+          prism_call_node: ->(node) { described_class.with_merge_type(node, :underscored_type) },
         }
 
         result = described_class.process(namespaced_node, config)
@@ -290,7 +290,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       it "processes TypedNodeWrapper through matching splitter" do
         wrapped = described_class.with_merge_type(mock_node, :original_type)
         config = {
-          CallNode: ->(node) { described_class.with_merge_type(node, :rewrapped_type) }
+          CallNode: ->(node) { described_class.with_merge_type(node, :rewrapped_type) },
         }
 
         result = described_class.process(wrapped, config)
@@ -312,7 +312,7 @@ RSpec.describe Ast::Merge::NodeTyping do
     it "accepts valid configuration with symbol keys" do
       config = {
         CallNode: ->(_node) { nil },
-        DefNode: ->(_node) { nil }
+        DefNode: ->(_node) { nil },
       }
 
       expect { described_class.validate!(config) }.not_to raise_error
@@ -320,7 +320,7 @@ RSpec.describe Ast::Merge::NodeTyping do
 
     it "accepts valid configuration with string keys" do
       config = {
-        "CallNode" => ->(_node) { nil }
+        "CallNode" => ->(_node) { nil },
       }
 
       expect { described_class.validate!(config) }.not_to raise_error
@@ -332,14 +332,14 @@ RSpec.describe Ast::Merge::NodeTyping do
     end
 
     it "raises ArgumentError for non-Symbol/String keys" do
-      config = { 123 => ->(_node) { nil } }
+      config = {123 => ->(_node) { nil }}
 
       expect { described_class.validate!(config) }
         .to raise_error(ArgumentError, /keys must be Symbol or String/)
     end
 
     it "raises ArgumentError for non-callable values" do
-      config = { CallNode: "not callable" }
+      config = {CallNode: "not callable"}
 
       expect { described_class.validate!(config) }
         .to raise_error(ArgumentError, /must be callable/)
@@ -356,7 +356,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       it "falls back to class.to_s for type key" do
         # The config should not match since we use class.to_s which is something like "#<Class:0x...>"
         config = {
-          SomeOtherNode: ->(node) { described_class.with_merge_type(node, :other_type) }
+          SomeOtherNode: ->(node) { described_class.with_merge_type(node, :other_type) },
         }
 
         result = described_class.process(anonymous_node, config)
@@ -371,7 +371,7 @@ RSpec.describe Ast::Merge::NodeTyping do
         type_string = anon_class.to_s
 
         config = {
-          type_string => ->(node) { described_class.with_merge_type(node, :anon_type) }
+          type_string => ->(node) { described_class.with_merge_type(node, :anon_type) },
         }
 
         result = described_class.process(anon_node, config)
@@ -390,7 +390,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       it "skips fully-qualified and underscored lookups when full_name is nil" do
         config = {
           # Use string key that won't match the anonymous class's to_s
-          "SomeNode" => ->(node) { described_class.with_merge_type(node, :some_type) }
+          "SomeNode" => ->(node) { described_class.with_merge_type(node, :some_type) },
         }
 
         result = described_class.process(anonymous_node, config)
@@ -413,9 +413,9 @@ RSpec.describe Ast::Merge::NodeTyping do
       it "returns nil from find_typing_callable when no strategy matches" do
         config = {
           # None of these will match MyModule::MyNode
-          OtherNode: ->(node) { described_class.with_merge_type(node, :other) },
+          :OtherNode => ->(node) { described_class.with_merge_type(node, :other) },
           "Different::Path" => ->(node) { described_class.with_merge_type(node, :different) },
-          some_other_node: ->(node) { described_class.with_merge_type(node, :some_other) }
+          :some_other_node => ->(node) { described_class.with_merge_type(node, :some_other) },
         }
 
         result = described_class.process(namespaced_node, config)
@@ -438,7 +438,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       it "matches config with string type_key" do
         config = {
           # Use string key matching the type_key derived from class
-          "StringKeyNode" => ->(node) { described_class.with_merge_type(node, :string_match) }
+          "StringKeyNode" => ->(node) { described_class.with_merge_type(node, :string_match) },
         }
 
         result = described_class.process(string_key_node, config)
@@ -461,7 +461,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       it "unwraps TypedNodeWrapper to find matching splitter" do
         wrapped = described_class.with_merge_type(inner_node, :original_type)
         config = {
-          InnerNode: ->(node) { described_class.with_merge_type(node, :new_type) }
+          InnerNode: ->(node) { described_class.with_merge_type(node, :new_type) },
         }
 
         result = described_class.process(wrapped, config)
