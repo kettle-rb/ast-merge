@@ -85,7 +85,7 @@ module Ast
       def inspect: () -> String
       def to_s: () -> String
 
-      protected
+      private
 
       def validate_line_order!: () -> void
     end
