@@ -77,6 +77,35 @@ When you need to search across multiple files:
 - SmartMerger handles all merge logic directly
 - Comment-only files are handled via `Ast::Merge::Text::SmartMerger`
 
+## Loading Vendor Gems in Scripts
+
+**IMPORTANT**: When writing standalone Ruby scripts to test vendor gems, you must use `bundler/setup` to properly load the gems.
+
+✅ **CORRECT** - Use bundler/setup:
+```ruby
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "prism/merge"
+
+# Now you can use Prism::Merge classes
+```
+
+❌ **BROKEN** - These do NOT work:
+```ruby
+# This doesn't load the gem properly:
+require_relative "lib/prism/merge"
+
+# This doesn't set up the load path:
+require "prism/merge"  # without bundler/setup first
+```
+
+The pattern `require "bundler/setup"` followed by `require "gem/name"` works because:
+1. `bundler/setup` configures the load path based on the Gemfile
+2. The vendor gems are specified in the Gemfile with `path:` option
+3. This allows standard `require` to find the gems
+
 ## Testing
 
 Run tests from the appropriate directory:
