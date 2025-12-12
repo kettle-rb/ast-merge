@@ -9,7 +9,7 @@
     [86, 9, 27, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2654441077],
     [89, 9, 25, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 4245971553]
   ],
-  "lib/ast/merge/file_analyzable.rb:2699239943": [
+  "lib/ast/merge/file_analyzable.rb:1603365465": [
     [51, 7, 148, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3308197915]
   ],
   "lib/ast/merge/freeze_node_base.rb:4011894517": [
@@ -128,7 +128,6 @@
     [86, 15, 33, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DestinationParseError`.", 1593149322]
   ],
   "spec/integration/freeze_node_edge_cases_spec.rb:1632957807": [
-    [6, 16, 28, "RSpec/DescribeClass: The first argument to describe should be the class or module being tested.", 727815713],
     [13, 16, 19, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 3266944182],
     [14, 16, 33, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 1265269949],
     [24, 16, 26, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 4197319414],
@@ -146,10 +145,6 @@
     [664, 13, 40, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2667817960]
   ],
   "spec/integration/integration_spec.rb:197900658": [
-    [14, 16, 33, "RSpec/DescribeClass: The first argument to describe should be the class or module being tested.", 916829438],
     [19, 5, 279, "RSpec/LeakyConstantDeclaration: Stub module constant instead of declaring explicitly.", 4077310070]
-  ],
-  "spec/integration/text_merge_spec.rb:2308371151": [
-    [6, 16, 34, "RSpec/DescribeClass: The first argument to describe should be the class or module being tested.", 58619812]
   ]
 }

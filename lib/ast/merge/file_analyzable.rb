@@ -139,6 +139,13 @@ module Ast
       #     end
       #   }
       def generate_signature(node)
+        # Frozen nodes have their own signature that should be used regardless
+        # of any custom signature generator. This ensures frozen nodes match
+        # between template and destination based on their content.
+        if node.is_a?(Freezable)
+          return node.freeze_signature
+        end
+
         result = if signature_generator
           custom_result = signature_generator.call(node)
           case custom_result
@@ -148,10 +155,15 @@ module Ast
           else
             # Check for fallthrough nodes (parser-specific nodes, NodeTyping::Wrapper, etc.)
             if fallthrough_node?(custom_result)
-              # Unwrap NodeTyping::Wrapper to get the underlying node for signature generation
-              # (Wrappers include the full node which would cause signature mismatches)
-              actual_node = custom_result.respond_to?(:unwrap) ? custom_result.unwrap : custom_result
-              compute_node_signature(actual_node)
+              # Check if the fallthrough result is a Freezable - use its signature
+              if custom_result.is_a?(Freezable)
+                custom_result.freeze_signature
+              else
+                # Unwrap NodeTyping::Wrapper to get the underlying node for signature generation
+                # (Wrappers include the full node which would cause signature mismatches)
+                actual_node = custom_result.respond_to?(:unwrap) ? custom_result.unwrap : custom_result
+                compute_node_signature(actual_node)
+              end
             else
               # Non-fallthrough values are passed through as-is
               # This allows custom generators to return arbitrary signature types
