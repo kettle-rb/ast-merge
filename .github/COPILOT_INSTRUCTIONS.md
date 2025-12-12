@@ -27,7 +27,16 @@ Only use terminal for:
 
 ## Search Tool Limitations
 
-### grep_search includePattern
+### grep_search and Nested Git Projects
+
+**CRITICAL**: The `vendor/*` directories in this workspace are **nested git projects** (they have their own `.git/` directory, separated from the parent by gitignore patterns). The `grep_search` tool **CANNOT search inside nested git projects** - it only searches the main workspace.
+
+To search inside vendor gems:
+1. Use `read_file` to read specific files directly (this always works)
+2. Use `list_dir` to explore the directory structure
+3. Do NOT rely on `grep_search` with `includePattern: "vendor/**"` - it will return no results
+
+### grep_search includePattern (for non-nested-git directories)
 
 **IMPORTANT**: The `includePattern` parameter uses glob patterns relative to the workspace root.
 

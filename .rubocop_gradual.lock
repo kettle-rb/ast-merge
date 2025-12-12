@@ -9,7 +9,7 @@
     [86, 9, 27, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2654441077],
     [89, 9, 25, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 4245971553]
   ],
-  "lib/ast/merge/file_analyzable.rb:3588995942": [
+  "lib/ast/merge/file_analyzable.rb:1411428975": [
     [51, 7, 148, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3308197915]
   ],
   "lib/ast/merge/freeze_node_base.rb:3430849802": [

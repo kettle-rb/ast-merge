@@ -250,12 +250,16 @@ module Ast
           # ==========================================================================
           # CASE 4: No custom generator - use default computation
           # ==========================================================================
-          # Note: We pass the original `node` here (not `actual_node`) because
-          # compute_node_signature may need wrapper information in some cases.
-          # However, for FrozenWrapper, the unwrapping already happened above
-          # for the signature_generator path. If there's no generator, the
-          # compute_node_signature implementation should handle wrappers itself.
-          compute_node_signature(node)
+          # Pass the UNWRAPPED node to compute_node_signature. This is critical
+          # because compute_node_signature uses type checking (e.g., case statements
+          # matching Prism::DefNode, Prism::CallNode, etc.). If we pass a
+          # FrozenWrapper, it won't match any of those types and will fall through
+          # to a generic handler, producing incorrect signatures.
+          #
+          # For FrozenWrapper nodes, the underlying AST node determines the signature
+          # (e.g., method name for DefNode, gem name for CallNode). The wrapper only
+          # affects merge preference (destination wins), not matching.
+          compute_node_signature(actual_node)
         end
 
         DebugLogger.debug("Generated signature", {
