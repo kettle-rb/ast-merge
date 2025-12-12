@@ -29,24 +29,49 @@ Only use terminal for:
 
 ### grep_search includePattern
 
-**IMPORTANT**: The `**` glob pattern does NOT work in the `includePattern` parameter.
+**IMPORTANT**: The `includePattern` parameter uses glob patterns relative to the workspace root.
 
-❌ **BROKEN** - Do not use:
+✅ **WORKS** - Use these patterns:
 ```
-includePattern: "vendor/prism-merge/**/*.rb"
-includePattern: "**/spec/**/*.rb"
+# Search recursively within a directory (use ** for recursive)
+includePattern: "vendor/**"           # All files under vendor/
+includePattern: "vendor/kettle-dev/**" # All files under vendor/kettle-dev/
+
+# Search a specific file
+includePattern: "vendor/prism-merge/README.md"
+includePattern: "lib/ast/merge/freezable.rb"
+
+# Search files matching a pattern in a specific directory
+includePattern: "spec/**"              # All spec files recursively
 ```
 
-✅ **WORKS** - Use explicit paths instead:
+❌ **DOES NOT WORK** - Avoid these:
 ```
-includePattern: "vendor/prism-merge/spec/integration/file_alignment_spec.rb"
-includePattern: "vendor/prism-merge/lib/prism/merge/smart_merger.rb"
+# The | character does NOT work for alternation in includePattern
+includePattern: "vendor/prism-merge/**|vendor/kettle-dev/**"
+
+# Cannot use ** in the middle of a path with file extension
+includePattern: "vendor/**/spec/**/*.rb"  # Too complex, may fail
 ```
 
-When you need to search across multiple files:
-1. Use `grep_search` without `includePattern` to search the entire workspace
-2. Or make multiple targeted searches with explicit file paths
-3. Or use `file_search` first to find files, then search each explicitly
+**Key insights:**
+- `vendor/**` searches ALL files recursively under vendor/ (including subfolders)
+- Without `includePattern`, `grep_search` searches the ENTIRE workspace (root project only, may miss vendor submodules)
+- For vendor gems, always use `includePattern: "vendor/**"` or `includePattern: "vendor/gem-name/**"`
+- To search multiple specific locations, make separate `grep_search` calls
+
+### replace_string_in_file and Unicode Characters
+
+**IMPORTANT**: The `replace_string_in_file` tool can fail silently when files contain special Unicode characters like:
+- Curly apostrophes (`'` U+2019 instead of `'`)
+- Em-dashes (`—` U+2014 instead of `-`)
+- Emoji (🔧, 🎨, etc.)
+
+When `replace_string_in_file` fails with "Could not find matching text":
+1. The file likely contains Unicode characters that don't match what you're sending
+2. Try using a smaller, more unique portion of the text
+3. Avoid including lines with emojis or special punctuation in your oldString
+4. Use `read_file` to see the exact content, but be aware the display may normalize characters
 
 ## Project Structure
 

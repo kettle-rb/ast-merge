@@ -127,6 +127,38 @@ module Ast
       # - Typed nodes (have merge_type)
       # - Freeze nodes (satisfy is_a?(Freezable) and freeze_node?)
       #
+      # ## Key Distinction from FreezeNodeBase
+      #
+      # FrozenWrapper and FreezeNodeBase both include Freezable, but they represent
+      # fundamentally different concepts:
+      #
+      # ### FrozenWrapper (this class)
+      # - Wraps an AST node that has a freeze marker in its leading comments
+      # - The node is still a structural AST node (e.g., a `gem` call in a gemspec)
+      # - During matching, we want to match by the underlying node's IDENTITY
+      #   (e.g., the gem name), NOT by the full content
+      # - Signature generation should unwrap and use the underlying node's structure
+      # - Example: `# token:freeze\ngem "example_gem", "~> 1.0"` wraps a CallNode
+      #
+      # ### FreezeNodeBase
+      # - Represents an explicit freeze block with `# token:freeze ... # token:unfreeze`
+      # - The entire block is opaque content that should be preserved verbatim
+      # - During matching, we match by the full CONTENT of the block
+      # - Signature generation uses freeze_signature (content-based)
+      # - Example: A multi-line comment block with custom formatting
+      #
+      # ## Signature Generation Behavior
+      #
+      # When FileAnalyzable#generate_signature encounters a FrozenWrapper:
+      # 1. It unwraps to get the underlying AST node
+      # 2. Passes the unwrapped node to the signature_generator
+      # 3. This allows the signature generator to recognize the node type
+      #    (e.g., Prism::CallNode) and generate appropriate signatures
+      #
+      # This is critical because signature generators check for specific AST types.
+      # If we passed the wrapper, the generator wouldn't recognize it as a CallNode
+      # and would fall back to a generic signature, breaking matching.
+      #
       # @example Creating a frozen wrapper
       #   frozen = NodeTyping::FrozenWrapper.new(prism_node, :frozen)
       #   frozen.freeze_node?  # => true
@@ -135,6 +167,8 @@ module Ast
       #
       # @see Wrapper
       # @see Ast::Merge::Freezable
+      # @see FreezeNodeBase
+      # @see FileAnalyzable#generate_signature
       class FrozenWrapper < Wrapper
         include Ast::Merge::Freezable
 

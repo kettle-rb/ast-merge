@@ -118,15 +118,55 @@ module Ast
 
       # Generate signature for a node.
       #
-      # If a custom signature_generator is provided, it is called first.
-      # The custom generator can return:
-      # - An array signature (e.g., `[:gem, "foo"]`) - used as the signature
-      # - `nil` - the node gets no signature (won't be matched by signature)
-      # - A parser node or FreezeNodeBase - falls through to default computation
+      # Signatures are used to match nodes between template and destination files.
+      # Two nodes with the same signature are considered "the same" for merge purposes,
+      # allowing the merger to decide which version to keep based on preference settings.
       #
-      # Override this method to add debug logging or customize behavior.
+      # ## Signature Generation Flow
       #
-      # @param node [Object] Node to generate signature for
+      # 1. **FreezeNodeBase** (explicit freeze blocks like `# token:freeze ... # token:unfreeze`):
+      #    Uses content-based signature via `freeze_signature`. This ensures explicit freeze
+      #    blocks match between files based on their actual content.
+      #
+      # 2. **FrozenWrapper** (AST nodes with freeze markers in leading comments):
+      #    The wrapper is **unwrapped first** to get the underlying AST node. The signature
+      #    is then generated from the underlying node, NOT the wrapper. This is critical
+      #    because the freeze marker only affects merge *preference* (destination wins),
+      #    not *matching*. Two nodes should match by their structural identity even if
+      #    their content differs slightly.
+      #
+      # 3. **Custom signature_generator**: If provided, receives the unwrapped node and can:
+      #    - Return an Array signature (e.g., `[:gem, "foo"]`) - used directly
+      #    - Return `nil` - node gets no signature, won't be matched
+      #    - Return the node (fallthrough) - default signature computation is used
+      #
+      # 4. **Default computation**: Falls through to `compute_node_signature` for
+      #    parser-specific default signature generation.
+      #
+      # ## Why FrozenWrapper Must Be Unwrapped
+      #
+      # Consider a gemspec with a frozen `gem_version` variable:
+      #
+      #   Template:                         Destination:
+      #   # kettle-dev:freeze               # kettle-dev:freeze
+      #   # Comment                         # Comment
+      #   # kettle-dev:unfreeze             # More comments
+      #   gem_version = "1.0"               # kettle-dev:unfreeze
+      #                                     gem_version = "1.0"
+      #
+      # Both have a `gem_version` assignment with a freeze marker in leading comments.
+      # The assignments are wrapped in FrozenWrapper, but their CONTENT differs
+      # (template has fewer comments in the freeze block).
+      #
+      # If we generated signatures from the wrapper (which delegates `slice` to the
+      # full node content), they would NOT match and both would be output - duplicating
+      # the freeze block!
+      #
+      # By unwrapping first, we generate signatures from the underlying
+      # `LocalVariableWriteNode`, which matches by variable name (`gem_version`),
+      # ensuring only ONE version is output (the destination version, since it's frozen).
+      #
+      # @param node [Object] Node to generate signature for (may be wrapped)
       # @return [Array, nil] Signature array or nil
       #
       # @example Custom generator with fallthrough
@@ -138,39 +178,83 @@ module Ast
       #       node  # Return original node for default signature computation
       #     end
       #   }
+      #
+      # @see FreezeNodeBase#freeze_signature
+      # @see NodeTyping::FrozenWrapper
+      # @see Freezable
       def generate_signature(node)
-        # Frozen nodes have their own signature that should be used regardless
-        # of any custom signature generator. This ensures frozen nodes match
-        # between template and destination based on their content.
-        if node.is_a?(Freezable)
+        # ==========================================================================
+        # CASE 1: FreezeNodeBase (explicit freeze blocks)
+        # ==========================================================================
+        # FreezeNodeBase represents an explicit freeze block delimited by markers:
+        #   # token:freeze
+        #   ... content ...
+        #   # token:unfreeze
+        #
+        # These are standalone structural elements (not attached to AST nodes).
+        # They use content-based signatures so identical freeze blocks match.
+        # This is different from FrozenWrapper which wraps AST nodes.
+        if node.is_a?(FreezeNodeBase)
           return node.freeze_signature
         end
 
+        # ==========================================================================
+        # CASE 2: Unwrap FrozenWrapper (and other wrappers)
+        # ==========================================================================
+        # FrozenWrapper wraps AST nodes that have freeze markers in their leading
+        # comments. The wrapper marks the node as "frozen" (prefer destination),
+        # but for MATCHING purposes, we need the underlying node's identity.
+        #
+        # Example: A `gem_version = ...` assignment wrapped in FrozenWrapper should
+        # match another `gem_version = ...` assignment by variable name, not by
+        # the full content of the assignment (which may differ).
+        #
+        # CRITICAL: We must unwrap BEFORE calling the signature_generator so it
+        # receives the actual AST node type (e.g., Prism::LocalVariableWriteNode)
+        # rather than the wrapper (FrozenWrapper). Otherwise, type-based signature
+        # generators (like kettle-jem's gemspec generator) won't recognize the node
+        # and will fall through to default handling incorrectly.
+        actual_node = node.respond_to?(:unwrap) ? node.unwrap : node
+
         result = if signature_generator
-          custom_result = signature_generator.call(node)
+          # ==========================================================================
+          # CASE 3: Custom signature generator
+          # ==========================================================================
+          # Pass the UNWRAPPED node to the custom generator. This ensures:
+          # - Type checks work (e.g., `node.is_a?(Prism::CallNode)`)
+          # - The generator sees the real AST structure
+          # - Frozen nodes match by their underlying identity
+          custom_result = signature_generator.call(actual_node)
           case custom_result
           when Array, nil
-            # Custom result is either an array signature or nil
+            # Generator returned a final signature or nil - use as-is
             custom_result
           else
-            # Check for fallthrough nodes (parser-specific nodes, NodeTyping::Wrapper, etc.)
+            # Generator returned a node (fallthrough) - compute default signature
             if fallthrough_node?(custom_result)
-              # Check if the fallthrough result is a Freezable - use its signature
+              # Special case: if fallthrough result is Freezable, use freeze_signature
+              # This handles cases where the generator wraps a node in Freezable
               if custom_result.is_a?(Freezable)
                 custom_result.freeze_signature
               else
-                # Unwrap NodeTyping::Wrapper to get the underlying node for signature generation
-                # (Wrappers include the full node which would cause signature mismatches)
-                actual_node = custom_result.respond_to?(:unwrap) ? custom_result.unwrap : custom_result
-                compute_node_signature(actual_node)
+                # Unwrap any wrapper and compute default signature
+                unwrapped = custom_result.respond_to?(:unwrap) ? custom_result.unwrap : custom_result
+                compute_node_signature(unwrapped)
               end
             else
-              # Non-fallthrough values are passed through as-is
-              # This allows custom generators to return arbitrary signature types
+              # Non-node return value - pass through (allows arbitrary signature types)
               custom_result
             end
           end
         else
+          # ==========================================================================
+          # CASE 4: No custom generator - use default computation
+          # ==========================================================================
+          # Note: We pass the original `node` here (not `actual_node`) because
+          # compute_node_signature may need wrapper information in some cases.
+          # However, for FrozenWrapper, the unwrapping already happened above
+          # for the signature_generator path. If there's no generator, the
+          # compute_node_signature implementation should handle wrappers itself.
           compute_node_signature(node)
         end
 

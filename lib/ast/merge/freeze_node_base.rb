@@ -5,8 +5,30 @@ require_relative "freezable"
 module Ast
   module Merge
     # Base class for freeze block nodes in AST merge libraries.
+    #
     # A freeze block is a section marked with freeze/unfreeze comment markers that
-    # should be preserved from the destination during merges.
+    # should be preserved from the destination during merges. The entire content
+    # between the markers is treated as opaque and matched by content identity.
+    #
+    # ## Key Distinction from FrozenWrapper
+    #
+    # FreezeNodeBase represents **explicit freeze blocks** with clear boundaries:
+    # - Starts with `# token:freeze` (or equivalent in other comment styles)
+    # - Ends with `# token:unfreeze`
+    # - The content between markers is opaque and preserved verbatim
+    # - Matched by CONTENT identity via `freeze_signature`
+    #
+    # In contrast, NodeTyping::FrozenWrapper represents **AST nodes with freeze markers
+    # in their leading comments**:
+    # - The marker appears in the node's leading comments, not as a block boundary
+    # - The node is still a structural AST element (e.g., a `gem` call)
+    # - Matched by the underlying node's STRUCTURAL identity
+    #
+    # ## Signature Generation Behavior
+    #
+    # When FileAnalyzable#generate_signature encounters a FreezeNodeBase, it uses
+    # the `freeze_signature` method directly, which returns `[:FreezeNode, content]`.
+    # This ensures that explicit freeze blocks are matched by their exact content.
     #
     # This class provides shared functionality for file-type-specific implementations
     # (e.g., Prism::Merge::FreezeNode, Psych::Merge::FreezeNode).
@@ -32,6 +54,10 @@ module Ast
     #     start: /^--\s*freeze-begin/i,
     #     end_pattern: /^--\s*freeze-end/i
     #   )
+    #
+    # @see Freezable#freeze_signature - Content-based signature for matching
+    # @see NodeTyping::FrozenWrapper - Structural matching alternative
+    # @see FileAnalyzable#generate_signature - Routing logic for signature generation
     class FreezeNodeBase
       include Freezable
 
