@@ -32,7 +32,15 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ## [1.0.0] - 2025-12-12
 
+- TAG: [v1.0.0][1.0.0t]
+- COVERAGE: 96.60% -- 2301/2382 lines in 44 files
+- BRANCH COVERAGE: 86.00% -- 522/607 branches in 44 files
+- 99.29% documented
+
+### Added
+
 - Initial release
 
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/kettle-rb/ast-merge/compare/a63a4858cb229530c1706925bb209546695e8b3a...v1.0.0
 [1.0.0t]: https://github.com/kettle-rb/ast-merge/tags/v1.0.0
