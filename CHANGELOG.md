@@ -20,6 +20,13 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- `Ast::Merge::AstNode` now implements the TreeHaver::Node protocol for compatibility with tree_haver-based merge operations
+  - Adds: `type`, `kind`, `text`, `start_byte`, `end_byte`, `start_point`, `end_point`, `children`, `child_count`, `child(index)`, `each`, `named?`, `structural?`, `has_error?`, `missing?`, `inner_node`
+  - Adds `Point` struct compatible with `TreeHaver::Point`
+  - Adds `SyntheticNode` alias for clarity (synthetic = not backed by a real parser)
+- `Comment::Line`, `Comment::Block`, `Comment::Empty` now have explicit `type` methods
+- `Text::LineNode` and `Text::WordNode` now inherit from `AstNode`, gaining TreeHaver::Node protocol compliance
+
 ### Changed
 
 ### Deprecated

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../ast_node"
+
 module Ast
   module Merge
     module Text
@@ -7,25 +9,20 @@ module Ast
       # Words are the nested level of the text-based AST.
       # They are identified by word boundaries (regex \b).
       #
+      # Inherits from AstNode (SyntheticNode) to implement the TreeHaver::Node
+      # protocol, making it compatible with all tree_haver-based merge operations.
+      #
       # @example
       #   word = WordNode.new("hello", line_number: 1, word_index: 0, start_col: 0, end_col: 5)
       #   word.content    # => "hello"
       #   word.signature  # => [:word, "hello"]
-      class WordNode
+      #   word.type       # => "word_node" (TreeHaver protocol)
+      class WordNode < AstNode
         # @return [String] The word content
         attr_reader :content
 
-        # @return [Integer] 1-based line number containing this word
-        attr_reader :line_number
-
         # @return [Integer] 0-based index of this word within the line
         attr_reader :word_index
-
-        # @return [Integer] 0-based starting column position
-        attr_reader :start_col
-
-        # @return [Integer] 0-based ending column position (exclusive)
-        attr_reader :end_col
 
         # Initialize a new WordNode
         #
@@ -36,10 +33,22 @@ module Ast
         # @param end_col [Integer] 0-based end column (exclusive)
         def initialize(content, line_number:, word_index:, start_col:, end_col:)
           @content = content
-          @line_number = line_number
           @word_index = word_index
-          @start_col = start_col
-          @end_col = end_col
+
+          location = AstNode::Location.new(
+            start_line: line_number,
+            end_line: line_number,
+            start_column: start_col,
+            end_column: end_col
+          )
+
+          super(slice: content, location: location)
+        end
+
+        # TreeHaver::Node protocol: type
+        # @return [String] "word_node"
+        def type
+          "word_node"
         end
 
         # Generate a signature for this word node.
@@ -48,6 +57,30 @@ module Ast
         # @return [Array] Signature array [:word, content]
         def signature
           [:word, @content]
+        end
+
+        # Get normalized content (the word itself for words)
+        # @return [String]
+        def normalized_content
+          @content
+        end
+
+        # Get the 1-based line number
+        # @return [Integer]
+        def line_number
+          location.start_line
+        end
+
+        # Get start column (0-based)
+        # @return [Integer]
+        def start_col
+          location.start_column
+        end
+
+        # Get end column (0-based, exclusive)
+        # @return [Integer]
+        def end_col
+          location.end_column
         end
 
         # Check equality with another WordNode
@@ -71,7 +104,7 @@ module Ast
         #
         # @return [String] Debug representation
         def inspect
-          "#<WordNode #{@content.inspect} line=#{@line_number} col=#{@start_col}..#{@end_col}>"
+          "#<WordNode #{@content.inspect} line=#{line_number} col=#{start_col}..#{end_col}>"
         end
 
         # Convert to string (returns content)

@@ -6,6 +6,7 @@
 /vendor/*dev
 /vendor/*gem
 /vendor/*jem
+/vendor/*tree*
 
 # Bundler
 /vendor/bundle/

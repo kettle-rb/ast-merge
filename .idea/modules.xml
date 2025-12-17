@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/ast-merge.iml" filepath="$PROJECT_DIR$/.idea/ast-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/bash-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/bash-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/commonmarker-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/commonmarker-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dotenv-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/dotenv-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/json-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/json-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jsonc-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/jsonc-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/kettle-jem.iml" filepath="$PROJECT_DIR$/.idea/modules/kettle-jem.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/markdown-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/markdown-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/markly-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/markly-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/prism-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/prism-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/psych-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/psych-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/rbs-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/rbs-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/toml-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/toml-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree_haver.iml" filepath="$PROJECT_DIR$/.idea/modules/tree_haver.iml" />
+    </modules>
+  </component>
+</project>

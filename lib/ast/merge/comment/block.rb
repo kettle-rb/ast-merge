@@ -41,6 +41,12 @@ module Ast
         # @return [Style] The comment style configuration
         attr_reader :style
 
+        # TreeHaver::Node protocol: type
+        # @return [String] "comment_block"
+        def type
+          "comment_block"
+        end
+
         # Initialize a new Block.
         #
         # For line-based comments, pass `children` array.

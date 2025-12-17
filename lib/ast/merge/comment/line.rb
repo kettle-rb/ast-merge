@@ -38,6 +38,12 @@ module Ast
         # @return [Style] The comment style configuration
         attr_reader :style
 
+        # TreeHaver::Node protocol: type
+        # @return [String] "comment_line"
+        def type
+          "comment_line"
+        end
+
         # Initialize a new Line.
         #
         # @param text [String] The full comment text including delimiter
