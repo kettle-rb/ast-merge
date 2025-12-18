@@ -8,7 +8,10 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dotenv-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/dotenv-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/json-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/json-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/jsonc-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/jsonc-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/kettle-dev.iml" filepath="$PROJECT_DIR$/.idea/modules/kettle-dev.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/kettle-jem.iml" filepath="$PROJECT_DIR$/.idea/modules/kettle-jem.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/kettle-soup-cover.iml" filepath="$PROJECT_DIR$/.idea/modules/kettle-soup-cover.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/kettle-test.iml" filepath="$PROJECT_DIR$/.idea/modules/kettle-test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/markdown-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/markdown-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/markly-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/markly-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/prism-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/prism-merge.iml" />
