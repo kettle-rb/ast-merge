@@ -169,7 +169,7 @@ module Ast
       # @param threshold [Float] Minimum score to accept a match (0.0-1.0)
       # @param node_types [Array<Symbol>] Node types to process (empty = all)
       def initialize(threshold: DEFAULT_THRESHOLD, node_types: [])
-        @threshold = [[threshold.to_f, 0.0].max, 1.0].min
+        @threshold = threshold.to_f.clamp(0.0, 1.0)
         @node_types = Array(node_types)
       end
 

@@ -48,9 +48,11 @@ module Ast
       #   @return [String] Token used to mark freeze blocks (e.g., "prism-merge", "psych-merge")
       # @!attribute [r] signature_generator
       #   @return [Proc, nil] Custom signature generator, or nil to use default
-      def self.included(base)
-        base.class_eval do
-          attr_reader(:source, :lines, :freeze_token, :signature_generator)
+      class << self
+        def included(base)
+          base.class_eval do
+            attr_reader(:source, :lines, :freeze_token, :signature_generator)
+          end
         end
       end
 

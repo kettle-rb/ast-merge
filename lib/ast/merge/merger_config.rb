@@ -193,38 +193,40 @@ module Ast
         )
       end
 
-      # Create a config preset for "destination wins" merging.
-      # Destination customizations are preserved, template-only content is skipped.
-      #
-      # @param freeze_token [String, nil] Optional freeze token
-      # @param signature_generator [Proc, nil] Optional signature generator
-      # @param node_typing [Hash, nil] Optional node typing configuration
-      # @return [MergerConfig] Config preset
-      def self.destination_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
-        new(
-          preference: :destination,
-          add_template_only_nodes: false,
-          freeze_token: freeze_token,
-          signature_generator: signature_generator,
-          node_typing: node_typing,
-        )
-      end
+      class << self
+        # Create a config preset for "destination wins" merging.
+        # Destination customizations are preserved, template-only content is skipped.
+        #
+        # @param freeze_token [String, nil] Optional freeze token
+        # @param signature_generator [Proc, nil] Optional signature generator
+        # @param node_typing [Hash, nil] Optional node typing configuration
+        # @return [MergerConfig] Config preset
+        def destination_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
+          new(
+            preference: :destination,
+            add_template_only_nodes: false,
+            freeze_token: freeze_token,
+            signature_generator: signature_generator,
+            node_typing: node_typing,
+          )
+        end
 
-      # Create a config preset for "template wins" merging.
-      # Template updates are applied, template-only content is added.
-      #
-      # @param freeze_token [String, nil] Optional freeze token
-      # @param signature_generator [Proc, nil] Optional signature generator
-      # @param node_typing [Hash, nil] Optional node typing configuration
-      # @return [MergerConfig] Config preset
-      def self.template_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
-        new(
-          preference: :template,
-          add_template_only_nodes: true,
-          freeze_token: freeze_token,
-          signature_generator: signature_generator,
-          node_typing: node_typing,
-        )
+        # Create a config preset for "template wins" merging.
+        # Template updates are applied, template-only content is added.
+        #
+        # @param freeze_token [String, nil] Optional freeze token
+        # @param signature_generator [Proc, nil] Optional signature generator
+        # @param node_typing [Hash, nil] Optional node typing configuration
+        # @return [MergerConfig] Config preset
+        def template_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
+          new(
+            preference: :template,
+            add_template_only_nodes: true,
+            freeze_token: freeze_token,
+            signature_generator: signature_generator,
+            node_typing: node_typing,
+          )
+        end
       end
 
       private

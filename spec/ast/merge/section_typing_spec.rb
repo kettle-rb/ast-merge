@@ -226,6 +226,7 @@ RSpec.describe Ast::Merge::SectionTyping do
   end
 
   describe Ast::Merge::SectionTyping::CompositeClassifier do
+    # rubocop:disable RSpec/IndexedLet - Using numbered classifiers is clearer here for composite pattern testing
     let(:classifier1) do
       Ast::Merge::SectionTyping::CallableClassifier.new(->(node) {
         next nil unless node[:type] == :type_a
@@ -403,5 +404,6 @@ RSpec.describe Ast::Merge::SectionTyping do
       pref = {"other" => :template}
       expect(described_class.preference_for("coverage", pref)).to eq(:destination)
     end
+    # rubocop:enable RSpec/IndexedLet
   end
 end

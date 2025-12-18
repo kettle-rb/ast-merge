@@ -69,13 +69,15 @@ module Ast
           end
         end
 
-        # Class method for convenient one-shot parsing.
-        #
-        # @param lines [Array<String>] Source lines
-        # @param style [Style, Symbol, nil] Comment style
-        # @return [Array<AstNode>] Parsed nodes
-        def self.parse(lines, style: nil)
-          new(lines, style: style).parse
+        class << self
+          # Parse lines as comments.
+          #
+          # @param lines [Array<String>] Source lines
+          # @param style [Style, Symbol, nil] Comment style
+          # @return [Array<AstNode>] Parsed nodes
+          def parse(lines, style: nil)
+            new(lines, style: style).parse
+          end
         end
 
         private

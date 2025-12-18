@@ -1,22 +1,26 @@
 # frozen_string_literal: true
 
+require_relative "../ast_node"
+
 module Ast
   module Merge
     module Text
       # Represents a line of text in the text-based AST.
       # Lines are top-level nodes, with words as nested children.
       #
+      # Inherits from AstNode (SyntheticNode) to implement the TreeHaver::Node
+      # protocol, making it compatible with all tree_haver-based merge operations.
+      #
       # @example
       #   line = LineNode.new("Hello world!", line_number: 1)
       #   line.content       # => "Hello world!"
       #   line.words.size    # => 2
       #   line.signature     # => [:line, "Hello world!"]
-      class LineNode
+      #   line.type          # => "line_node" (TreeHaver protocol)
+      #   line.text          # => "Hello world!" (TreeHaver protocol)
+      class LineNode < AstNode
         # @return [String] The full line content (without trailing newline)
         attr_reader :content
-
-        # @return [Integer] 1-based line number
-        attr_reader :line_number
 
         # @return [Array<WordNode>] Words contained in this line
         attr_reader :words
@@ -27,8 +31,31 @@ module Ast
         # @param line_number [Integer] 1-based line number
         def initialize(content, line_number:)
           @content = content
-          @line_number = line_number
+
+          location = AstNode::Location.new(
+            start_line: line_number,
+            end_line: line_number,
+            start_column: 0,
+            end_column: content.length,
+          )
+
+          super(slice: content, location: location)
+
+          # Parse words AFTER super sets up location
           @words = parse_words
+        end
+
+        # TreeHaver::Node protocol: type
+        # @return [String] "line_node"
+        def type
+          "line_node"
+        end
+
+        # TreeHaver::Node protocol: children
+        # Returns word nodes as children
+        # @return [Array<WordNode>]
+        def children
+          @words
         end
 
         # Generate a signature for this line node.
@@ -61,18 +88,24 @@ module Ast
           @content.strip.start_with?("#")
         end
 
+        # Get the 1-based line number
+        # @return [Integer] 1-based line number
+        def line_number
+          location.start_line
+        end
+
         # Get the starting line (for compatibility with AST node interface)
         #
         # @return [Integer] 1-based start line
         def start_line
-          @line_number
+          location.start_line
         end
 
         # Get the ending line (for compatibility with AST node interface)
         #
         # @return [Integer] 1-based end line (same as start for single line)
         def end_line
-          @line_number
+          location.end_line
         end
 
         # Check equality with another LineNode
@@ -96,7 +129,7 @@ module Ast
         #
         # @return [String] Debug representation
         def inspect
-          "#<LineNode line=#{@line_number} #{@content.inspect} words=#{@words.size}>"
+          "#<LineNode line=#{line_number} #{@content.inspect} words=#{@words.size}>"
         end
 
         # Convert to string (returns content)
@@ -126,7 +159,7 @@ module Ast
 
             words << WordNode.new(
               word,
-              line_number: @line_number,
+              line_number: line_number,
               word_index: word_index,
               start_col: start_col,
               end_col: end_col,

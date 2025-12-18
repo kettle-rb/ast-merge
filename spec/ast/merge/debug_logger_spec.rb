@@ -3,39 +3,36 @@
 RSpec.describe Ast::Merge::DebugLogger do
   # Create a test class that includes the module for testing instance methods
   let(:test_class) do
-    Class.new do
+    klass = Class.new do
       extend Ast::Merge::DebugLogger
-
-      class << self
-        attr_accessor :env_var_name, :log_prefix
-      end
-
-      self.env_var_name = "TEST_DEBUG"
-      self.log_prefix = "[Test]"
     end
+    # The extended hook sets up attr_accessor, so we can just assign
+    klass.env_var_name = "TEST_DEBUG"
+    klass.log_prefix = "[Test]"
+    klass
   end
 
   describe "class-level configuration" do
     it "has default env_var_name" do
-      expect(Ast::Merge::DebugLogger.env_var_name).to eq("AST_MERGE_DEBUG")
+      expect(described_class.env_var_name).to eq("AST_MERGE_DEBUG")
     end
 
     it "has default log_prefix" do
-      expect(Ast::Merge::DebugLogger.log_prefix).to eq("[Ast::Merge]")
+      expect(described_class.log_prefix).to eq("[Ast::Merge]")
     end
 
     it "allows setting env_var_name" do
-      original = Ast::Merge::DebugLogger.env_var_name
-      Ast::Merge::DebugLogger.env_var_name = "CUSTOM_DEBUG"
-      expect(Ast::Merge::DebugLogger.env_var_name).to eq("CUSTOM_DEBUG")
-      Ast::Merge::DebugLogger.env_var_name = original
+      original = described_class.env_var_name
+      described_class.env_var_name = "CUSTOM_DEBUG"
+      expect(described_class.env_var_name).to eq("CUSTOM_DEBUG")
+      described_class.env_var_name = original
     end
 
     it "allows setting log_prefix" do
-      original = Ast::Merge::DebugLogger.log_prefix
-      Ast::Merge::DebugLogger.log_prefix = "[Custom]"
-      expect(Ast::Merge::DebugLogger.log_prefix).to eq("[Custom]")
-      Ast::Merge::DebugLogger.log_prefix = original
+      original = described_class.log_prefix
+      described_class.log_prefix = "[Custom]"
+      expect(described_class.log_prefix).to eq("[Custom]")
+      described_class.log_prefix = original
     end
   end
 
@@ -113,7 +110,7 @@ RSpec.describe Ast::Merge::DebugLogger do
 
   describe "BENCHMARK_AVAILABLE constant" do
     it "is defined as true or false" do
-      expect([true, false]).to include(Ast::Merge::DebugLogger::BENCHMARK_AVAILABLE)
+      expect([true, false]).to include(described_class::BENCHMARK_AVAILABLE)
     end
   end
 
@@ -154,8 +151,8 @@ RSpec.describe Ast::Merge::DebugLogger do
       end
     end
 
-    it "falls back to Ast::Merge::DebugLogger.env_var_name" do
-      expect(fallback_class.env_var_name).to eq(Ast::Merge::DebugLogger.env_var_name)
+    it "falls back to described_class.env_var_name" do
+      expect(fallback_class.env_var_name).to eq(described_class.env_var_name)
     end
   end
 
@@ -168,8 +165,8 @@ RSpec.describe Ast::Merge::DebugLogger do
       end
     end
 
-    it "falls back to Ast::Merge::DebugLogger.log_prefix" do
-      expect(fallback_class.log_prefix).to eq(Ast::Merge::DebugLogger.log_prefix)
+    it "falls back to described_class.log_prefix" do
+      expect(fallback_class.log_prefix).to eq(described_class.log_prefix)
     end
   end
 
@@ -266,14 +263,10 @@ RSpec.describe Ast::Merge::DebugLogger do
     let(:module_with_debug) do
       mod = Module.new do
         extend Ast::Merge::DebugLogger
-
-        class << self
-          attr_accessor :env_var_name, :log_prefix
-        end
-
-        self.env_var_name = "MODULE_DEBUG"
-        self.log_prefix = "[Module]"
       end
+      # The extended hook sets up attr_accessor, so we can assign values
+      mod.env_var_name = "MODULE_DEBUG"
+      mod.log_prefix = "[Module]"
       mod
     end
 
@@ -295,11 +288,11 @@ RSpec.describe Ast::Merge::DebugLogger do
     end
 
     it "falls back to base log_prefix" do
-      expect(unconfigured_module.log_prefix).to eq(Ast::Merge::DebugLogger.log_prefix)
+      expect(unconfigured_module.log_prefix).to eq(described_class.log_prefix)
     end
 
     it "falls back to base env_var_name" do
-      expect(unconfigured_module.env_var_name).to eq(Ast::Merge::DebugLogger.env_var_name)
+      expect(unconfigured_module.env_var_name).to eq(described_class.env_var_name)
     end
   end
 
@@ -329,10 +322,11 @@ RSpec.describe Ast::Merge::DebugLogger do
         Module.define_singleton_method(:env_var_name) { "GLOBAL_MODULE_ENV" }
         Module.define_singleton_method(:log_prefix) { "[GLOBAL_MODULE]" }
 
-        result = extended_module.instance_eval { Ast::Merge::DebugLogger.instance_method(:env_var_name).bind_call(self) }
+        debug_logger_class = described_class
+        result = extended_module.instance_eval { debug_logger_class.instance_method(:env_var_name).bind_call(self) }
         expect(result).to eq("GLOBAL_MODULE_ENV")
 
-        result2 = extended_module.instance_eval { Ast::Merge::DebugLogger.instance_method(:log_prefix).bind_call(self) }
+        result2 = extended_module.instance_eval { debug_logger_class.instance_method(:log_prefix).bind_call(self) }
         expect(result2).to eq("[GLOBAL_MODULE]")
       ensure
         # Clean up
@@ -343,16 +337,18 @@ RSpec.describe Ast::Merge::DebugLogger do
 
     describe "when called from an instance whose class provides the method" do
       let(:class_with_logger) do
-        Class.new do
+        klass = Class.new do
           include Ast::Merge::DebugLogger
-
-          class << self
-            attr_accessor :env_var_name, :log_prefix
-          end
-
-          self.env_var_name = "CLASS_ENV_VAR"
-          self.log_prefix = "[ClassPrefix]"
         end
+        # The class needs to extend as well to get class-level config
+        klass.singleton_class.class_eval do
+          # rubocop:disable RSpec/DescribedClass - DebugLogger's design requires attr_accessor for configuration
+          attr_accessor :env_var_name, :log_prefix
+          # rubocop:enable RSpec/DescribedClass
+        end
+        klass.env_var_name = "CLASS_ENV_VAR"
+        klass.log_prefix = "[ClassPrefix]"
+        klass
       end
 
       it "uses class env_var_name" do
@@ -376,14 +372,14 @@ RSpec.describe Ast::Merge::DebugLogger do
         end
       end
 
-      it "falls back to Ast::Merge::DebugLogger.env_var_name" do
+      it "falls back to described_class.env_var_name" do
         instance = basic_class.new
-        expect(instance.env_var_name).to eq(Ast::Merge::DebugLogger.env_var_name)
+        expect(instance.env_var_name).to eq(described_class.env_var_name)
       end
 
-      it "falls back to Ast::Merge::DebugLogger.log_prefix" do
+      it "falls back to described_class.log_prefix" do
         instance = basic_class.new
-        expect(instance.log_prefix).to eq(Ast::Merge::DebugLogger.log_prefix)
+        expect(instance.log_prefix).to eq(described_class.log_prefix)
       end
     end
 
@@ -405,12 +401,14 @@ RSpec.describe Ast::Merge::DebugLogger do
         # Class.is_a?(Module) is true, Class.class == Class, Class.superclass == Module
         # So self.class.superclass == Module is TRUE -> then branch -> @env_var_name
         # Call the instance method directly to bypass accessor
-        result = class_that_extended.instance_eval { Ast::Merge::DebugLogger.instance_method(:env_var_name).bind_call(self) }
+        debug_logger_class = described_class
+        result = class_that_extended.instance_eval { debug_logger_class.instance_method(:env_var_name).bind_call(self) }
         expect(result).to eq("CLASS_EXTENDED_VAR")
       end
 
       it "uses @log_prefix when Class extended DebugLogger (then branch)" do
-        result = class_that_extended.instance_eval { Ast::Merge::DebugLogger.instance_method(:log_prefix).bind_call(self) }
+        debug_logger_class = described_class
+        result = class_that_extended.instance_eval { debug_logger_class.instance_method(:log_prefix).bind_call(self) }
         expect(result).to eq("[ClassExtended]")
       end
     end

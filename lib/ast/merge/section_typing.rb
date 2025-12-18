@@ -235,68 +235,70 @@ module Ast
       # Merge typed sections from template and destination.
       #
       # Similar to `Text::SectionSplitter#merge_section_lists` but works with
-      # TypedSection objects wrapping AST nodes.
-      #
-      # @param template_sections [Array<TypedSection>] Sections from template
-      # @param dest_sections [Array<TypedSection>] Sections from destination
-      # @param preference [Symbol, Hash] Merge preference (:template, :destination, or per-section Hash)
-      # @param add_template_only [Boolean] Whether to add sections only in template
-      # @return [Array<TypedSection>] Merged sections
-      def self.merge_sections(template_sections, dest_sections, preference: :destination, add_template_only: false)
-        dest_by_name = dest_sections.each_with_object({}) do |section, hash|
-          key = section.normalized_name
-          hash[key] = section unless section.unclassified?
-        end
-
-        merged = []
-        seen_names = Set.new
-
-        template_sections.each do |template_section|
-          if template_section.unclassified?
-            # Unclassified sections are typically kept as-is or merged specially
-            merged << template_section if add_template_only
-            next
+      class << self
+        # TypedSection objects wrapping AST nodes.
+        #
+        # @param template_sections [Array<TypedSection>] Sections from template
+        # @param dest_sections [Array<TypedSection>] Sections from destination
+        # @param preference [Symbol, Hash] Merge preference (:template, :destination, or per-section Hash)
+        # @param add_template_only [Boolean] Whether to add sections only in template
+        # @return [Array<TypedSection>] Merged sections
+        def merge_sections(template_sections, dest_sections, preference: :destination, add_template_only: false)
+          dest_by_name = dest_sections.each_with_object({}) do |section, hash|
+            key = section.normalized_name
+            hash[key] = section unless section.unclassified?
           end
 
-          key = template_section.normalized_name
-          seen_names << key
+          merged = []
+          seen_names = Set.new
 
-          dest_section = dest_by_name[key]
+          template_sections.each do |template_section|
+            if template_section.unclassified?
+              # Unclassified sections are typically kept as-is or merged specially
+              merged << template_section if add_template_only
+              next
+            end
 
-          if dest_section
-            # Section exists in both - choose based on preference
-            section_pref = preference_for(template_section.name, preference)
-            merged << ((section_pref == :template) ? template_section : dest_section)
-          elsif add_template_only
-            merged << template_section
+            key = template_section.normalized_name
+            seen_names << key
+
+            dest_section = dest_by_name[key]
+
+            if dest_section
+              # Section exists in both - choose based on preference
+              section_pref = preference_for(template_section.name, preference)
+              merged << ((section_pref == :template) ? template_section : dest_section)
+            elsif add_template_only
+              merged << template_section
+            end
           end
+
+          # Append destination-only sections
+          dest_sections.each do |dest_section|
+            next if dest_section.unclassified?
+            key = dest_section.normalized_name
+            next if seen_names.include?(key)
+            merged << dest_section
+          end
+
+          merged
         end
 
-        # Append destination-only sections
-        dest_sections.each do |dest_section|
-          next if dest_section.unclassified?
-          key = dest_section.normalized_name
-          next if seen_names.include?(key)
-          merged << dest_section
+        # Get preference for a specific section.
+        #
+        # @param section_name [String, Symbol] The section name
+        # @param preference [Symbol, Hash] Overall preference
+        # @return [Symbol] :template or :destination
+        def preference_for(section_name, preference)
+          return preference unless preference.is_a?(Hash)
+
+          normalized = section_name.to_s.strip.downcase
+          preference.each do |key, value|
+            return value if key.to_s.strip.downcase == normalized
+          end
+
+          preference.fetch(:default, :destination)
         end
-
-        merged
-      end
-
-      # Get preference for a specific section.
-      #
-      # @param section_name [String, Symbol] The section name
-      # @param preference [Symbol, Hash] Overall preference
-      # @return [Symbol] :template or :destination
-      def self.preference_for(section_name, preference)
-        return preference unless preference.is_a?(Hash)
-
-        normalized = section_name.to_s.strip.downcase
-        preference.each do |key, value|
-          return value if key.to_s.strip.downcase == normalized
-        end
-
-        preference.fetch(:default, :destination)
       end
     end
   end

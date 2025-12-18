@@ -128,7 +128,7 @@ module Ast
       def compute_score
         result = algorithm.call(node_a, node_b)
         # Clamp to valid range
-        [[result.to_f, 0.0].max, 1.0].min
+        result.to_f.clamp(0.0, 1.0)
       end
     end
   end

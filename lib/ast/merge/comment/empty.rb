@@ -28,6 +28,12 @@ module Ast
         # @return [String] The actual line content (may have whitespace)
         attr_reader :text
 
+        # TreeHaver::Node protocol: type
+        # @return [String] "empty_line"
+        def type
+          "empty_line"
+        end
+
         # Initialize a new Empty line.
         #
         # @param line_number [Integer] The 1-based line number

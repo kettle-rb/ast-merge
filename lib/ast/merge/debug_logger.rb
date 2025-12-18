@@ -83,10 +83,14 @@ module Ast
 
       class << self
         # @return [String] Environment variable name to check for debug mode
+        # rubocop:disable ThreadSafety/ClassAndModuleAttributes - Configuration attribute, set once at load time
         attr_accessor :env_var_name
+        # rubocop:enable ThreadSafety/ClassAndModuleAttributes
 
         # @return [String] Prefix for log messages
+        # rubocop:disable ThreadSafety/ClassAndModuleAttributes - Configuration attribute, set once at load time
         attr_accessor :log_prefix
+        # rubocop:enable ThreadSafety/ClassAndModuleAttributes
 
         # Hook called when a module extends Ast::Merge::DebugLogger.
         # Sets up attr_accessor for env_var_name and log_prefix on the extending module,
