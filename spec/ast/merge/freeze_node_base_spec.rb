@@ -455,7 +455,7 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
       end
     end
 
-    context "priority of content sources" do
+    context "when determining priority of content sources" do
       let(:mock_analysis) do
         analysis = double("analysis")
         allow(analysis).to receive(:lines).and_return(%w[analysis_line])
@@ -498,7 +498,8 @@ RSpec.describe Ast::Merge::FreezeNodeBase do
 
     it "memoizes the location" do
       node = described_class.new(start_line: 5, end_line: 10)
-      expect(node.location).to be(node.location)
+      location = node.location
+      expect(node.location).to equal(location)
     end
   end
 

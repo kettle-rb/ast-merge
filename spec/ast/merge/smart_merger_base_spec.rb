@@ -32,14 +32,6 @@ RSpec.describe Ast::Merge::SmartMergerBase do
     end
   end
 
-  let(:mock_node_class) do
-    Struct.new(:content, :line, keyword_init: true) do
-      def to_s
-        content
-      end
-    end
-  end
-
   let(:mock_result_class) do
     Class.new do
       attr_accessor :content, :lines
@@ -79,17 +71,17 @@ RSpec.describe Ast::Merge::SmartMergerBase do
     end
   end
 
-  # Need to define MockNode before tests run
-  before(:all) do
-    MockNode = Struct.new(:content, :line, keyword_init: false) do
+  # Define MockNode using stub_const to avoid leaky constant declaration
+  let(:mock_node_class) do
+    Struct.new(:content, :line, keyword_init: false) do
       def to_s
         content
       end
     end
   end
 
-  after(:all) do
-    Object.send(:remove_const, :MockNode) if defined?(MockNode)
+  before do
+    stub_const("MockNode", mock_node_class)
   end
 
   describe "#initialize" do
@@ -327,7 +319,7 @@ RSpec.describe Ast::Merge::SmartMergerBase do
     end
   end
 
-  describe "#merge_with_debug" do
+  describe "#merge_with_debug return structure" do
     it "returns hash with content and statistics" do
       merger = concrete_merger_class.new("template", "dest")
       result = merger.merge_with_debug
@@ -382,7 +374,7 @@ RSpec.describe Ast::Merge::SmartMergerBase do
     end
   end
 
-  describe "parse error handling" do
+  describe "parse error handling with context" do
     context "when analysis raises an error" do
       let(:error_analysis_class) do
         Class.new do

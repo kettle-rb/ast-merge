@@ -36,7 +36,7 @@ module Ast
             start_line: line_number,
             end_line: line_number,
             start_column: 0,
-            end_column: content.length
+            end_column: content.length,
           )
 
           super(slice: content, location: location)
@@ -162,7 +162,7 @@ module Ast
               line_number: line_number,
               word_index: word_index,
               start_col: start_col,
-              end_col: end_col
+              end_col: end_col,
             )
             word_index += 1
           end

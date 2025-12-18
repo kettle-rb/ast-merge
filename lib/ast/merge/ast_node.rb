@@ -73,7 +73,7 @@ module Ast
         # @param line_number [Integer] The line number to check (1-based)
         # @return [Boolean] true if the line number is within the range
         def cover?(line_number)
-          line_number >= start_line && line_number <= end_line
+          line_number.between?(start_line, end_line)
         end
       end
 
@@ -157,7 +157,7 @@ module Ast
       def start_point
         Point.new(
           row: (location&.start_line || 1) - 1,  # Convert to 0-based
-          column: location&.start_column || 0
+          column: location&.start_column || 0,
         )
       end
 
@@ -168,7 +168,7 @@ module Ast
       def end_point
         Point.new(
           row: (location&.end_line || 1) - 1,  # Convert to 0-based
-          column: location&.end_column || 0
+          column: location&.end_column || 0,
         )
       end
 
@@ -256,7 +256,7 @@ module Ast
         return unless other.respond_to?(:start_byte) && other.respond_to?(:end_byte)
 
         cmp = start_byte <=> other.start_byte
-        return cmp unless cmp.zero?
+        return cmp if cmp.nonzero?
 
         end_byte <=> other.end_byte
       end

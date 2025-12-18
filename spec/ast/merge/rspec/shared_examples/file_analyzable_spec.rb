@@ -96,10 +96,11 @@ end
 # Minimal FreezeNode class for testing (wraps FreezeNodeBase)
 class TestFreezeNode < Ast::Merge::FreezeNodeBase
   def covers_line?(line_num)
-    line_num >= start_line && line_num <= end_line
+    line_num.between?(start_line, end_line)
   end
 end
 
+# rubocop:disable RSpec/DescribeClass - This file tests shared examples, not a single class
 RSpec.describe "FileAnalyzable shared examples" do
   it_behaves_like "Ast::Merge::FileAnalyzable" do
     let(:file_analysis_class) { TestFileAnalysis }
@@ -134,3 +135,4 @@ RSpec.describe "FileAnalyzable shared examples" do
     end
   end
 end
+# rubocop:enable RSpec/DescribeClass

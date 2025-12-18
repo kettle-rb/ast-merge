@@ -5,6 +5,7 @@ RSpec.describe Ast::Merge do
     expect(Ast::Merge::VERSION).not_to be_nil
   end
 
+  # rubocop:disable RSpec/DescribedClass - Testing nested error classes within module describe
   describe Ast::Merge::ParseError do
     describe "#initialize" do
       context "with custom message" do
@@ -87,4 +88,5 @@ RSpec.describe Ast::Merge do
       expect(error.message).to eq("Destination parse failed")
     end
   end
+  # rubocop:enable RSpec/DescribedClass
 end

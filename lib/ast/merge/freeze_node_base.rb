@@ -379,7 +379,7 @@ module Ast
       # Validate that end_line is not before start_line
       # @raise [InvalidStructureError] if structure is invalid
       def validate_line_order!
-        return unless @end_line < @start_line
+        return if @end_line >= @start_line
 
         raise InvalidStructureError.new(
           "Freeze block end line (#{@end_line}) is before start line (#{@start_line})",

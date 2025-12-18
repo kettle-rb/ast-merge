@@ -39,7 +39,7 @@ module Ast
             start_line: line_number,
             end_line: line_number,
             start_column: start_col,
-            end_column: end_col
+            end_column: end_col,
           )
 
           super(slice: content, location: location)

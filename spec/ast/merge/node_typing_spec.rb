@@ -3,7 +3,14 @@
 RSpec.describe Ast::Merge::NodeTyping do
   describe Ast::Merge::NodeTyping::Wrapper do
     let(:mock_node) do
-      double("MockNode", name: :test_method, class: Class.new { def self.name = "TestNode" })
+      node_class = Class.new do
+        class << self
+          def name
+            "TestNode"
+          end
+        end
+      end
+      double("MockNode", name: :test_method, class: node_class)
     end
 
     describe "#initialize" do
@@ -106,7 +113,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       end
     end
 
-    describe "#method_missing" do
+    describe "#method_missing error handling" do
       it "raises NoMethodError when wrapped node does not respond to method" do
         wrapper = described_class.new(mock_node, :custom_type)
 
@@ -174,8 +181,10 @@ RSpec.describe Ast::Merge::NodeTyping do
   describe ".process" do
     let(:mock_node) do
       node_class = Class.new do
-        def self.name
-          "CallNode"
+        class << self
+          def name
+            "CallNode"
+          end
         end
       end
       double("MockNode", class: node_class, name: :gem)
@@ -248,8 +257,10 @@ RSpec.describe Ast::Merge::NodeTyping do
     context "with fully-qualified class name" do
       let(:namespaced_node) do
         node_class = Class.new do
-          def self.name
-            "Prism::CallNode"
+          class << self
+            def name
+              "Prism::CallNode"
+            end
           end
         end
         double("NamespacedNode", class: node_class, name: :test)
@@ -403,8 +414,10 @@ RSpec.describe Ast::Merge::NodeTyping do
     context "when config has no matching keys for any lookup strategy" do
       let(:namespaced_node) do
         node_class = Class.new do
-          def self.name
-            "MyModule::MyNode"
+          class << self
+            def name
+              "MyModule::MyNode"
+            end
           end
         end
         double("NamespacedNode", class: node_class, name: :test)
@@ -428,8 +441,10 @@ RSpec.describe Ast::Merge::NodeTyping do
     context "with string key lookup" do
       let(:string_key_node) do
         node_class = Class.new do
-          def self.name
-            "StringKeyNode"
+          class << self
+            def name
+              "StringKeyNode"
+            end
           end
         end
         double("StringKeyNode", class: node_class)
@@ -451,8 +466,10 @@ RSpec.describe Ast::Merge::NodeTyping do
     context "with TypedNodeWrapper passed to process" do
       let(:inner_node) do
         node_class = Class.new do
-          def self.name
-            "InnerNode"
+          class << self
+            def name
+              "InnerNode"
+            end
           end
         end
         double("InnerNode", class: node_class)

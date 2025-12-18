@@ -265,16 +265,18 @@ module Ast
           normalize_name(section.name)
         end
 
-        # Validate splitter configuration.
-        #
-        # @param config [Hash, nil] Configuration to validate
-        # @raise [ArgumentError] If configuration is invalid
-        # @return [void]
-        def self.validate!(config)
-          return if config.nil?
+        class << self
+          # Validate a splitter configuration.
+          #
+          # @param config [Hash, nil] Configuration to validate
+          # @raise [ArgumentError] If configuration is invalid
+          # @return [void]
+          def validate!(config)
+            return if config.nil?
 
-          unless config.is_a?(Hash)
-            raise ArgumentError, "splitter config must be a Hash, got #{config.class}"
+            unless config.is_a?(Hash)
+              raise ArgumentError, "splitter config must be a Hash, got #{config.class}"
+            end
           end
         end
       end

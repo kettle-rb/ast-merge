@@ -14,8 +14,10 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         expect("# my-merge:unfreeze some reason").to match(pattern)
         # Capture groups should work
         match = "# my-merge:freeze reason text".match(pattern)
-        expect(match[1]).to eq("freeze")
-        expect(match[2]).to eq("reason text")
+        freeze_text = match[1]
+        reason_text = match[2]
+        expect(freeze_text).to eq("freeze")
+        expect(reason_text).to eq("reason text")
       end
 
       it "builds html_comment pattern with token" do

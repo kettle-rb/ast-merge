@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable RSpec/MultipleDescribes - Testing related classes in Text::Section namespace
 RSpec.describe Ast::Merge::Text::Section do
   describe "#initialize" do
     subject(:section) do
@@ -842,3 +843,4 @@ RSpec.describe Ast::Merge::Text::LineSectionSplitter do
     end
   end
 end
+# rubocop:enable RSpec/MultipleDescribes

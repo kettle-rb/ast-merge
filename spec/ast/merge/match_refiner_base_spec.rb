@@ -361,8 +361,10 @@ RSpec.describe Ast::Merge::MatchRefinerBase do
       let(:namespaced_node) do
         # Create a class with a namespaced name
         node_class = Class.new do
-          def self.name
-            "Ast::Merge::TestNode"
+          class << self
+            def name
+              "Ast::Merge::TestNode"
+            end
           end
         end
         node_class.new

@@ -56,26 +56,6 @@ module Ast
         # Calculate line numbers
         # Frontmatter starts at line 1 (or after BOM)
         start_line = 1
-        # Count newlines in content to determine end line
-        # Opening delimiter ends at line 1
-        # Content spans from line 2 to line 2 + content_lines - 1
-        # Closing delimiter is on the next line
-        content_newlines = content.count("\n")
-        # end_line is the line with the closing ---
-        end_line = start_line + 1 + content_newlines
-
-        # Adjust if content ends without newline
-        end_line - 1 if content.end_with?("\n") && content_newlines > 0
-
-        # Actually, let's calculate more carefully
-        # Line 1: ---
-        # Line 2 to N: content
-        # Line N+1: ---
-        if content.empty?
-          0
-        else
-          content.count("\n") + (content.end_with?("\n") ? 0 : 1)
-        end
 
         # Simplify: count total newlines in the full match to determine end line
         full_match = match[0]

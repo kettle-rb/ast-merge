@@ -1,145 +1,23 @@
 {
-  "lib/ast/merge/ast_node.rb:243979000": [
-    [25, 11, 52, "Style/ComparableBetween: Prefer `line_number.between?(start_line, end_line)` over logical comparison.", 1375767976]
+  "spec/ast/merge/debug_logger_spec.rb:4077105382": [
+    [113, 14, 13, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 414119492]
   ],
-  "lib/ast/merge/comment/parser.rb:1356748346": [
-    [77, 9, 86, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3962716766]
-  ],
-  "lib/ast/merge/debug_logger.rb:1669478133": [
-    [86, 9, 27, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2654441077],
-    [89, 9, 25, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 4245971553]
-  ],
-  "lib/ast/merge/file_analyzable.rb:1411428975": [
-    [51, 7, 148, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3308197915]
-  ],
-  "lib/ast/merge/freeze_node_base.rb:3430849802": [
-    [382, 9, 37, "Style/InvertibleUnlessCondition: Prefer `if @end_line >= @start_line` over `unless @end_line < @start_line`.", 2901984494]
-  ],
-  "lib/ast/merge/match_refiner_base.rb:3772533148": [
-    [172, 22, 36, "Style/ComparableClamp: Use `Comparable#clamp` instead.", 2912999745]
-  ],
-  "lib/ast/merge/match_score_base.rb:294592662": [
-    [131, 9, 33, "Style/ComparableClamp: Use `Comparable#clamp` instead.", 947545695]
-  ],
-  "lib/ast/merge/merger_config.rb:1870601913": [
-    [203, 7, 325, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 2890261328],
-    [220, 7, 318, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 4214590768]
-  ],
-  "lib/ast/merge/section_typing.rb:3568558606": [
-    [245, 7, 1387, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3797815054],
-    [291, 7, 336, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 1294687944]
-  ],
-  "lib/ast/merge/text/section_splitter.rb:2141492916": [
-    [273, 9, 208, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 75538103]
-  ],
-  "lib/ast/merge/yaml_frontmatter_detector.rb:3683129264": [
-    [75, 11, 1, "Lint/Void: Literal `0` used in void context.", 177557]
-  ],
-  "spec/ast/merge/debug_logger_spec.rb:2884803580": [
-    [10, 9, 40, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2667817960],
-    [20, 14, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [24, 14, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [28, 18, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [29, 7, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [30, 14, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [31, 7, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [35, 18, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [36, 7, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [37, 14, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [38, 7, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [116, 14, 13, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 414119492],
-    [158, 49, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [172, 47, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [271, 11, 40, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2667817960],
-    [298, 52, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [302, 54, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [332, 50, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [335, 51, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [350, 13, 40, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2667817960],
-    [381, 45, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [386, 43, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [408, 54, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318],
-    [413, 54, 23, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DebugLogger`.", 76912318]
-  ],
-  "spec/ast/merge/freeze_node_base_spec.rb:421483827": [
-    [458, 13, 29, "RSpec/ContextWording: Context description should match /^when\\b/, /^with\\b/, or /^without\\b/.", 801516729],
-    [501, 7, 42, "RSpec/IdenticalEqualityAssertion: Identical expressions on both sides of the equality may indicate a flawed test.", 4137459048]
-  ],
-  "spec/ast/merge/freeze_node_spec.rb:1528965797": [
-    [3, 1, 41, "RSpec/SpecFilePathFormat: Spec path should end with `ast/merge/freeze_node_base*_spec.rb`.", 4042035985],
-    [458, 13, 29, "RSpec/ContextWording: Context description should match /^when\\b/, /^with\\b/, or /^without\\b/.", 801516729],
-    [501, 7, 42, "RSpec/IdenticalEqualityAssertion: Identical expressions on both sides of the equality may indicate a flawed test.", 4137459048]
-  ],
-  "spec/ast/merge/match_refiner_base_spec.rb:1980677560": [
-    [364, 11, 62, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 4206983807]
-  ],
-  "spec/ast/merge/merge_result_spec.rb:2923812216": [
-    [3, 1, 42, "RSpec/SpecFilePathFormat: Spec path should end with `ast/merge/merge_result_base*_spec.rb`.", 4248187723]
-  ],
-  "spec/ast/merge/node_typing_spec.rb:918924572": [
-    [6, 65, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
-    [18, 5, 204, "RSpec/RepeatedExampleGroupDescription: Repeated describe block description on line(s) [109]", 1078983265],
-    [109, 5, 271, "RSpec/RepeatedExampleGroupDescription: Repeated describe block description on line(s) [18]", 324120319],
-    [177, 9, 46, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 2095723285],
-    [251, 11, 57, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3873585280],
-    [406, 11, 58, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 767119629],
-    [431, 11, 55, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 564913717],
-    [454, 11, 51, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 112944905]
-  ],
-  "spec/ast/merge/rspec/shared_examples/file_analyzable_spec.rb:4294811231": [
-    [99, 5, 46, "Style/ComparableBetween: Prefer `line_num.between?(start_line, end_line)` over logical comparison.", 3407900136],
-    [103, 16, 32, "RSpec/DescribeClass: The first argument to describe should be the class or module being tested.", 3568154970]
-  ],
-  "spec/ast/merge/section_typing_spec.rb:3917096926": [
-    [229, 5, 221, "RSpec/IndexedLet: This `let` statement uses `1` in its name. Please give it a meaningful name.", 3360039876],
-    [236, 5, 221, "RSpec/IndexedLet: This `let` statement uses `2` in its name. Please give it a meaningful name.", 3958380484]
-  ],
-  "spec/ast/merge/smart_merger_base_spec.rb:2514811218": [
-    [83, 3, 12, "RSpec/BeforeAfterAll: Beware of using `before(:all)` as it may cause state to leak between tests. If you are using `rspec-rails`, and `use_transactional_fixtures` is enabled, then records created in `before(:all)` are not automatically rolled back.", 86334566],
-    [84, 5, 111, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 375080433],
-    [91, 3, 11, "RSpec/BeforeAfterAll: Beware of using `after(:all)` as it may cause state to leak between tests. If you are using `rspec-rails`, and `use_transactional_fixtures` is enabled, then records created in `after(:all)` are not automatically rolled back.", 2059152091],
-    [92, 5, 37, "RSpec/RemoveConst: Do not use remove_const in specs. Consider using e.g. `stub_const`.", 172670169],
-    [180, 3, 433, "RSpec/RepeatedExampleGroupDescription: Repeated describe block description on line(s) [330]", 4129145894],
-    [299, 3, 659, "RSpec/RepeatedExampleGroupDescription: Repeated describe block description on line(s) [385]", 3190874052],
-    [330, 3, 345, "RSpec/RepeatedExampleGroupDescription: Repeated describe block description on line(s) [180]", 3991474133],
-    [385, 3, 701, "RSpec/RepeatedExampleGroupDescription: Repeated describe block description on line(s) [299]", 3670267972]
-  ],
-  "spec/ast/merge/text/section_splitter_spec.rb:3966191627": [
-    [3, 1, 40, "RSpec/MultipleDescribes: Do not use multiple top-level example groups - try to nest them.", 2095577755]
-  ],
-  "spec/ast/merge/toml_frontmatter_detector_spec.rb:167514512": [
-    [224, 13, 38, "RSpec/ContextWording: Context description should match /^when\\b/, /^with\\b/, or /^without\\b/.", 4185810237]
-  ],
-  "spec/ast/merge_spec.rb:4196234808": [
-    [12, 19, 22, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::ParseError`.", 3199765494],
-    [19, 19, 22, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::ParseError`.", 3199765494],
-    [27, 19, 22, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::ParseError`.", 3199765494],
-    [33, 19, 22, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::ParseError`.", 3199765494],
-    [40, 19, 22, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::ParseError`.", 3199765494],
-    [48, 19, 22, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::ParseError`.", 3199765494],
-    [56, 19, 22, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::ParseError`.", 3199765494],
-    [62, 19, 22, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::ParseError`.", 3199765494],
-    [71, 14, 30, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::TemplateParseError`.", 2253331174],
-    [75, 15, 30, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::TemplateParseError`.", 2253331174],
-    [82, 14, 33, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DestinationParseError`.", 1593149322],
-    [86, 15, 33, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::DestinationParseError`.", 1593149322]
-  ],
-  "spec/integration/freeze_node_edge_cases_spec.rb:1632957807": [
+  "spec/integration/freeze_node_edge_cases_spec.rb:3296982575": [
     [13, 16, 19, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 3266944182],
     [14, 16, 33, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 1265269949],
-    [24, 16, 26, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 4197319414],
-    [25, 16, 40, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 741439283],
-    [31, 16, 20, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 104745525],
-    [32, 16, 34, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 2860477502],
-    [38, 16, 23, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 1648951125],
-    [39, 16, 32, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 3717629482],
-    [93, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
-    [108, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
-    [122, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
-    [134, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
-    [157, 9, 46, "RSpec/ReceiveMessages: Use `receive_messages` instead of multiple stubs on lines [158].", 53655011],
-    [158, 9, 59, "RSpec/ReceiveMessages: Use `receive_messages` instead of multiple stubs on lines [157].", 443119685],
-    [664, 13, 40, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2667817960]
+    [26, 16, 26, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 4197319414],
+    [27, 16, 40, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 741439283],
+    [33, 16, 20, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 104745525],
+    [34, 16, 34, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 2860477502],
+    [40, 16, 23, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 1648951125],
+    [41, 16, 32, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 3717629482],
+    [95, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
+    [110, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
+    [124, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
+    [136, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
+    [159, 9, 46, "RSpec/ReceiveMessages: Use `receive_messages` instead of multiple stubs on lines [160].", 53655011],
+    [160, 9, 59, "RSpec/ReceiveMessages: Use `receive_messages` instead of multiple stubs on lines [159].", 443119685],
+    [666, 13, 40, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2667817960]
   ],
   "spec/integration/integration_spec.rb:197900658": [
     [19, 5, 279, "RSpec/LeakyConstantDeclaration: Stub module constant instead of declaring explicitly.", 4077310070]

@@ -221,7 +221,7 @@ RSpec.describe Ast::Merge::TomlFrontmatterDetector do
       end
     end
 
-    context "distinguishing from YAML frontmatter" do
+    context "when distinguishing from YAML frontmatter" do
       let(:yaml_source) do
         <<~MD
           ---
