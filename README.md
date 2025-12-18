@@ -58,20 +58,23 @@ Ast::Merge is **not typically used directly** - instead, use one of the format-s
 
 ### The `*-merge` Gem Family
 
-| Gem | Format | Parser | Description |
-|-----|--------|--------|-------------|
-| [ast-merge][ast-merge] | Text | internal | Shared infrastructure for all `*-merge` gems |
-| [prism-merge][prism-merge] | Ruby | [Prism][prism] | Smart merge for Ruby source files |
-| [psych-merge][psych-merge] | YAML | [Psych][psych] | Smart merge for YAML files |
-| [json-merge][json-merge] | JSON | [tree-sitter-json][ts-json] | Smart merge for JSON files |
-| [jsonc-merge][jsonc-merge] | JSONC | [tree-sitter-jsonc][ts-jsonc] | ⚠️ Proof of concept; Smart merge for JSON with Comments |
-| [bash-merge][bash-merge] | Bash | [tree-sitter-bash][ts-bash] | Smart merge for Bash scripts |
+The `*-merge` gem family provides intelligent, AST-based merging for various file formats. At the foundation is [tree_haver][tree_haver], which provides a unified cross-Ruby parsing API that works seamlessly across MRI, JRuby, and TruffleRuby.
+
+| Gem | Format | Parser Backend(s) | Description |
+|-----|--------|-------------------|-------------|
+| [tree_haver][tree_haver] | Multi | MRI C, Rust, FFI, Java, Prism, Psych, Commonmarker, Markly, Citrus | **Foundation**: Cross-Ruby adapter for parsing libraries (like Faraday for HTTP) |
+| [ast-merge][ast-merge] | Text | internal | **Infrastructure**: Shared base classes and merge logic for all `*-merge` gems |
+| [prism-merge][prism-merge] | Ruby | [Prism][prism] (via tree_haver) | Smart merge for Ruby source files |
+| [psych-merge][psych-merge] | YAML | [Psych][psych] (via tree_haver) | Smart merge for YAML files |
+| [json-merge][json-merge] | JSON | [tree-sitter-json][ts-json] (via tree_haver) | Smart merge for JSON files |
+| [jsonc-merge][jsonc-merge] | JSONC | [tree-sitter-jsonc][ts-jsonc] (via tree_haver) | ⚠️ Proof of concept; Smart merge for JSON with Comments |
+| [bash-merge][bash-merge] | Bash | [tree-sitter-bash][ts-bash] (via tree_haver) | Smart merge for Bash scripts |
 | [rbs-merge][rbs-merge] | RBS | [RBS][rbs] | Smart merge for Ruby type signatures |
 | [dotenv-merge][dotenv-merge] | Dotenv | internal ([dotenv][dotenv]) | Smart merge for `.env` files |
-| [toml-merge][toml-merge] | TOML | [tree-sitter-toml][ts-toml] | Smart merge for TOML files |
-| [markdown-merge][markdown-merge] | Markdown | _base classes_ | Shared foundation for Markdown mergers |
-| [markly-merge][markly-merge] | Markdown | [Markly][markly] | Smart merge for Markdown (CommonMark via libcmark-gfm) |
-| [commonmarker-merge][commonmarker-merge] | Markdown | [Commonmarker][commonmarker] | Smart merge for Markdown (CommonMark via comrak) |
+| [toml-merge][toml-merge] | TOML | [tree-sitter-toml][ts-toml] (via tree_haver) | Smart merge for TOML files |
+| [markdown-merge][markdown-merge] | Markdown | [Commonmarker][commonmarker] / [Markly][markly] (via tree_haver) | **Foundation**: Shared base for Markdown mergers with inner code block merging |
+| [markly-merge][markly-merge] | Markdown | [Markly][markly] (via tree_haver) | Smart merge for Markdown (CommonMark via cmark-gfm C) |
+| [commonmarker-merge][commonmarker-merge] | Markdown | [Commonmarker][commonmarker] (via tree_haver) | Smart merge for Markdown (CommonMark via comrak Rust) |
 
 **Example implementations** for the gem templating use case:
 
@@ -80,6 +83,7 @@ Ast::Merge is **not typically used directly** - instead, use one of the format-s
 | [kettle-dev][kettle-dev] | Gem Development | Gem templating tool using `*-merge` gems |
 | [kettle-jem][kettle-jem] | Gem Templating | Gem template library with smart merge support |
 
+[tree_haver]: https://github.com/kettle-rb/tree_haver
 [ast-merge]: https://github.com/kettle-rb/ast-merge
 [prism-merge]: https://github.com/kettle-rb/prism-merge
 [psych-merge]: https://github.com/kettle-rb/psych-merge
@@ -102,15 +106,34 @@ Ast::Merge is **not typically used directly** - instead, use one of the format-s
 [ts-toml]: https://github.com/tree-sitter-grammars/tree-sitter-toml
 [rbs]: https://github.com/ruby/rbs
 [dotenv]: https://github.com/bkeepers/dotenv
-[markly]: https://github.com/kivikakk/markly
+[markly]: https://github.com/ioquatix/markly
 [commonmarker]: https://github.com/gjtorikian/commonmarker
 
-### What Ast::Merge Provides
+### Architecture: tree_haver + ast-merge
+
+The `*-merge` gem family is built on a two-layer architecture:
+
+#### Layer 1: tree_haver (Parsing Foundation)
+
+[tree_haver][tree_haver] provides cross-Ruby parsing capabilities:
+
+- **Universal Backend Support**: Automatically selects the best parsing backend for your Ruby implementation (MRI, JRuby, TruffleRuby)
+- **10 Backend Options**: MRI C extensions, Rust bindings, FFI, Java (JRuby), language-specific parsers (Prism, Psych, Commonmarker, Markly), and pure Ruby fallback (Citrus)
+- **Unified API**: Write parsing code once, run on any Ruby implementation
+- **Grammar Discovery**: Built-in `GrammarFinder` for platform-aware grammar library discovery
+- **Thread-Safe**: Language registry with thread-safe caching
+
+#### Layer 2: ast-merge (Merge Infrastructure)
+
+Ast::Merge builds on tree_haver to provide:
 
 - **Base Classes**: `FreezeNode`, `MergeResult` base classes with unified constructors
-- **Shared Modules**: `FileAnalysisBase`, `MergerConfig`, `DebugLogger`
-- **Freeze Block Support**: Configurable marker patterns for multiple comment syntaxes
+- **Shared Modules**: `FileAnalysisBase`, `FileAnalyzable`, `MergerConfig`, `DebugLogger`
+- **Freeze Block Support**: Configurable marker patterns for multiple comment syntaxes (preserve sections during merge)
+- **Node Typing System**: `NodeTyping` for canonical node type identification across different parsers
+- **Conflict Resolution**: `ConflictResolverBase` with pluggable strategies
 - **Error Classes**: `ParseError`, `TemplateParseError`, `DestinationParseError`
+- **Region Detection**: `RegionDetectorBase`, `FencedCodeBlockDetector` for text-based analysis
 - **RSpec Shared Examples**: Test helpers for implementing new merge gems
 
 ### Creating a New Merge Gem
