@@ -5,7 +5,7 @@ module Ast
     # Version information for Ast::Merge
     module Version
       # Current version of the ast-merge gem
-      VERSION = "1.0.0"
+      VERSION = "1.1.0"
     end
     VERSION = Version::VERSION # traditional location
   end
