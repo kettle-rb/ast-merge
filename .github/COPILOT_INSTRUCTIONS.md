@@ -226,14 +226,17 @@ require "prism/merge"  # without bundler/setup or bundler/inline first
 - `hide_env(*keys)` - Temporarily hide environment variables
 
 **Example usage**:
+They are not used with blocks, but can be used like this:
 ```ruby
-stub_env("TREE_SITTER_BASH_PATH" => "/nonexistent/parser.so") do
-  # code that reads ENV["TREE_SITTER_BASH_PATH"]
+before do
+   stub_env("MY_ENV_VAR" => "Bla Blah Blu")
+end
+it "should see MY_ENV_VAR" do
+   # code that reads ENV["MY_ENV_VAR"]
 end
 
-hide_env("HOME", "USER") do
-  # code that shouldn't see HOME or USER env vars
-end
+# hide_env("HOME", "USER")
+# is used the same way, but hides the variable so it acts as it if isn't set at all.
 ```
 
 **Other Helpers** (loaded by kettle-test):
@@ -248,20 +251,17 @@ end
 - `silent_stream` - Output suppression
 - `timecop/rspec` - Time travel for tests
 
-✅ **CORRECT** - Use existing helpers:
-```ruby
-stub_env("SOME_VAR" => "value") do
-  # test code
-end
-```
+**Other Helpers** (loaded by kettle-test):
+- `block_is_expected` - Enhanced block expectations (from `rspec-block_is_expected`)
+- `capture` - Capture output during tests (from `silent_stream`)
+- Timecop integration for time manipulation
 
-❌ **WRONG** - Don't recreate these helpers:
-```ruby
-# DO NOT create your own stub_env - it already exists from kettle-test
-def stub_env(hash)
-  # ...
-end
-```
+**Where these come from**:
+- External gems loaded by `kettle/test/external.rb` in the kettle-test gem
+- `rspec/stubbed_env` - Provides `stub_env` and `hide_env`
+- `rspec/block_is_expected` - Enhanced block expectations
+- `silent_stream` - Output suppression
+- `timecop/rspec` - Time travel for tests
 
 ### Running Tests
 
