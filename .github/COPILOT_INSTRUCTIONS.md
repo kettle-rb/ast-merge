@@ -101,6 +101,34 @@ When `replace_string_in_file` fails with "Could not find matching text":
 
 ## API Conventions
 
+### Forward Compatibility with **options
+
+**CRITICAL DESIGN PRINCIPLE**: All constructors and public API methods that accept keyword arguments MUST include `**options` (or similar catch-all) as the final parameter to capture unknown options.
+
+✅ **CORRECT**:
+```ruby
+def initialize(source, freeze_token: DEFAULT, signature_generator: nil, **options)
+  @source = source
+  @freeze_token = freeze_token
+  @signature_generator = signature_generator
+  # **options captures future parameters for forward compatibility
+end
+```
+
+❌ **WRONG**:
+```ruby
+def initialize(source, freeze_token: DEFAULT, signature_generator: nil)
+  # This breaks when new parameters are added to the base class
+end
+```
+
+**Why**: When `SmartMergerBase` adds new standard options (like `node_typing`, `regions`, etc.), all `FileAnalysis` classes automatically support them without code changes. Without `**options`, every FileAnalysis would need updating whenever a new option is added.
+
+**Applies to**:
+- `FileAnalysis#initialize` in all gems
+- `SmartMerger#initialize` in all gems  
+- Any method that accepts a variable set of options
+
 ### SmartMergerBase API
 - `merge` - Returns a **String** (the merged content)
 - `merge_result` - Returns a **MergeResult** object
