@@ -217,6 +217,54 @@ require "prism/merge"  # without bundler/setup or bundler/inline first
 
 ## Testing
 
+### kettle-test RSpec Helpers
+
+**IMPORTANT**: All spec files load `require "kettle/test/rspec"` which provides extensive RSpec helpers and configuration from the kettle-test gem. DO NOT recreate these helpers - they already exist.
+
+**Environment Variable Helpers** (from `rspec-stubbed_env` gem):
+- `stub_env(hash)` - Temporarily set environment variables in a block
+- `hide_env(*keys)` - Temporarily hide environment variables
+
+**Example usage**:
+```ruby
+stub_env("TREE_SITTER_BASH_PATH" => "/nonexistent/parser.so") do
+  # code that reads ENV["TREE_SITTER_BASH_PATH"]
+end
+
+hide_env("HOME", "USER") do
+  # code that shouldn't see HOME or USER env vars
+end
+```
+
+**Other Helpers** (loaded by kettle-test):
+- `block_is_expected` - Enhanced block expectations (from `rspec-block_is_expected`)
+- `capture` - Capture output during tests (from `silent_stream`)
+- Timecop integration for time manipulation
+
+**Where these come from**:
+- External gems loaded by `kettle/test/external.rb` in the kettle-test gem
+- `rspec/stubbed_env` - Provides `stub_env` and `hide_env`
+- `rspec/block_is_expected` - Enhanced block expectations
+- `silent_stream` - Output suppression
+- `timecop/rspec` - Time travel for tests
+
+✅ **CORRECT** - Use existing helpers:
+```ruby
+stub_env("SOME_VAR" => "value") do
+  # test code
+end
+```
+
+❌ **WRONG** - Don't recreate these helpers:
+```ruby
+# DO NOT create your own stub_env - it already exists from kettle-test
+def stub_env(hash)
+  # ...
+end
+```
+
+### Running Tests
+
 Run tests from the appropriate directory:
 ```bash
 # ast-merge tests
