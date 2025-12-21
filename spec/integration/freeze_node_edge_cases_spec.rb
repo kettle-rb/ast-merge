@@ -420,7 +420,8 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         bare_class = Class.new do
           include Ast::Merge::FileAnalyzable
 
-          attr_reader :source, :lines, :freeze_token, :signature_generator, :statements
+          # Note: source, lines, freeze_token, signature_generator are provided by FileAnalyzable
+          attr_reader :statements
 
           def initialize
             @statements = []

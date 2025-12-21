@@ -1,0 +1,223 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Prototype script to explore different approaches for updating the Gem Family section
+# across multiple README files using markdown-merge tooling.
+#
+# This script tests two approaches:
+# 1. Section-based merge: Use markdown-merge to merge just the H3 section
+# 2. Anchored merge: New feature to merge specific anchored sections
+#
+# Usage: bin/update_gem_family_section
+
+require "bundler/inline"
+
+gemfile do
+  source "https://rubygems.org"
+  gem "ast-merge", path: File.expand_path("..", __dir__)
+  gem "tree_haver", path: File.expand_path("../vendor/tree_haver", __dir__)
+  gem "markdown-merge", path: File.expand_path("../vendor/markdown-merge", __dir__)
+  gem "markly-merge", path: File.expand_path("../vendor/markly-merge", __dir__)
+end
+
+require "tree_haver"
+require "ast-merge"
+require "markdown/merge"
+require "markly/merge"
+
+require "fileutils"
+
+# Path configuration
+FIXTURES_DIR = File.expand_path("../fixtures/readme_merge_test", __dir__)
+TEMPLATE_SECTION = File.expand_path("../GEM_FAMILY_SECTION.md", __dir__)
+OUTPUT_DIR = File.join(FIXTURES_DIR, "output")
+
+# Ensure output directory exists
+FileUtils.mkdir_p(OUTPUT_DIR)
+
+puts "=" * 80
+puts "Gem Family Section Update Prototype"
+puts "=" * 80
+puts
+
+# Read the canonical section
+template_content = File.read(TEMPLATE_SECTION)
+puts "📄 Template section (#{template_content.lines.count} lines):"
+puts template_content.lines.first(5).join
+puts "  ..."
+puts
+
+# Test files to process
+test_files = {
+  "destination_toml.md" => "toml-merge README",
+  "destination_kettle_dev.md" => "kettle-dev README",
+}
+
+puts "🎯 Approach 1: Text-based Section Replacement"
+puts "-" * 80
+puts
+puts "Strategy: Find the H3 section and replace it with the template content"
+puts
+
+test_files.each do |filename, description|
+  source_file = File.join(FIXTURES_DIR, filename)
+  output_file = File.join(OUTPUT_DIR, "approach1_#{filename}")
+
+  next unless File.exist?(source_file)
+
+  puts "Processing: #{description}"
+
+  content = File.read(source_file)
+
+  # Find the section by looking for the H3 heading
+  section_start_pattern = /^### The `\*-merge` Gem Family\n/
+
+  if content&.match?(section_start_pattern)
+    # Find where the section starts
+    section_start = content.index(section_start_pattern)
+
+    # Find where the next H2 or H3 section starts (or end of file)
+    remainder = content[section_start..]
+    next_section_match = remainder.match(/\n(##|###) (?!The `\*-merge` Gem Family)/)
+
+    if next_section_match
+      # Section ends at the next heading
+      section_end = section_start + next_section_match.begin(0)
+
+      # Replace the section
+      new_content = content[0...section_start] +
+        template_content +
+        "\n\n" +
+        content[section_end..]
+
+      File.write(output_file, new_content)
+      puts "  ✓ Replaced section (#{section_start}..#{section_end})"
+    else
+      # Section goes to end of file
+      new_content = content[0...section_start] + template_content + "\n"
+      File.write(output_file, new_content)
+      puts "  ✓ Replaced section to EOF"
+    end
+  else
+    puts "  ✗ Section not found!"
+  end
+  puts
+end
+
+puts
+puts "🎯 Approach 2: Markdown-based Section Merge"
+puts "-" * 80
+puts
+puts "Strategy: Use markdown-merge to intelligently merge the section"
+puts "Status: Requires markdown-merge API integration"
+puts
+
+# Check if markdown-merge is available
+begin
+  require_relative "../vendor/markdown-merge/lib/markdown/merge"
+
+  puts "  ✓ markdown-merge available"
+  puts
+
+  test_files.each do |filename, description|
+    source_file = File.join(FIXTURES_DIR, filename)
+    output_file = File.join(OUTPUT_DIR, "approach2_#{filename}")
+
+    next unless File.exist?(source_file)
+
+    puts "Processing: #{description}"
+
+    # Create a minimal template that contains just the section
+    mini_template = "# Placeholder\n\n#{template_content}"
+
+    destination_content = File.read(source_file)
+
+    begin
+      # Try to use markdown-merge
+      merger = Markdown::Merge::SmartMerger.new(
+        mini_template,
+        destination_content,
+        preference: :template,  # Prefer template for conflicts
+      )
+
+      result = merger.merge
+
+      File.write(output_file, result.content)
+      puts "  ✓ Merged using markdown-merge"
+
+      # Show merge statistics
+      if result.respond_to?(:statistics)
+        stats = result.statistics
+        puts "    - Anchors: #{stats[:anchor_count]}"
+        puts "    - Boundaries: #{stats[:boundary_count]}"
+        puts "    - Conflicts: #{stats[:conflict_count]}"
+      end
+    rescue => e
+      puts "  ✗ Merge failed: #{e.message}"
+      puts "    #{e.class}"
+    end
+    puts
+  end
+rescue LoadError => e
+  puts "  ✗ markdown-merge not available: #{e.message}"
+  puts "    This approach needs markdown-merge to be loaded"
+end
+
+puts
+puts "🎯 Approach 3: Anchored Merge (Proposed New Feature)"
+puts "-" * 80
+puts
+puts "Strategy: Use special anchor markers to identify replaceable sections"
+puts
+puts "Concept:"
+puts "  1. Template contains: <!-- ANCHOR:gem-family-section -->"
+puts "  2. Destinations contain the same anchor"
+puts "  3. Merge tool replaces content between anchors"
+puts
+puts "Benefits:"
+puts "  - Precise control over what gets replaced"
+puts "  - Can have multiple anchored sections"
+puts "  - No need to parse markdown structure"
+puts "  - Works with any text format"
+puts
+puts "Example template:"
+puts "  <!-- ANCHOR:gem-family-section -->"
+puts "  ### The `*-merge` Gem Family"
+puts "  [content here]"
+puts "  <!-- /ANCHOR:gem-family-section -->"
+puts
+puts "Implementation: Would require new feature in markdown-merge or ast-merge"
+puts
+
+puts
+puts "=" * 80
+puts "Analysis & Recommendation"
+puts "=" * 80
+puts
+puts "Approach 1 (Text-based):"
+puts "  ✓ Simple, works immediately"
+puts "  ✓ No dependencies"
+puts "  ✗ Fragile (depends on regex patterns)"
+puts "  ✗ Might not handle edge cases well"
+puts
+puts "Approach 2 (Markdown-merge):"
+puts "  ✓ Uses existing tooling"
+puts "  ✓ Understands markdown structure"
+puts "  ✗ Might merge more than intended"
+puts "  ✗ Complex to configure for partial updates"
+puts
+puts "Approach 3 (Anchored - NEW):"
+puts "  ✓ Precise and predictable"
+puts "  ✓ Human-readable markers"
+puts "  ✓ Reusable for other maintenance tasks"
+puts "  ✗ Requires adding anchors to all files"
+puts "  ✗ New feature development needed"
+puts
+puts "RECOMMENDATION:"
+puts "  For immediate use: Approach 1 (text-based replacement)"
+puts "  For future: Implement Approach 3 (anchored merge) as a new feature"
+puts
+puts "Output files written to: #{OUTPUT_DIR}"
+puts "  - approach1_*.md (text-based replacement)"
+puts "  - approach2_*.md (markdown-merge, if available)"
+puts

@@ -40,7 +40,7 @@
 [🖼️kettle-rb-i]: https://logos.galtzo.com/assets/images/kettle-rb/avatar-192px.svg
 [🖼️kettle-rb]: https://github.com/kettle-rb
 
-# ☯️ Ast::Merge
+# ☯️ Toml::Merge
 
 [![Version][👽versioni]][👽version] [![GitHub tag (latest SemVer)][⛳️tag-img]][⛳️tag] [![License: MIT][📄license-img]][📄license-ref] [![Downloads Rank][👽dl-ranki]][👽dl-rank] [![Open Source Helpers][👽oss-helpi]][👽oss-help] [![CodeCov Test Coverage][🏀codecovi]][🏀codecov] [![Coveralls Test Coverage][🏀coveralls-img]][🏀coveralls] [![QLTY Test Coverage][🏀qlty-covi]][🏀qlty-cov] [![QLTY Maintainability][🏀qlty-mnti]][🏀qlty-mnt] [![CI Heads][🚎3-hd-wfi]][🚎3-hd-wf] [![CI Runtime Dependencies @ HEAD][🚎12-crh-wfi]][🚎12-crh-wf] [![CI Current][🚎11-c-wfi]][🚎11-c-wf] [![CI Truffle Ruby][🚎9-t-wfi]][🚎9-t-wf] [![Deps Locked][🚎13-🔒️-wfi]][🚎13-🔒️-wf] [![Deps Unlocked][🚎14-🔓️-wfi]][🚎14-🔓️-wf] [![CI Supported][🚎6-s-wfi]][🚎6-s-wf] [![CI Test Coverage][🚎2-cov-wfi]][🚎2-cov-wf] [![CI Style][🚎5-st-wfi]][🚎5-st-wf] [![CodeQL][🖐codeQL-img]][🖐codeQL] [![Apache SkyWalking Eyes License Compatibility Check][🚎15-🪪-wfi]][🚎15-🪪-wf]
 
@@ -54,27 +54,36 @@
 
 ## 🌻 Synopsis
 
-Ast::Merge is **not typically used directly** - instead, use one of the format-specific gems built on top of it.
+`toml-merge` provides intelligent merging of TOML files by parsing them into
+tree-sitter AST nodes and comparing structural elements. It supports:
+
+- **Smart key matching** - Keys and tables are matched by their structural signatures
+- **Table matching** - Tables are matched using a multi-factor scoring algorithm that considers
+  key similarity, value overlap, and position
+- **Freeze blocks** - Mark sections with comments to preserve them during merges
+- **Configurable merge strategies** - Choose whether template or destination wins for conflicts,
+  or use a Hash for per-node-type preferences with `node_splitter` (see [ast-merge](https://github.com/kettle-rb/ast-merge) docs)
+- **Full TOML support** - Works with all TOML 1.0 features including inline tables, arrays of tables, and dotted keys
 
 ### The `*-merge` Gem Family
 
 The `*-merge` gem family provides intelligent, AST-based merging for various file formats. At the foundation is [tree_haver][tree_haver], which provides a unified cross-Ruby parsing API that works seamlessly across MRI, JRuby, and TruffleRuby.
 
-| Gem | Format | Parser Backend(s) | Description |
-|-----|--------|-------------------|-------------|
-| [tree_haver][tree_haver] | Multi | MRI C, Rust, FFI, Java, Prism, Psych, Commonmarker, Markly, Citrus | **Foundation**: Cross-Ruby adapter for parsing libraries (like Faraday for HTTP) |
-| [ast-merge][ast-merge] | Text | internal | **Infrastructure**: Shared base classes and merge logic for all `*-merge` gems |
-| [prism-merge][prism-merge] | Ruby | [Prism][prism] | Smart merge for Ruby source files |
-| [psych-merge][psych-merge] | YAML | [Psych][psych] | Smart merge for YAML files |
-| [json-merge][json-merge] | JSON | [tree-sitter-json][ts-json] (via tree_haver) | Smart merge for JSON files |
-| [jsonc-merge][jsonc-merge] | JSONC | [tree-sitter-json][ts-json] (via tree_haver) | ⚠️ Proof of concept; Smart merge for JSON with Comments |
-| [bash-merge][bash-merge] | Bash | [tree-sitter-bash][ts-bash] (via tree_haver) | Smart merge for Bash scripts |
-| [rbs-merge][rbs-merge] | RBS | [RBS][rbs] | Smart merge for Ruby type signatures |
-| [dotenv-merge][dotenv-merge] | Dotenv | internal | Smart merge for `.env` files |
-| [toml-merge][toml-merge] | TOML | [Citrus + toml-rb][toml-rb] (default), [tree-sitter-toml][ts-toml] (via tree_haver) | Smart merge for TOML files |
-| [markdown-merge][markdown-merge] | Markdown | [Commonmarker][commonmarker] / [Markly][markly] (via tree_haver) | **Foundation**: Shared base for Markdown mergers with inner code block merging |
-| [markly-merge][markly-merge] | Markdown | [Markly][markly] (via tree_haver) | Smart merge for Markdown (CommonMark via cmark-gfm C) |
-| [commonmarker-merge][commonmarker-merge] | Markdown | [Commonmarker][commonmarker] (via tree_haver) | Smart merge for Markdown (CommonMark via comrak Rust) |
+| Gem                                      | Format   | Parser Backend(s)                                                                                   | Description                                                                      |
+|------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [tree_haver][tree_haver]                 | Multi    | MRI C, Rust, FFI, Java, Prism, Psych, Commonmarker, Markly, Citrus                                  | **Foundation**: Cross-Ruby adapter for parsing libraries (like Faraday for HTTP) |
+| [ast-merge][ast-merge]                   | Text     | internal                                                                                            | **Infrastructure**: Shared base classes and merge logic for all `*-merge` gems   |
+| [prism-merge][prism-merge]               | Ruby     | [Prism][prism]                                                                                      | Smart merge for Ruby source files                                                |
+| [psych-merge][psych-merge]               | YAML     | [Psych][psych]                                                                                      | Smart merge for YAML files                                                       |
+| [json-merge][json-merge]                 | JSON     | [tree-sitter-json][ts-json] (via tree_haver)                                                        | Smart merge for JSON files                                                       |
+| [jsonc-merge][jsonc-merge]               | JSONC    | [tree-sitter-jsonc][ts-jsonc] (via tree_haver)                                                      | ⚠️ Proof of concept; Smart merge for JSON with Comments                          |
+| [bash-merge][bash-merge]                 | Bash     | [tree-sitter-bash][ts-bash] (via tree_haver)                                                        | Smart merge for Bash scripts                                                     |
+| [rbs-merge][rbs-merge]                   | RBS      | [RBS][rbs]                                                                                          | Smart merge for Ruby type signatures                                             |
+| [dotenv-merge][dotenv-merge]             | Dotenv   | internal                                                                                            | Smart merge for `.env` files                                                     |
+| [toml-merge][toml-merge]                 | TOML     | [Citrus + toml-rb][toml-rb] (default, via tree_haver), [tree-sitter-toml][ts-toml] (via tree_haver) | Smart merge for TOML files                                                       |
+| [markdown-merge][markdown-merge]         | Markdown | [Commonmarker][commonmarker] / [Markly][markly] (via tree_haver)                                    | **Foundation**: Shared base for Markdown mergers with inner code block merging   |
+| [markly-merge][markly-merge]             | Markdown | [Markly][markly] (via tree_haver)                                                                   | Smart merge for Markdown (CommonMark via cmark-gfm C)                            |
+| [commonmarker-merge][commonmarker-merge] | Markdown | [Commonmarker][commonmarker] (via tree_haver)                                                       | Smart merge for Markdown (CommonMark via comrak Rust)                            |
 
 **Example implementations** for the gem templating use case:
 
@@ -101,6 +110,7 @@ The `*-merge` gem family provides intelligent, AST-based merging for various fil
 [prism]: https://github.com/ruby/prism
 [psych]: https://github.com/ruby/psych
 [ts-json]: https://github.com/tree-sitter/tree-sitter-json
+[ts-jsonc]: https://gitlab.com/WhyNotHugo/tree-sitter-jsonc
 [ts-bash]: https://github.com/tree-sitter/tree-sitter-bash
 [ts-toml]: https://github.com/tree-sitter-grammars/tree-sitter-toml
 [rbs]: https://github.com/ruby/rbs
@@ -108,66 +118,48 @@ The `*-merge` gem family provides intelligent, AST-based merging for various fil
 [markly]: https://github.com/ioquatix/markly
 [commonmarker]: https://github.com/gjtorikian/commonmarker
 
-### Architecture: tree_haver + ast-merge
 
-The `*-merge` gem family is built on a two-layer architecture:
 
-#### Layer 1: tree_haver (Parsing Foundation)
 
-[tree_haver][tree_haver] provides cross-Ruby parsing capabilities:
+### Configuration
 
-- **Universal Backend Support**: Automatically selects the best parsing backend for your Ruby implementation (MRI, JRuby, TruffleRuby)
-- **10 Backend Options**: MRI C extensions, Rust bindings, FFI, Java (JRuby), language-specific parsers (Prism, Psych, Commonmarker, Markly), and pure Ruby fallback (Citrus)
-- **Unified API**: Write parsing code once, run on any Ruby implementation
-- **Grammar Discovery**: Built-in `GrammarFinder` for platform-aware grammar library discovery
-- **Thread-Safe**: Language registry with thread-safe caching
+The tree-sitter TOML parser requires a shared library. Set the `TREE_SITTER_TOML_PATH` environment variable to point to your compiled `libtree-sitter-toml.so` (or `.dylib` on macOS):
 
-#### Layer 2: ast-merge (Merge Infrastructure)
+```bash
+export TREE_SITTER_TOML_PATH=/path/to/libtree-sitter-toml.so
+```
 
-Ast::Merge builds on tree_haver to provide:
-
-- **Base Classes**: `FreezeNode`, `MergeResult` base classes with unified constructors
-- **Shared Modules**: `FileAnalysisBase`, `FileAnalyzable`, `MergerConfig`, `DebugLogger`
-- **Freeze Block Support**: Configurable marker patterns for multiple comment syntaxes (preserve sections during merge)
-- **Node Typing System**: `NodeTyping` for canonical node type identification across different parsers
-- **Conflict Resolution**: `ConflictResolverBase` with pluggable strategies
-- **Error Classes**: `ParseError`, `TemplateParseError`, `DestinationParseError`
-- **Region Detection**: `RegionDetectorBase`, `FencedCodeBlockDetector` for text-based analysis
-- **RSpec Shared Examples**: Test helpers for implementing new merge gems
-
-### Creating a New Merge Gem
+### Basic Usage
 
 ```ruby
-require "ast/merge"
+require "toml/merge"
 
-module MyFormat
-  module Merge
-    class FreezeNode < Ast::Merge::FreezeNode
-      # Override methods as needed for your format
-    end
+template = <<~TOML
+  [package]
+  name = "my-app"
+  version = "1.0.0"
+  
+  [dependencies]
+  serde = "1.0"
+TOML
 
-    class MergeResult < Ast::Merge::MergeResult
-      # Add format-specific output methods
-      def to_my_format
-        to_s
-      end
-    end
+destination = <<~TOML
+  [package]
+  name = "my-app"
+  version = "2.0.0"
+  authors = ["Custom Author"]
+  
+  [dev-dependencies]
+  tokio = "1.0"
+TOML
 
-    class FileAnalysis
-      include Ast::Merge::FileAnalysisBase
+merger = Toml::Merge::SmartMerger.new(template, destination)
+result = merger.merge
 
-      # Implement required methods:
-      # - compute_node_signature(node)
-      # - extract_freeze_blocks
-    end
-
-    class SmartMerger
-      include Ast::Merge::MergerConfig
-
-      # Implement merge logic
-    end
-  end
-end
+puts result.content if result.success?
+# The [package] section is merged with destination's version and authors preserved,
+# [dependencies] from template is included,
+# [dev-dependencies] from destination is kept
 ```
 
 ## 💡 Info you can shake a stick at
@@ -200,16 +192,16 @@ Compatible with MRI Ruby 3.2.0+, and concordant releases of JRuby, and TruffleRu
 
 | Federated [DVCS][💎d-in-dvcs] Repository        | Status                                                                | Issues                    | PRs                      | Wiki                      | CI                       | Discussions                  |
 |-------------------------------------------------|-----------------------------------------------------------------------|---------------------------|--------------------------|---------------------------|--------------------------|------------------------------|
-| 🧪 [kettle-rb/ast-merge on GitLab][📜src-gl]   | The Truth                                                             | [💚][🤝gl-issues]         | [💚][🤝gl-pulls]         | [💚][📜gl-wiki]           | 🐭 Tiny Matrix           | ➖                            |
-| 🧊 [kettle-rb/ast-merge on CodeBerg][📜src-cb] | An Ethical Mirror ([Donate][🤝cb-donate])                             | [💚][🤝cb-issues]         | [💚][🤝cb-pulls]         | ➖                         | ⭕️ No Matrix             | ➖                            |
-| 🐙 [kettle-rb/ast-merge on GitHub][📜src-gh]   | Another Mirror                                                        | [💚][🤝gh-issues]         | [💚][🤝gh-pulls]         | [💚][📜gh-wiki]           | 💯 Full Matrix           | [💚][gh-discussions]         |
+| 🧪 [kettle-rb/toml-merge on GitLab][📜src-gl]   | The Truth                                                             | [💚][🤝gl-issues]         | [💚][🤝gl-pulls]         | [💚][📜gl-wiki]           | 🐭 Tiny Matrix           | ➖                            |
+| 🧊 [kettle-rb/toml-merge on CodeBerg][📜src-cb] | An Ethical Mirror ([Donate][🤝cb-donate])                             | [💚][🤝cb-issues]         | [💚][🤝cb-pulls]         | ➖                         | ⭕️ No Matrix             | ➖                            |
+| 🐙 [kettle-rb/toml-merge on GitHub][📜src-gh]   | Another Mirror                                                        | [💚][🤝gh-issues]         | [💚][🤝gh-pulls]         | [💚][📜gh-wiki]           | 💯 Full Matrix           | [💚][gh-discussions]         |
 | 🎮️ [Discord Server][✉️discord-invite]          | [![Live Chat on Discord][✉️discord-invite-img-ftb]][✉️discord-invite] | [Let's][✉️discord-invite] | [talk][✉️discord-invite] | [about][✉️discord-invite] | [this][✉️discord-invite] | [library!][✉️discord-invite] |
 
 </details>
 
-[gh-discussions]: https://github.com/kettle-rb/ast-merge/discussions
+[gh-discussions]: https://github.com/kettle-rb/toml-merge/discussions
 
-### Enterprise Support [![Tidelift](https://tidelift.com/badges/package/rubygems/ast-merge)](https://tidelift.com/subscription/pkg/rubygems-ast-merge?utm_source=rubygems-ast-merge&utm_medium=referral&utm_campaign=readme)
+### Enterprise Support [![Tidelift](https://tidelift.com/badges/package/rubygems/toml-merge)](https://tidelift.com/subscription/pkg/rubygems-toml-merge?utm_source=rubygems-toml-merge&utm_medium=referral&utm_campaign=readme)
 
 Available as part of the Tidelift Subscription.
 
@@ -237,13 +229,13 @@ Alternatively:
 Install the gem and add to the application's Gemfile by executing:
 
 ```console
-bundle add ast-merge
+bundle add toml-merge
 ```
 
 If bundler is not being used to manage dependencies, install the gem by executing:
 
 ```console
-gem install ast-merge
+gem install toml-merge
 ```
 
 ### 🔒 Secure Installation
@@ -264,7 +256,7 @@ gem cert --add <(curl -Ls https://raw.github.com/galtzo-floss/certs/main/pboling
 You only need to do that once.  Then proceed to install with:
 
 ```console
-gem install ast-merge -P HighSecurity
+gem install toml-merge -P HighSecurity
 ```
 
 The `HighSecurity` trust profile will verify signed gems, and not allow the installation of unsigned dependencies.
@@ -283,217 +275,95 @@ NOTE: Be prepared to track down certs for signed gems and add them the same way 
 
 ## ⚙️ Configuration
 
-`ast-merge` provides base classes and shared interfaces for building format-specific merge tools.
-Each implementation (like `prism-merge`, `psych-merge`, etc.) has its own SmartMerger with format-specific configuration.
-
-### Common Configuration Options
-
-All SmartMerger implementations share these configuration options:
-
 ```ruby
-merger = SomeFormat::Merge::SmartMerger.new(
-  template,
-  destination,
-  # When conflicts occur, prefer template or destination values
-  preference: :template,            # or :destination (default), or a Hash for per-node-type
-  # Add nodes that only exist in template
-  add_template_only_nodes: true,    # default: false
-  # Custom node type handling
-  node_typing: {},                # optional, for per-node-type preference
+merger = Toml::Merge::SmartMerger.new(
+  template_content,
+  dest_content,
+  # Which version to prefer when nodes match
+  # :destination (default) - keep destination values
+  # :template - use template values
+  preference: :destination,
+
+  # Whether to add template-only nodes to the result
+  # false (default) - only include keys that exist in destination
+  # true - include all template keys and tables
+  add_template_only_nodes: false,
+
+  # Token for freeze block markers
+  # Default: "toml-merge"
+  # Looks for: # toml-merge:freeze / # toml-merge:unfreeze
+  freeze_token: "toml-merge",
+
+  # Custom signature generator (optional)
+  # Receives a node, returns a signature array or nil
+  signature_generator: ->(node) { [:table, node.name] if node.type == :table },
 )
 ```
-
-### Signature Match Preference
-
-Control which source wins when both files have the same structural element:
-
-- **`:template`** - Template values replace destination values
-- **`:destination`** (default) - Destination values are preserved
-- **Hash** - Per-node-type preference (see Advanced Configuration)
-
-### Template-Only Nodes
-
-Control whether to add nodes that only exist in the template:
-
-- **`true`** - Add new nodes from template
-- **`false`** (default) - Skip template-only nodes
 
 ## 🔧 Basic Usage
 
-### Using Shared Examples in Tests
+### Simple Merge
 
 ```ruby
-# spec/spec_helper.rb
-require "ast/merge/rspec/shared_examples"
+require "toml/merge"
 
-# spec/my_format/merge/freeze_node_spec.rb
-RSpec.describe(MyFormat::Merge::FreezeNode) do
-  it_behaves_like "Ast::Merge::FreezeNode" do
-    let(:freeze_node_class) { described_class }
-    let(:default_pattern_type) { :hash_comment }
-    let(:build_freeze_node) do
-      lambda { |start_line:, end_line:, **opts|
-        # Build a freeze node for your format
-      }
-    end
-  end
-end
+# Template defines the structure
+template = <<~TOML
+  [package]
+  name = "my-app"
+  version = "1.0.0"
+  
+  [dependencies]
+  serde = "1.0"
+  tokio = "1.0"
+TOML
+
+# Destination has customizations
+destination = <<~TOML
+  [package]
+  name = "my-app"
+  version = "2.0.0"
+  authors = ["Custom Author"]
+  
+  [dev-dependencies]
+  criterion = "0.5"
+TOML
+
+merger = Toml::Merge::SmartMerger.new(template, destination)
+result = merger.merge
+puts result.content
 ```
 
-### Available Shared Examples
+### Using Freeze Blocks
 
-- `"Ast::Merge::FreezeNode"` - Tests for FreezeNode implementations
-- `"Ast::Merge::MergeResult"` - Tests for MergeResult implementations
-- `"Ast::Merge::DebugLogger"` - Tests for DebugLogger implementations
-- `"Ast::Merge::FileAnalysisBase"` - Tests for FileAnalysis implementations
-- `"Ast::Merge::MergerConfig"` - Tests for SmartMerger implementations
+Freeze blocks protect sections from being overwritten during merge:
 
-## 🎛️ Advanced Configuration
+```toml
+[package]
+name = "my-app"
 
-### Freeze Blocks
+# toml-merge:freeze Custom configuration
+[secrets]
+api_key = "my_production_api_key"
+db_password = "super_secret_password"
+# toml-merge:unfreeze
 
-**Freeze blocks** are special comment-delimited regions in your files that tell the merge tool
-to preserve content exactly as-is, preventing any changes from the template.
-This is useful for hand-edited customizations you never want overwritten.
-
-A freeze block consists of:
-- A **start marker** comment (e.g., `# mytoken:freeze`)
-- The protected content
-- An **end marker** comment (e.g., `# mytoken:unfreeze`)
-
-```ruby
-# In a Ruby file with prism-merge:
-class MyApp
-  # prism-merge:freeze
-  # Custom configuration that should never be overwritten
-  CUSTOM_SETTING = "my-value"
-  # prism-merge:unfreeze
-
-  VERSION = "1.0.0"  # This can be updated by template
-end
+[dependencies]
+serde = "1.0"
 ```
 
-The `FreezeNode` class represents these protected regions internally.
-Each format-specific merge gem (like `prism-merge`, `psych-merge`, etc.) configures its own
-freeze token (the `token` in `token:freeze`), which defaults to the gem name (e.g., `prism-merge`).
+Content between `# toml-merge:freeze` and `# toml-merge:unfreeze` markers is preserved from the destination file, regardless of what the template contains.
 
-### Supported Comment Patterns
-
-Different file formats use different comment syntaxes. The merge tools detect freeze markers
-using the appropriate pattern for each format:
-
-| Pattern Type | Start Marker | End Marker | Languages |
-|--------------|--------------|------------|-----------|
-| `:hash_comment` | `# token:freeze` | `# token:unfreeze` | Ruby, Python, YAML, Bash, Shell |
-| `:html_comment` | `<!-- token:freeze -->` | `<!-- token:unfreeze -->` | HTML, XML, Markdown |
-| `:c_style_line` | `// token:freeze` | `// token:unfreeze` | C (C99+), C++, JavaScript, TypeScript, Java, C#, Go, Rust, Swift, Kotlin, PHP, JSONC |
-| `:c_style_block` | `/* token:freeze */` | `/* token:unfreeze */` | C, C++, JavaScript, TypeScript, Java, C#, Go, Rust, Swift, Kotlin, PHP, CSS |
-
-| 📍 NOTE                                                                                             |
-|-----------------------------------------------------------------------------------------------------|
-| CSS only supports block comments (`/* */`), not line comments.                                      |
-| JSON does not support comments; use JSONC for JSON with comments.                                   |
-
-### Per-Node-Type Preference with `node_typing`
-
-The `node_typing` option allows you to customize merge behavior on a per-node-type basis.
-When combined with a Hash-based `preference`, you can specify different merge
-preferences for different types of nodes (e.g., prefer template for linter configs but destination for everything else).
-
-#### How It Works
-
-1. **Define a `node_typing`**: A Hash mapping node type symbols to callables that receive a node and return either:
-   - The original node (no special handling)
-   - A wrapped node with a `merge_type` attribute (via `Ast::Merge::NodeTyping::Wrapper`)
-
-2. **Use a Hash-based preference**: Instead of a simple `:destination` or `:template` Symbol, pass a Hash with:
-   - `:default` key for the fallback preference
-   - Custom keys matching the `merge_type` values from your `node_typing`
+### Adding Template-Only Tables
 
 ```ruby
-# Example: Prefer template for lint gem configs, destination for everything else
-node_typing = {
-  call_node: ->(node) {
-    if node.name == :gem && node.arguments&.arguments&.first&.unescaped&.match?(/rubocop|standard|reek/)
-      Ast::Merge::NodeTyping::Wrapper.new(node, :lint_gem)
-    else
-      node
-    end
-  },
-}
-
-merger = Prism::Merge::SmartMerger.new(
-  template_content,
-  dest_content,
-  node_typing: node_typing,
-  preference: {
-    default: :destination,
-    lint_gem: :template,
-  },
+merger = Toml::Merge::SmartMerger.new(
+  template,
+  destination,
+  add_template_only_nodes: true,
 )
-```
-
-#### NodeTyping::Wrapper
-
-The `Ast::Merge::NodeTyping::Wrapper` class wraps an AST node and adds a `merge_type` attribute.
-It delegates all method calls to the wrapped node, so it can be used transparently in place of the original node.
-
-```ruby
-# Wrap a node with a custom merge_type
-wrapped = Ast::Merge::NodeTyping::Wrapper.new(original_node, :special_config)
-wrapped.merge_type  # => :special_config
-wrapped.class       # => Ast::Merge::NodeTyping::Wrapper
-wrapped.location    # => delegates to original_node.location
-```
-
-#### NodeTyping Utility Methods
-
-```ruby
-# Process a node through the node_typing configuration
-processed = Ast::Merge::NodeTyping.process(node, node_typing_config)
-
-# Check if a node has been wrapped with a merge_type
-Ast::Merge::NodeTyping.typed_node?(node)  # => true/false
-
-# Get the merge_type from a wrapped node (or nil)
-Ast::Merge::NodeTyping.merge_type_for(node)  # => Symbol or nil
-
-# Unwrap a node type wrapper to get the original
-Ast::Merge::NodeTyping.unwrap(wrapped_node)  # => original_node
-```
-
-### Hash-Based Preference (without node_typing)
-
-Even without `node_typing`, you can use a Hash-based preference to set a default
-and document your intention for future per-type customization:
-
-```ruby
-# Simple Hash preference (functionally equivalent to preference: :destination)
-merger = MyMerger.new(
-  template_content,
-  dest_content,
-  preference: {default: :destination},
-)
-```
-
-### MergerConfig Factory Methods
-
-The `MergerConfig` class provides factory methods that support all options:
-
-```ruby
-# Create config preferring destination
-config = Ast::Merge::MergerConfig.destination_wins(
-  freeze_token: "my-freeze",
-  : my_generator,
-  node_typing: my_typing,
-)
-
-# Create config preferring template
-config = Ast::Merge::MergerConfig.template_wins(
-  freeze_token: "my-freeze",
-  signature_generator: my_generator,
-  node_typing: my_typing,
-)
+result = merger.merge
+# Result includes tables/keys from template that don't exist in destination
 ```
 
 ## 🦷 FLOSS Funding
@@ -539,7 +409,7 @@ NOTE: [kettle-readme-backers][kettle-readme-backers] updates this list every day
 No sponsors yet. Be the first!
 <!-- OPENCOLLECTIVE-ORGANIZATIONS:END -->
 
-[kettle-readme-backers]: https://github.com/kettle-rb/ast-merge/blob/main/exe/kettle-readme-backers
+[kettle-readme-backers]: https://github.com/kettle-rb/toml-merge/blob/main/exe/kettle-readme-backers
 
 ### Another way to support open-source
 
@@ -590,16 +460,16 @@ chat rooms and mailing lists agrees to follow the [![Contributor Covenant 2.1][�
 
 Made with [contributors-img][🖐contrib-rocks].
 
-Also see GitLab Contributors: [https://gitlab.com/kettle-rb/ast-merge/-/graphs/main][🚎contributors-gl]
+Also see GitLab Contributors: [https://gitlab.com/kettle-rb/toml-merge/-/graphs/main][🚎contributors-gl]
 
 <details>
     <summary>⭐️ Star History</summary>
 
-<a href="https://star-history.com/#kettle-rb/ast-merge&Date">
+<a href="https://star-history.com/#kettle-rb/toml-merge&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=kettle-rb/ast-merge&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=kettle-rb/ast-merge&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=kettle-rb/ast-merge&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=kettle-rb/toml-merge&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=kettle-rb/toml-merge&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=kettle-rb/toml-merge&type=Date" />
  </picture>
 </a>
 
@@ -624,7 +494,7 @@ the [Pessimistic Version Constraint][📌pvc] with two digits of precision.
 For example:
 
 ```ruby
-spec.add_dependency("ast-merge", "~> 1.0")
+spec.add_dependency("toml-merge", "~> 1.0")
 ```
 
 <details markdown="1">
@@ -652,13 +522,13 @@ See [LICENSE.txt][📄license] for the official [Copyright Notice][📄copyright
 
 <ul>
     <li>
-        Copyright (c) 2025 Peter H. Boling, of
+        Copyright (c) 2023, 2025 Peter H. Boling, of
         <a href="https://discord.gg/3qme4XHNKN">
             Galtzo.com
             <picture>
               <img src="https://logos.galtzo.com/assets/images/galtzo-floss/avatar-128px-blank.svg" alt="Galtzo.com Logo (Wordless) by Aboling0, CC BY-SA 4.0" width="24">
             </picture>
-        </a>, and ast-merge contributors.
+        </a>, and toml-merge contributors.
     </li>
 </ul>
 
@@ -677,7 +547,7 @@ To join the community or get help 👇️ Join the Discord.
 
 To say "thanks!" ☝️ Join the Discord or 👇️ send money.
 
-[![Sponsor kettle-rb/ast-merge on Open Source Collective][🖇osc-all-bottom-img]][🖇osc] 💌 [![Sponsor me on GitHub Sponsors][🖇sponsor-bottom-img]][🖇sponsor] 💌 [![Sponsor me on Liberapay][⛳liberapay-bottom-img]][⛳liberapay] 💌 [![Donate on PayPal][🖇paypal-bottom-img]][🖇paypal]
+[![Sponsor kettle-rb/toml-merge on Open Source Collective][🖇osc-all-bottom-img]][🖇osc] 💌 [![Sponsor me on GitHub Sponsors][🖇sponsor-bottom-img]][🖇sponsor] 💌 [![Sponsor me on Liberapay][⛳liberapay-bottom-img]][⛳liberapay] 💌 [![Donate on PayPal][🖇paypal-bottom-img]][🖇paypal]
 
 ### Please give the project a star ⭐ ♥.
 
@@ -720,13 +590,13 @@ Thanks for RTFM. ☺️
 [✉️ruby-friends]: https://app.daily.dev/squads/rubyfriends
 
 [✇bundle-group-pattern]: https://gist.github.com/pboling/4564780
-[⛳️gem-namespace]: https://github.com/kettle-rb/ast-merge
-[⛳️namespace-img]: https://img.shields.io/badge/namespace-Ast::Merge-3C2D2D.svg?style=square&logo=ruby&logoColor=white
-[⛳️gem-name]: https://bestgems.org/gems/ast-merge
-[⛳️name-img]: https://img.shields.io/badge/name-ast--merge-3C2D2D.svg?style=square&logo=rubygems&logoColor=red
-[⛳️tag-img]: https://img.shields.io/github/tag/kettle-rb/ast-merge.svg
-[⛳️tag]: http://github.com/kettle-rb/ast-merge/releases
-[🚂maint-blog]: http://www.railsbling.com/tags/ast-merge
+[⛳️gem-namespace]: https://github.com/kettle-rb/toml-merge
+[⛳️namespace-img]: https://img.shields.io/badge/namespace-Toml::Merge-3C2D2D.svg?style=square&logo=ruby&logoColor=white
+[⛳️gem-name]: https://bestgems.org/gems/toml-merge
+[⛳️name-img]: https://img.shields.io/badge/name-toml--merge-3C2D2D.svg?style=square&logo=rubygems&logoColor=red
+[⛳️tag-img]: https://img.shields.io/github/tag/kettle-rb/toml-merge.svg
+[⛳️tag]: http://github.com/kettle-rb/toml-merge/releases
+[🚂maint-blog]: http://www.railsbling.com/tags/toml-merge
 [🚂maint-blog-img]: https://img.shields.io/badge/blog-railsbling-0093D0.svg?style=for-the-badge&logo=rubyonrails&logoColor=orange
 [🚂maint-contact]: http://www.railsbling.com/contact
 [🚂maint-contact-img]: https://img.shields.io/badge/Contact-Maintainer-0093D0.svg?style=flat&logo=rubyonrails&logoColor=red
@@ -754,59 +624,59 @@ Thanks for RTFM. ☺️
 [👨🏼‍🏫expsup-upwork-img]: https://img.shields.io/badge/UpWork-13544E?style=for-the-badge&logo=Upwork&logoColor=white
 [👨🏼‍🏫expsup-codementor]: https://www.codementor.io/peterboling?utm_source=github&utm_medium=button&utm_term=peterboling&utm_campaign=github
 [👨🏼‍🏫expsup-codementor-img]: https://img.shields.io/badge/CodeMentor-Get_Help-1abc9c?style=for-the-badge&logo=CodeMentor&logoColor=white
-[🏙️entsup-tidelift]: https://tidelift.com/subscription/pkg/rubygems-ast-merge?utm_source=rubygems-ast-merge&utm_medium=referral&utm_campaign=readme
+[🏙️entsup-tidelift]: https://tidelift.com/subscription/pkg/rubygems-toml-merge?utm_source=rubygems-toml-merge&utm_medium=referral&utm_campaign=readme
 [🏙️entsup-tidelift-img]: https://img.shields.io/badge/Tidelift_and_Sonar-Enterprise_Support-FD3456?style=for-the-badge&logo=sonar&logoColor=white
 [🏙️entsup-tidelift-sonar]: https://blog.tidelift.com/tidelift-joins-sonar
 [💁🏼‍♂️peterboling]: http://www.peterboling.com
 [🚂railsbling]: http://www.railsbling.com
 [📜src-gl-img]: https://img.shields.io/badge/GitLab-FBA326?style=for-the-badge&logo=Gitlab&logoColor=orange
-[📜src-gl]: https://gitlab.com/kettle-rb/ast-merge/
+[📜src-gl]: https://gitlab.com/kettle-rb/toml-merge/
 [📜src-cb-img]: https://img.shields.io/badge/CodeBerg-4893CC?style=for-the-badge&logo=CodeBerg&logoColor=blue
-[📜src-cb]: https://codeberg.org/kettle-rb/ast-merge
+[📜src-cb]: https://codeberg.org/kettle-rb/toml-merge
 [📜src-gh-img]: https://img.shields.io/badge/GitHub-238636?style=for-the-badge&logo=Github&logoColor=green
-[📜src-gh]: https://github.com/kettle-rb/ast-merge
+[📜src-gh]: https://github.com/kettle-rb/toml-merge
 [📜docs-cr-rd-img]: https://img.shields.io/badge/RubyDoc-Current_Release-943CD2?style=for-the-badge&logo=readthedocs&logoColor=white
 [📜docs-head-rd-img]: https://img.shields.io/badge/YARD_on_Galtzo.com-HEAD-943CD2?style=for-the-badge&logo=readthedocs&logoColor=white
-[📜gl-wiki]: https://gitlab.com/kettle-rb/ast-merge/-/wikis/home
-[📜gh-wiki]: https://github.com/kettle-rb/ast-merge/wiki
+[📜gl-wiki]: https://gitlab.com/kettle-rb/toml-merge/-/wikis/home
+[📜gh-wiki]: https://github.com/kettle-rb/toml-merge/wiki
 [📜gl-wiki-img]: https://img.shields.io/badge/wiki-examples-943CD2.svg?style=for-the-badge&logo=gitlab&logoColor=white
 [📜gh-wiki-img]: https://img.shields.io/badge/wiki-examples-943CD2.svg?style=for-the-badge&logo=github&logoColor=white
-[👽dl-rank]: https://bestgems.org/gems/ast-merge
-[👽dl-ranki]: https://img.shields.io/gem/rd/ast-merge.svg
-[👽oss-help]: https://www.codetriage.com/kettle-rb/ast-merge
-[👽oss-helpi]: https://www.codetriage.com/kettle-rb/ast-merge/badges/users.svg
-[👽version]: https://bestgems.org/gems/ast-merge
-[👽versioni]: https://img.shields.io/gem/v/ast-merge.svg
-[🏀qlty-mnt]: https://qlty.sh/gh/kettle-rb/projects/ast-merge
-[🏀qlty-mnti]: https://qlty.sh/gh/kettle-rb/projects/ast-merge/maintainability.svg
-[🏀qlty-cov]: https://qlty.sh/gh/kettle-rb/projects/ast-merge/metrics/code?sort=coverageRating
-[🏀qlty-covi]: https://qlty.sh/gh/kettle-rb/projects/ast-merge/coverage.svg
-[🏀codecov]: https://codecov.io/gh/kettle-rb/ast-merge
-[🏀codecovi]: https://codecov.io/gh/kettle-rb/ast-merge/graph/badge.svg
-[🏀coveralls]: https://coveralls.io/github/kettle-rb/ast-merge?branch=main
-[🏀coveralls-img]: https://coveralls.io/repos/github/kettle-rb/ast-merge/badge.svg?branch=main
-[🖐codeQL]: https://github.com/kettle-rb/ast-merge/security/code-scanning
-[🖐codeQL-img]: https://github.com/kettle-rb/ast-merge/actions/workflows/codeql-analysis.yml/badge.svg
-[🚎2-cov-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/coverage.yml
-[🚎2-cov-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/coverage.yml/badge.svg
-[🚎3-hd-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/heads.yml
-[🚎3-hd-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/heads.yml/badge.svg
-[🚎5-st-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/style.yml
-[🚎5-st-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/style.yml/badge.svg
-[🚎6-s-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/supported.yml
-[🚎6-s-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/supported.yml/badge.svg
-[🚎9-t-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/truffle.yml
-[🚎9-t-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/truffle.yml/badge.svg
-[🚎11-c-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/current.yml
-[🚎11-c-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/current.yml/badge.svg
-[🚎12-crh-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/dep-heads.yml
-[🚎12-crh-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/dep-heads.yml/badge.svg
-[🚎13-🔒️-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/locked_deps.yml
-[🚎13-🔒️-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/locked_deps.yml/badge.svg
-[🚎14-🔓️-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/unlocked_deps.yml
-[🚎14-🔓️-wfi]: https://github.com/kettle-rb/ast-merge/actions/workflows/unlocked_deps.yml/badge.svg
-[🚎15-🪪-wf]: https://github.com/kettle-rb/ast-merge/actions/workflows/license-eye.yml
-[🚎15-🪪-wfi]: https://github.com/kettle-rb/prism-merge/actions/workflows/license-eye.yml/badge.svg
+[👽dl-rank]: https://bestgems.org/gems/toml-merge
+[👽dl-ranki]: https://img.shields.io/gem/rd/toml-merge.svg
+[👽oss-help]: https://www.codetriage.com/kettle-rb/toml-merge
+[👽oss-helpi]: https://www.codetriage.com/kettle-rb/toml-merge/badges/users.svg
+[👽version]: https://bestgems.org/gems/toml-merge
+[👽versioni]: https://img.shields.io/gem/v/toml-merge.svg
+[🏀qlty-mnt]: https://qlty.sh/gh/kettle-rb/projects/toml-merge
+[🏀qlty-mnti]: https://qlty.sh/gh/kettle-rb/projects/toml-merge/maintainability.svg
+[🏀qlty-cov]: https://qlty.sh/gh/kettle-rb/projects/toml-merge/metrics/code?sort=coverageRating
+[🏀qlty-covi]: https://qlty.sh/gh/kettle-rb/projects/toml-merge/coverage.svg
+[🏀codecov]: https://codecov.io/gh/kettle-rb/toml-merge
+[🏀codecovi]: https://codecov.io/gh/kettle-rb/toml-merge/graph/badge.svg
+[🏀coveralls]: https://coveralls.io/github/kettle-rb/toml-merge?branch=main
+[🏀coveralls-img]: https://coveralls.io/repos/github/kettle-rb/toml-merge/badge.svg?branch=main
+[🖐codeQL]: https://github.com/kettle-rb/toml-merge/security/code-scanning
+[🖐codeQL-img]: https://github.com/kettle-rb/toml-merge/actions/workflows/codeql-analysis.yml/badge.svg
+[🚎2-cov-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/coverage.yml
+[🚎2-cov-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/coverage.yml/badge.svg
+[🚎3-hd-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/heads.yml
+[🚎3-hd-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/heads.yml/badge.svg
+[🚎5-st-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/style.yml
+[🚎5-st-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/style.yml/badge.svg
+[🚎6-s-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/supported.yml
+[🚎6-s-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/supported.yml/badge.svg
+[🚎9-t-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/truffle.yml
+[🚎9-t-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/truffle.yml/badge.svg
+[🚎11-c-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/current.yml
+[🚎11-c-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/current.yml/badge.svg
+[🚎12-crh-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/dep-heads.yml
+[🚎12-crh-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/dep-heads.yml/badge.svg
+[🚎13-🔒️-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/locked_deps.yml
+[🚎13-🔒️-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/locked_deps.yml/badge.svg
+[🚎14-🔓️-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/unlocked_deps.yml
+[🚎14-🔓️-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/unlocked_deps.yml/badge.svg
+[🚎15-🪪-wf]: https://github.com/kettle-rb/toml-merge/actions/workflows/license-eye.yml
+[🚎15-🪪-wfi]: https://github.com/kettle-rb/toml-merge/actions/workflows/license-eye.yml/badge.svg
 [💎ruby-3.2i]: https://img.shields.io/badge/Ruby-3.2-CC342D?style=for-the-badge&logo=ruby&logoColor=white
 [💎ruby-3.3i]: https://img.shields.io/badge/Ruby-3.3-CC342D?style=for-the-badge&logo=ruby&logoColor=white
 [💎ruby-c-i]: https://img.shields.io/badge/Ruby-current-CC342D?style=for-the-badge&logo=ruby&logoColor=green
@@ -816,19 +686,19 @@ Thanks for RTFM. ☺️
 [💎truby-headi]: https://img.shields.io/badge/Truffle_Ruby-HEAD-34BCB1?style=for-the-badge&logo=ruby&logoColor=blue
 [💎jruby-c-i]: https://img.shields.io/badge/JRuby-current-FBE742?style=for-the-badge&logo=ruby&logoColor=green
 [💎jruby-headi]: https://img.shields.io/badge/JRuby-HEAD-FBE742?style=for-the-badge&logo=ruby&logoColor=blue
-[🤝gh-issues]: https://github.com/kettle-rb/ast-merge/issues
-[🤝gh-pulls]: https://github.com/kettle-rb/ast-merge/pulls
-[🤝gl-issues]: https://gitlab.com/kettle-rb/ast-merge/-/issues
-[🤝gl-pulls]: https://gitlab.com/kettle-rb/ast-merge/-/merge_requests
-[🤝cb-issues]: https://codeberg.org/kettle-rb/ast-merge/issues
-[🤝cb-pulls]: https://codeberg.org/kettle-rb/ast-merge/pulls
+[🤝gh-issues]: https://github.com/kettle-rb/toml-merge/issues
+[🤝gh-pulls]: https://github.com/kettle-rb/toml-merge/pulls
+[🤝gl-issues]: https://gitlab.com/kettle-rb/toml-merge/-/issues
+[🤝gl-pulls]: https://gitlab.com/kettle-rb/toml-merge/-/merge_requests
+[🤝cb-issues]: https://codeberg.org/kettle-rb/toml-merge/issues
+[🤝cb-pulls]: https://codeberg.org/kettle-rb/toml-merge/pulls
 [🤝cb-donate]: https://donate.codeberg.org/
 [🤝contributing]: CONTRIBUTING.md
-[🏀codecov-g]: https://codecov.io/gh/kettle-rb/ast-merge/graphs/tree.svg
+[🏀codecov-g]: https://codecov.io/gh/kettle-rb/toml-merge/graphs/tree.svg
 [🖐contrib-rocks]: https://contrib.rocks
-[🖐contributors]: https://github.com/kettle-rb/ast-merge/graphs/contributors
-[🖐contributors-img]: https://contrib.rocks/image?repo=kettle-rb/ast-merge
-[🚎contributors-gl]: https://gitlab.com/kettle-rb/ast-merge/-/graphs/main
+[🖐contributors]: https://github.com/kettle-rb/toml-merge/graphs/contributors
+[🖐contributors-img]: https://contrib.rocks/image?repo=kettle-rb/toml-merge
+[🚎contributors-gl]: https://gitlab.com/kettle-rb/toml-merge/-/graphs/main
 [🪇conduct]: CODE_OF_CONDUCT.md
 [🪇conduct-img]: https://img.shields.io/badge/Contributor_Covenant-2.1-259D6C.svg
 [📌pvc]: http://guides.rubygems.org/patterns/#pessimistic-version-constraint
@@ -842,7 +712,7 @@ Thanks for RTFM. ☺️
 [📌gitmoji]: https://gitmoji.dev
 [📌gitmoji-img]: https://img.shields.io/badge/gitmoji_commits-%20%F0%9F%98%9C%20%F0%9F%98%8D-34495e.svg?style=flat-square
 [🧮kloc]: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-[🧮kloc-img]: https://img.shields.io/badge/KLOC-2.382-FFDD67.svg?style=for-the-badge&logo=YouTube&logoColor=blue
+[🧮kloc-img]: https://img.shields.io/badge/KLOC-4.308-FFDD67.svg?style=for-the-badge&logo=YouTube&logoColor=blue
 [🔐security]: SECURITY.md
 [🔐security-img]: https://img.shields.io/badge/security-policy-259D6C.svg?style=flat
 [📄copyright-notice-explainer]: https://opensource.stackexchange.com/questions/5778/why-do-licenses-such-as-the-mit-license-specify-a-single-year
@@ -853,10 +723,10 @@ Thanks for RTFM. ☺️
 [📄license-compat-img]: https://img.shields.io/badge/Apache_Compatible:_Category_A-%E2%9C%93-259D6C.svg?style=flat&logo=Apache
 [📄ilo-declaration]: https://www.ilo.org/declaration/lang--en/index.htm
 [📄ilo-declaration-img]: https://img.shields.io/badge/ILO_Fundamental_Principles-✓-259D6C.svg?style=flat
-[🚎yard-current]: http://rubydoc.info/gems/ast-merge
-[🚎yard-head]: https://ast-merge.galtzo.com
+[🚎yard-current]: http://rubydoc.info/gems/toml-merge
+[🚎yard-head]: https://toml-merge.galtzo.com
 [💎stone_checksums]: https://github.com/galtzo-floss/stone_checksums
-[💎SHA_checksums]: https://gitlab.com/kettle-rb/ast-merge/-/tree/main/checksums
+[💎SHA_checksums]: https://gitlab.com/kettle-rb/toml-merge/-/tree/main/checksums
 [💎rlts]: https://github.com/rubocop-lts/rubocop-lts
 [💎rlts-img]: https://img.shields.io/badge/code_style_&_linting-rubocop--lts-34495e.svg?plastic&logo=ruby&logoColor=white
 [💎appraisal2]: https://github.com/appraisal-rb/appraisal2

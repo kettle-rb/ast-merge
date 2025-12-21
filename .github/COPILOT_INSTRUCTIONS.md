@@ -124,9 +124,15 @@ When `replace_string_in_file` fails with "Could not find matching text":
 
 ## Loading Vendor Gems in Scripts
 
-**IMPORTANT**: When writing standalone Ruby scripts to test vendor gems, you must use `bundler/setup` to properly load the gems.
+**IMPORTANT**: The approach depends on whether you're using the project's Gemfile or need standalone execution.
 
-✅ **CORRECT** - Use bundler/setup:
+### For Scripts Using Project Gemfile (bundler/setup)
+
+✅ **Use bundler/setup when**:
+- The script runs within the project context
+- The Gemfile already specifies all needed gems with `path:` options
+- You want to use the exact versions locked in Gemfile.lock
+
 ```ruby
 #!/usr/bin/env ruby
 # frozen_string_literal: true
@@ -137,19 +143,49 @@ require "prism/merge"
 # Now you can use Prism::Merge classes
 ```
 
+### For Standalone Scripts with Local Paths (bundler/inline)
+
+✅ **Use bundler/inline when**:
+- Creating standalone scripts in `bin/` that need specific gem paths
+- Testing with fixture gems or specific local paths
+- The script needs to specify its own dependencies independent of the project Gemfile
+- You need to load gems from vendor directories not in the main Gemfile
+
+```ruby
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/inline"
+
+gemfile do
+  source "https://rubygems.org"
+  gem "ast-merge", path: File.expand_path("..", __dir__)
+  gem "tree_haver", path: File.expand_path("../vendor/tree_haver", __dir__)
+  gem "markdown-merge", path: File.expand_path("../vendor/markdown-merge", __dir__)
+end
+
+# Now gems are loaded and ready to use
+require "markdown/merge"
+```
+
+**Why bundler/inline for standalone scripts:**
+1. The gemfile block creates an inline Gemfile with specified paths
+2. Bundler resolves dependencies and configures load paths
+3. Scripts become self-contained and portable
+4. No need to modify the project's main Gemfile
+
+**Common pitfall with bundler/inline:**
+- If a gem in your inline gemfile has unresolved dependencies, bundler will try to fetch them
+- Solution: Only include gems you actually need, or ensure all transitive dependencies are available
+
 ❌ **BROKEN** - These do NOT work:
 ```ruby
 # This doesn't load the gem properly:
 require_relative "lib/prism/merge"
 
 # This doesn't set up the load path:
-require "prism/merge"  # without bundler/setup first
+require "prism/merge"  # without bundler/setup or bundler/inline first
 ```
-
-The pattern `require "bundler/setup"` followed by `require "gem/name"` works because:
-1. `bundler/setup` configures the load path based on the Gemfile
-2. The vendor gems are specified in the Gemfile with `path:` option
-3. This allows standard `require` to find the gems
 
 ## Testing
 
@@ -187,13 +223,15 @@ This runs tests with coverage instrumentation and generates detailed coverage re
 
 **How `run_in_terminal` works**:
 - The tool sends commands to a **single persistent Copilot terminal**
+- Use `isBackground=false` for `run_in_terminal`. Sometimes it works, but if it fails/hangs, use the file redirection method, and then read back with `read_file` tool.
 - Commands run in sequence in the same terminal session
 - Environment variables and working directory persist between calls
 - The first command in a session either does not run at all, or runs before the shell initialization (direnv, motd, etc.) so it should always be a noop, like `true`.
 
 **When things go wrong**:
 - If output shows only shell banner/motd without command results, the command most likely worked, but the tool has lost the ability to see terminal output. This happens FREQUENTLY.
-- EVERY TIME you do not see output, STOP and confirm output status with the user.
+- EVERY TIME you do not see output, STOP and confirm output status with the user, or switch immediately to file redirection, and read the file back with `read_file` tool.
+- **ALWAYS use project's `tmp/` directory for temporary files** - NEVER use `/tmp` or other system directories
 - Solution: Ask the user to share the output they see.
 
 **Best practices**:
