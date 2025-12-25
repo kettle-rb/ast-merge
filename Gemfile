@@ -8,6 +8,12 @@ git_source(:gitlab) { |repo_name| "https://gitlab.com/#{repo_name}" }
 # Specify your gem's dependencies in psych-merge.gemspec
 gemspec
 
+# runtime dependencies that we can't add to gemspec due to platform differences
+eval_gemfile "gemfiles/modular/tree_sitter.gemfile"
+
+# optional templating dependencies
+eval_gemfile "gemfiles/modular/templating.gemfile"
+
 eval_gemfile "gemfiles/modular/debug.gemfile"
 eval_gemfile "gemfiles/modular/coverage.gemfile"
 eval_gemfile "gemfiles/modular/style.gemfile"

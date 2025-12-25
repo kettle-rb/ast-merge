@@ -76,12 +76,14 @@ module Ast
       # @param conflicts [Array<Hash>] Conflicts detected during merge
       # @param frozen_blocks [Array] Frozen blocks preserved during merge
       # @param stats [Hash] Statistics about the merge
+      # @param options [Hash] Additional options for forward compatibility
       def initialize(
         template_analysis: nil,
         dest_analysis: nil,
         conflicts: [],
         frozen_blocks: [],
-        stats: {}
+        stats: {},
+        **options
       )
         @template_analysis = template_analysis
         @dest_analysis = dest_analysis
@@ -90,6 +92,7 @@ module Ast
         @conflicts = conflicts
         @frozen_blocks = frozen_blocks
         @stats = stats
+        # **options captured for forward compatibility - subclasses may use additional options
       end
 
       # Get content - returns @lines array for most gems.

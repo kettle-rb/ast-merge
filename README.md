@@ -142,33 +142,147 @@ require "ast/merge"
 
 module MyFormat
   module Merge
-    class FreezeNode < Ast::Merge::FreezeNode
-      # Override methods as needed for your format
+    # Inherit from base classes and pass **options for forward compatibility
+    
+    class SmartMerger < Ast::Merge::SmartMergerBase
+      DEFAULT_FREEZE_TOKEN = "myformat-merge"
+      
+      def initialize(template, dest, my_custom_option: nil, **options)
+        @my_custom_option = my_custom_option
+        super(template, dest, **options)
+      end
+      
+      protected
+      
+      def analysis_class
+        FileAnalysis
+      end
+      
+      def default_freeze_token
+        DEFAULT_FREEZE_TOKEN
+      end
+      
+      def perform_merge
+        # Implement format-specific merge logic
+        # Returns a MergeResult
+      end
     end
-
-    class MergeResult < Ast::Merge::MergeResult
-      # Add format-specific output methods
+    
+    class FileAnalysis
+      include Ast::Merge::FileAnalyzable
+      
+      def initialize(source, freeze_token: nil, signature_generator: nil, **options)
+        @source = source
+        @freeze_token = freeze_token
+        @signature_generator = signature_generator
+        # Process source...
+      end
+      
+      def compute_node_signature(node)
+        # Return signature array for node matching
+      end
+    end
+    
+    class ConflictResolver < Ast::Merge::ConflictResolverBase
+      def initialize(template_analysis, dest_analysis, preference: :destination, 
+                     add_template_only_nodes: false, match_refiner: nil, **options)
+        super(
+          strategy: :batch,  # or :node, :boundary
+          preference: preference,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+          add_template_only_nodes: add_template_only_nodes,
+          match_refiner: match_refiner,
+          **options
+        )
+      end
+      
+      protected
+      
+      def resolve_batch(result)
+        # Implement batch resolution logic
+      end
+    end
+    
+    class MergeResult < Ast::Merge::MergeResultBase
+      def initialize(**options)
+        super(**options)
+        @statistics = { merged_count: 0 }
+      end
+      
       def to_my_format
         to_s
       end
     end
-
-    class FileAnalysis
-      include Ast::Merge::FileAnalysisBase
-
-      # Implement required methods:
-      # - compute_node_signature(node)
-      # - extract_freeze_blocks
-    end
-
-    class SmartMerger
-      include Ast::Merge::MergerConfig
-
-      # Implement merge logic
+    
+    class MatchRefiner < Ast::Merge::MatchRefinerBase
+      def initialize(threshold: 0.7, node_types: nil, **options)
+        super(threshold: threshold, node_types: node_types, **options)
+      end
+      
+      def similarity(template_node, dest_node)
+        # Return similarity score between 0.0 and 1.0
+      end
     end
   end
 end
 ```
+
+### Base Classes Reference
+
+| Base Class | Purpose | Key Methods to Implement |
+|------------|---------|-------------------------|
+| `SmartMergerBase` | Main merge orchestration | `analysis_class`, `perform_merge` |
+| `ConflictResolverBase` | Resolve node conflicts | `resolve_batch` or `resolve_node_pair` |
+| `MergeResultBase` | Track merge results | `to_s`, format-specific output |
+| `MatchRefinerBase` | Fuzzy node matching | `similarity` |
+| `ContentMatchRefiner` | Text content fuzzy matching | Ready to use |
+| `FileAnalyzable` | File parsing/analysis | `compute_node_signature` |
+
+### ContentMatchRefiner
+
+`Ast::Merge::ContentMatchRefiner` is a built-in match refiner for fuzzy text content matching using Levenshtein distance. Unlike signature-based matching which requires exact content hashes, this refiner allows matching nodes with similar (but not identical) content.
+
+```ruby
+# Basic usage - match nodes with 70% similarity
+refiner = Ast::Merge::ContentMatchRefiner.new(threshold: 0.7)
+
+# Only match specific node types
+refiner = Ast::Merge::ContentMatchRefiner.new(
+  threshold: 0.6,
+  node_types: [:paragraph, :heading]
+)
+
+# Custom weights for scoring
+refiner = Ast::Merge::ContentMatchRefiner.new(
+  threshold: 0.7,
+  weights: {
+    content: 0.8,   # Levenshtein similarity (default: 0.7)
+    length: 0.1,    # Length similarity (default: 0.15)
+    position: 0.1   # Position in document (default: 0.15)
+  }
+)
+
+# Custom content extraction
+refiner = Ast::Merge::ContentMatchRefiner.new(
+  threshold: 0.7,
+  content_extractor: ->(node) { node.text_content.downcase.strip }
+)
+
+# Use with a merger
+merger = MyFormat::SmartMerger.new(
+  template,
+  destination,
+  preference: :template,
+  match_refiner: refiner
+)
+```
+
+This is particularly useful for:
+- Paragraphs with minor edits (typos, rewording)
+- Headings with slight changes
+- Comments with updated text
+- Any text-based node that may have been slightly modified
 
 ## 💡 Info you can shake a stick at
 

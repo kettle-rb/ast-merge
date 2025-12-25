@@ -20,6 +20,49 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- **ContentMatchRefiner**: New match refiner for fuzzy text content matching
+  - Uses Levenshtein distance to pair nodes with similar (but not identical) text
+  - Configurable scoring weights for content similarity, length, and position
+  - Custom content extractor support for parser-specific text extraction
+  - Node type filtering to limit which types are processed
+  - Can be combined with other refiners (e.g., TableMatchRefiner)
+  - Useful for matching paragraphs, headings, comments with minor edits
+
+- **SmartMergerBase**: Added validity check after FileAnalysis creation
+  - Checks `valid?` after creating FileAnalysis and raises appropriate parse error if invalid
+  - Catches silent failures like grammar not available or parse errors
+  - Documented the FileAnalysis error handling pattern for all *-merge gems
+
+- **SmartMergerBase**: Added explicit `node_typing` parameter
+  - All child SmartMergers were already using `node_typing` via `**format_options`
+  - Now explicitly documented and accessible via `attr_reader :node_typing`
+  - Validates node_typing configuration via `NodeTyping.validate!` if provided
+  - Enables per-node-type merge preferences across all `*-merge` gems
+
+- **ConflictResolverBase**: Added `match_refiner` parameter and `**options` for forward compatibility
+  - All batch-strategy resolvers were storing `match_refiner` locally
+  - Now explicitly accepted in base class with `attr_reader :match_refiner`
+  - Added `**options` catch-all for future parameters without breaking child classes
+
+- **MergeResultBase**: Added `**options` for forward compatibility
+  - Allows subclasses to accept new parameters without modification
+  - Maintains backward compatibility with existing no-arg and keyword-arg constructors
+
+- **RBS Signatures**: Added comprehensive type signatures for base classes
+  - `SmartMergerBase` with all standard options and abstract method declarations
+  - `ConflictResolverBase` with strategy-based resolution methods
+  - `MergeResultBase` with unified constructor and decision tracking
+  - `MatchRefinerBase` with similarity computation interface
+  - `RegionMergeable` module for nested content merging
+  - `NodeTyping` module with `Wrapper` class for typed nodes
+  - Type aliases: `node_typing_callable`, `node_typing_hash`, `preference_type`
+
+- **Documentation**: Updated README with comprehensive base class documentation
+  - Standard options table with all `SmartMergerBase` parameters
+  - Forward compatibility section explaining the `**options` pattern
+  - Complete "Creating a New Merge Gem" example with all base classes
+  - Base Classes Reference table
+
 - **tree_haver Integration**: Major architectural enhancement
   - Added `tree_haver` (~> 3.1) as a runtime dependency
   - `Ast::Merge::AstNode` now implements the TreeHaver::Node protocol for compatibility with tree_haver-based merge operations

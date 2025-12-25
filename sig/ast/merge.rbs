@@ -191,5 +191,231 @@ module Ast
 
       def validate_preference!: (Symbol preference) -> void
     end
+
+    # Type alias for node typing callables
+    type node_typing_callable = ^(untyped) -> untyped?
+    type node_typing_hash = Hash[Symbol | String, node_typing_callable]
+    type preference_type = Symbol | Hash[Symbol, Symbol]
+
+    # Abstract base class for SmartMerger implementations
+    class SmartMergerBase
+      include RegionMergeable
+
+      attr_reader template_content: String
+      attr_reader dest_content: String
+      attr_reader template_analysis: untyped
+      attr_reader dest_analysis: untyped
+      attr_reader resolver: untyped
+      attr_reader result: untyped
+      attr_reader preference: preference_type
+      attr_reader add_template_only_nodes: bool
+      attr_reader freeze_token: String
+      attr_reader signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?
+      attr_reader match_refiner: untyped?
+      attr_reader node_typing: node_typing_hash?
+
+      def initialize: (
+        String template_content,
+        String dest_content,
+        ?signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?,
+        ?preference: preference_type,
+        ?add_template_only_nodes: bool,
+        ?freeze_token: String?,
+        ?match_refiner: untyped?,
+        ?regions: Array[Hash[Symbol, untyped]]?,
+        ?region_placeholder: String?,
+        ?node_typing: node_typing_hash?,
+        **untyped format_options
+      ) -> void
+
+      def merge: () -> String
+      def merge_result: () -> untyped
+
+      # Class method for convenient merging
+      def self.merge: (
+        String template_content,
+        String dest_content,
+        **untyped options
+      ) -> String
+
+      private
+
+      # Abstract methods that subclasses must implement
+      def analysis_class: () -> Class
+      def perform_merge: () -> untyped
+
+      # Optional hooks for subclasses
+      def default_freeze_token: () -> String
+      def resolver_class: () -> Class?
+      def result_class: () -> Class?
+      def aligner_class: () -> Class?
+      def build_analysis_options: () -> Hash[Symbol, untyped]
+      def build_resolver_options: () -> Hash[Symbol, untyped]
+      def build_full_analysis_options: (Symbol source) -> Hash[Symbol, untyped]
+      def update_result_content: (untyped result, String content) -> void
+      def template_parse_error_class: () -> Class
+      def destination_parse_error_class: () -> Class
+    end
+
+    # Abstract base class for ConflictResolver implementations
+    class ConflictResolverBase
+      # Decision constants
+      DECISION_KEPT_TEMPLATE: Symbol
+      DECISION_KEPT_DEST: Symbol
+      DECISION_MERGED: Symbol
+      DECISION_ADDED: Symbol
+      DECISION_FREEZE_BLOCK: Symbol
+      DECISION_APPENDED: Symbol
+      DECISION_REPLACED: Symbol
+
+      attr_reader strategy: Symbol
+      attr_reader preference: preference_type
+      attr_reader template_analysis: untyped
+      attr_reader dest_analysis: untyped
+      attr_reader add_template_only_nodes: bool
+      attr_reader match_refiner: untyped?
+
+      def initialize: (
+        strategy: Symbol,
+        preference: preference_type,
+        template_analysis: untyped,
+        dest_analysis: untyped,
+        ?add_template_only_nodes: bool,
+        ?match_refiner: untyped?,
+        **untyped options
+      ) -> void
+
+      def resolve: (*untyped args, **untyped kwargs) -> untyped
+
+      # Get preference for a specific node (supports Hash preference)
+      def preference_for: (untyped node) -> Symbol
+
+      private
+
+      def validate_preference!: (preference_type preference) -> void
+      def resolve_node_pair: (untyped template_node, untyped dest_node, **untyped kwargs) -> untyped
+      def resolve_batch: (*untyped args) -> untyped
+      def resolve_boundary: (*untyped args) -> untyped
+    end
+
+    # Abstract base class for MergeResult implementations
+    class MergeResultBase
+      # Decision constants
+      DECISION_KEPT_TEMPLATE: Symbol
+      DECISION_KEPT_DEST: Symbol
+      DECISION_MERGED: Symbol
+      DECISION_ADDED: Symbol
+      DECISION_FREEZE_BLOCK: Symbol
+      DECISION_APPENDED: Symbol
+      DECISION_REPLACED: Symbol
+
+      attr_reader template_analysis: untyped?
+      attr_reader dest_analysis: untyped?
+      attr_reader lines: Array[String]
+      attr_reader decisions: Array[Hash[Symbol, untyped]]
+      attr_reader conflicts: Array[Hash[Symbol, untyped]]
+      attr_reader frozen_blocks: Array[untyped]
+      attr_reader stats: Hash[Symbol, untyped]
+
+      def initialize: (
+        ?template_analysis: untyped?,
+        ?dest_analysis: untyped?,
+        ?conflicts: Array[Hash[Symbol, untyped]],
+        ?frozen_blocks: Array[untyped],
+        ?stats: Hash[Symbol, untyped],
+        **untyped options
+      ) -> void
+
+      def content: () -> Array[String]
+      def content?: () -> bool
+      def content_string: () -> String
+      def to_s: () -> String
+      def success?: () -> bool
+      def conflicts?: () -> bool
+      def track_decision: (Symbol decision, Symbol source, **untyped metadata) -> void
+    end
+
+    # Abstract base class for MatchRefiner implementations
+    class MatchRefinerBase
+      # Default similarity threshold
+      DEFAULT_THRESHOLD: Float
+
+      attr_reader threshold: Float
+      attr_reader node_types: Array[Symbol]?
+
+      def initialize: (
+        ?threshold: Float,
+        ?node_types: Array[Symbol]?,
+        **untyped options
+      ) -> void
+
+      # Find matches between unmatched nodes
+      def call: (
+        Array[untyped] template_nodes,
+        Array[untyped] dest_nodes,
+        ?Hash[Symbol, untyped] context
+      ) -> Array[MatchResult]
+
+      # Compute similarity score between two nodes
+      def similarity: (untyped template_node, untyped dest_node) -> Float
+
+      # Check if a node matches the configured types
+      def matches_type?: (untyped node) -> bool
+
+      private
+
+      # Levenshtein distance for string similarity
+      def levenshtein_distance: (String s1, String s2) -> Integer
+      def string_similarity: (String s1, String s2) -> Float
+    end
+
+    # Result of a match refinement operation
+    class MatchResult
+      attr_reader template_node: untyped
+      attr_reader dest_node: untyped
+      attr_reader score: Float
+      attr_reader metadata: Hash[Symbol, untyped]
+
+      def initialize: (
+        template_node: untyped,
+        dest_node: untyped,
+        score: Float,
+        ?metadata: Hash[Symbol, untyped]
+      ) -> void
+
+      def to_h: () -> Hash[Symbol, untyped]
+    end
+
+    # Module for region-based merging support
+    module RegionMergeable
+      def regions_configured?: () -> bool
+      def setup_regions: (regions: Array[Hash[Symbol, untyped]], region_placeholder: String?) -> void
+      def extract_template_regions: (String content) -> String
+      def extract_dest_regions: (String content) -> String
+      def substitute_merged_regions: (String content) -> String
+    end
+
+    # Module for node typing support
+    module NodeTyping
+      # Wrapper class for typed nodes
+      class Wrapper
+        attr_reader node: untyped
+        attr_reader merge_type: Symbol
+
+        def initialize: (untyped node, Symbol merge_type) -> void
+        def method_missing: (Symbol method, *untyped args) ?{ (*untyped) -> untyped } -> untyped
+        def respond_to_missing?: (Symbol method, ?bool include_private) -> bool
+        def typed_node?: () -> bool
+        def unwrap: () -> untyped
+        def ==: (untyped other) -> bool
+        def hash: () -> Integer
+        def eql?: (untyped other) -> bool
+        def inspect: () -> String
+      end
+
+      def self.with_merge_type: (untyped node, Symbol merge_type) -> Wrapper
+      def self.validate!: (node_typing_hash? node_typing) -> void
+      def self.apply: (untyped node, node_typing_hash? node_typing) -> untyped
+    end
   end
 end

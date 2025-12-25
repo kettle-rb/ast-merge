@@ -118,6 +118,9 @@ module Ast
       # @return [Boolean] Whether to add template-only nodes (batch strategy)
       attr_reader :add_template_only_nodes
 
+      # @return [Object, nil] Match refiner for fuzzy matching
+      attr_reader :match_refiner
+
       # Initialize the conflict resolver
       #
       # @param strategy [Symbol] Resolution strategy (:node, :batch, or :boundary)
@@ -129,7 +132,9 @@ module Ast
       # @param template_analysis [Object] Analysis of the template file
       # @param dest_analysis [Object] Analysis of the destination file
       # @param add_template_only_nodes [Boolean] Whether to add nodes only in template (batch/boundary strategy)
-      def initialize(strategy:, preference:, template_analysis:, dest_analysis:, add_template_only_nodes: false)
+      # @param match_refiner [#call, nil] Optional match refiner for fuzzy matching
+      # @param options [Hash] Additional options for forward compatibility
+      def initialize(strategy:, preference:, template_analysis:, dest_analysis:, add_template_only_nodes: false, match_refiner: nil, **options)
         unless %i[node batch boundary].include?(strategy)
           raise ArgumentError, "Invalid strategy: #{strategy}. Must be :node, :batch, or :boundary"
         end
@@ -141,6 +146,8 @@ module Ast
         @template_analysis = template_analysis
         @dest_analysis = dest_analysis
         @add_template_only_nodes = add_template_only_nodes
+        @match_refiner = match_refiner
+        # **options captured for forward compatibility - subclasses may use additional options
       end
 
       # Resolve conflicts using the configured strategy

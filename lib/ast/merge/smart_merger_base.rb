@@ -12,13 +12,14 @@ module Ast
     #
     # All SmartMerger implementations support these common options:
     #
-    # - `preference` - `:destination` (default) or `:template`
+    # - `preference` - `:destination` (default) or `:template`, or Hash for per-type
     # - `add_template_only_nodes` - `false` (default) or `true`
     # - `signature_generator` - Custom signature proc or `nil`
     # - `freeze_token` - Token for freeze block markers
     # - `match_refiner` - Fuzzy match refiner or `nil`
     # - `regions` - Region configurations for nested merging
     # - `region_placeholder` - Custom placeholder for regions
+    # - `node_typing` - Hash mapping node types to callables for per-type preferences
     #
     # ## Implementing a SmartMerger
     #
@@ -34,6 +35,53 @@ module Ast
     # - `parse_content` - Custom parsing logic
     # - `build_analysis_options` - Additional analysis options
     # - `build_resolver_options` - Additional resolver options
+    #
+    # ## FileAnalysis Error Handling Pattern
+    #
+    # All FileAnalysis classes must follow this consistent error handling pattern:
+    #
+    # 1. **Catch backend errors internally** - Handle `TreeHaver::NotAvailable` and
+    #    similar backend errors inside the FileAnalysis class, storing them in `@errors`
+    #    and setting `@ast = nil`. Do NOT re-raise these errors.
+    #
+    # 2. **Collect parse errors without raising** - When the parser detects syntax errors
+    #    (e.g., `has_error?` returns true), collect them in `@errors` but do NOT raise.
+    #
+    # 3. **Implement `valid?`** - Return `false` when there are errors or no AST:
+    #    ```ruby
+    #    def valid?
+    #      @errors.empty? && !@ast.nil?
+    #    end
+    #    ```
+    #
+    # 4. **SmartMergerBase handles the rest** - After FileAnalysis creation,
+    #    `parse_and_analyze` checks `valid?` and raises the appropriate parse error
+    #    (TemplateParseError or DestinationParseError) if the analysis is invalid.
+    #
+    # This pattern ensures:
+    # - Consistent error handling across all *-merge gems
+    # - TreeHaver::NotAvailable (which inherits from Exception) is handled safely
+    # - Parse errors are properly wrapped in format-specific error classes
+    # - No need to rescue Exception in SmartMergerBase
+    #
+    # @example FileAnalysis error handling
+    #   def parse_content
+    #     parser = TreeHaver.parser_for(:myformat, library_path: @parser_path)
+    #     @ast = parser.parse(@source)
+    #
+    #     if @ast&.root_node&.has_error?
+    #       collect_parse_errors(@ast.root_node)
+    #       # Do NOT raise here - SmartMergerBase will check valid?
+    #     end
+    #   rescue TreeHaver::NotAvailable => e
+    #     @errors << e.message
+    #     @ast = nil
+    #     # Do NOT re-raise - SmartMergerBase will check valid?
+    #   rescue StandardError => e
+    #     @errors << e
+    #     @ast = nil
+    #     # Do NOT re-raise - SmartMergerBase will check valid?
+    #   end
     #
     # @example Implementing a custom SmartMerger
     #   class MyFormat::SmartMerger < Ast::Merge::SmartMergerBase
@@ -95,6 +143,9 @@ module Ast
       # @return [Object, nil] Match refiner for fuzzy matching
       attr_reader :match_refiner
 
+      # @return [Hash{Symbol,String => #call}, nil] Node typing configuration
+      attr_reader :node_typing
+
       # Creates a new SmartMerger for intelligent file merging.
       #
       # @param template_content [String] Template source content
@@ -140,6 +191,16 @@ module Ast
       #   - Commonmarker: `options: { parse: { smart: true } }`
       #   - Prism: (no additional parser options needed)
       #
+      # @param node_typing [Hash{Symbol,String => #call}, nil] Node typing configuration
+      #   for per-node-type merge preferences. Maps node type names to callables that
+      #   can wrap nodes with custom merge_types for use with Hash-based preference.
+      #   @example
+      #     node_typing = {
+      #       CallNode: ->(node) {
+      #         NodeTyping.with_merge_type(node, :special) if special_node?(node)
+      #       }
+      #     }
+      #
       # @raise [Ast::Merge::TemplateParseError] If template has syntax errors
       # @raise [Ast::Merge::DestinationParseError] If destination has syntax errors
       def initialize(
@@ -152,6 +213,7 @@ module Ast
         match_refiner: nil,
         regions: nil,
         region_placeholder: nil,
+        node_typing: nil,
         **format_options
       )
         @template_content = template_content
@@ -161,7 +223,11 @@ module Ast
         @add_template_only_nodes = add_template_only_nodes
         @freeze_token = freeze_token || default_freeze_token
         @match_refiner = match_refiner
+        @node_typing = node_typing
         @format_options = format_options
+
+        # Validate node_typing if provided
+        NodeTyping.validate!(node_typing) if node_typing
 
         # Set up region support
         setup_regions(regions: regions || [], region_placeholder: region_placeholder)
@@ -321,19 +387,36 @@ module Ast
 
       # Parse and analyze content, raising appropriate errors.
       #
+      # Error handling:
+      # - All FileAnalysis classes handle TreeHaver::NotAvailable internally,
+      #   storing the error and setting valid? to false
+      # - The validity check catches silent failures (grammar not available, parse errors)
+      # - StandardError from FileAnalysis initialization is wrapped in parse error
+      #
       # @param content [String] Content to parse
       # @param source [Symbol] :template or :destination
       # @return [Object] The analysis result
       def parse_and_analyze(content, source)
         options = build_full_analysis_options
 
-        DebugLogger.time("#{self.class.name}#analyze_#{source}") do
+        analysis = DebugLogger.time("#{self.class.name}#analyze_#{source}") do
           analysis_class.new(content, **options)
         end
+
+        # Check if the analysis is valid - if not, raise a parse error
+        # This catches cases where parsing fails silently (e.g., grammar not available)
+        if analysis.respond_to?(:valid?) && !analysis.valid?
+          error_class = (source == :template) ? template_parse_error_class : destination_parse_error_class
+          errors = analysis.respond_to?(:errors) ? analysis.errors : []
+          raise error_class.new(errors: errors, content: content)
+        end
+
+        analysis
       rescue StandardError => e
         # Don't re-wrap our own parse errors
         raise if e.is_a?(template_parse_error_class) || e.is_a?(destination_parse_error_class)
 
+        # Wrap the error in our parse error class
         error_class = (source == :template) ? template_parse_error_class : destination_parse_error_class
         raise error_class.new(errors: [e], content: content)
       end

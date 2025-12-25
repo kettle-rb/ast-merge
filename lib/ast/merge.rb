@@ -139,6 +139,7 @@ module Ast
     autoload :AstNode, "ast/merge/ast_node"
     autoload :Comment, "ast/merge/comment"
     autoload :ConflictResolverBase, "ast/merge/conflict_resolver_base"
+    autoload :ContentMatchRefiner, "ast/merge/content_match_refiner"
     autoload :DebugLogger, "ast/merge/debug_logger"
     autoload :FencedCodeBlockDetector, "ast/merge/fenced_code_block_detector"
     autoload :FileAnalyzable, "ast/merge/file_analyzable"
