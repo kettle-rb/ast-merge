@@ -1,5 +1,5 @@
 {
-  "README.md:3925757426": [
+  "README.md:1463162974": [
     [654, 3, 1, "Lint/Syntax: unexpected token tCOLON\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 177567]
   ],
   "docs/PARTIAL-TEMPLATE-MERGE-ARCHITECTURE.md:2433885434": [

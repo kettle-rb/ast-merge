@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [2.0.0] - 2025-12-28
+
+- TAG: [v2.0.0][2.0.0t]
+- COVERAGE: 88.47% -- 2894/3271 lines in 53 files
+- BRANCH COVERAGE: 67.83% -- 698/1029 branches in 53 files
+- 98.82% documented
+
+### Added
+
 - **RSpec Dependency Tags**: Conditional test execution based on available merge gems
   - New `lib/ast/merge/rspec/dependency_tags.rb` provides automatic test filtering
   - Tags for all merge gems: `:markly_merge`, `:prism_merge`, `:json_merge`, `:toml_merge`, etc.
@@ -195,18 +214,12 @@ Please file a bug if you notice a violation of semantic versioning.
   - markdown-merge description updated to "**Foundation**: Shared base for Markdown mergers with inner code block merging"
 - **Configuration Documentation**: Enhanced backend selection documentation
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Fixed gemspec and Appraisals alignment with tree_haver requirements
 - Fixed CI workflow conditions and retry logic
 - Fixed badge rendering in documentation
 - Fixed README structure issues (removed H3 duplicates, standardized gem family tables)
-
-### Security
 
 ## [1.0.0] - 2025-12-12
 
@@ -219,6 +232,8 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/kettle-rb/ast-merge/compare/v1.0.0...v2.0.0
+[2.0.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.0
 [1.0.0]: https://github.com/kettle-rb/ast-merge/compare/a63a4858cb229530c1706925bb209546695e8b3a...v1.0.0
 [1.0.0t]: https://github.com/kettle-rb/ast-merge/tags/v1.0.0
