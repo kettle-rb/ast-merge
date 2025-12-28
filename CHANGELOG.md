@@ -20,6 +20,13 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- **Recipe::Preset**: Base class for merge configuration presets
+  - Provides merge configuration (signature generators, node typing, preferences) without requiring template files
+  - `Recipe::Config` now inherits from `Preset`, adding template/target handling
+  - `to_h` method converts preset to SmartMerger-compatible options hash
+  - Enables kettle-jem and other libraries to define reusable merge presets
+  - Supports script loading for signature generators and node typing via `ScriptLoader`
+
 - **exe/ast-merge-recipe**: Shipped executable for running merge recipes
   - Uses `bundler/inline` for dependency management
   - Supports `--dry-run`, `--verbose`, `--parser`, `--base-dir` options

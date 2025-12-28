@@ -18,6 +18,7 @@ module Ast
     #
     module Recipe
       autoload :Config, "ast/merge/recipe/config"
+      autoload :Preset, "ast/merge/recipe/preset"
       autoload :Runner, "ast/merge/recipe/runner"
       autoload :ScriptLoader, "ast/merge/recipe/script_loader"
     end

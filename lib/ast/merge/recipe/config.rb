@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
 require "yaml"
+require_relative "preset"
 
 module Ast
   module Merge
     module Recipe
       # Loads and represents a merge recipe from YAML configuration.
       #
-      # A recipe defines how to perform a partial template merge:
-      # - Which template file to use
-      # - Which target files to process
-      # - How to find the injection point in destinations
-      # - Merge preferences and behavior
+      # A recipe extends Preset with:
+      # - Template file specification
+      # - Target file patterns
+      # - Injection point configuration
+      # - when_missing behavior
       #
       # @example Loading a recipe
       #   recipe = Config.load(".merge-recipes/gem_family_section.yml")
@@ -44,16 +45,10 @@ module Ast
       #
       #   when_missing: skip
       #
+      # @see Preset For base configuration without template/targets
       # @see Runner For executing recipes
       # @see ScriptLoader For loading Ruby scripts from recipe folders
-      #
-      class Config
-        # @return [String] Recipe name
-        attr_reader :name
-
-        # @return [String, nil] Recipe description
-        attr_reader :description
-
+      class Config < Preset
         # @return [String] Path to template file (relative to recipe or absolute)
         attr_reader :template_path
 
@@ -63,14 +58,13 @@ module Ast
         # @return [Hash] Injection point configuration
         attr_reader :injection
 
-        # @return [Hash] Merge behavior configuration
-        attr_reader :merge_config
-
         # @return [Symbol] Behavior when injection anchor not found (:skip, :add, :error)
         attr_reader :when_missing
 
-        # @return [String, nil] Path to the recipe file (if loaded from file)
-        attr_reader :recipe_path
+        # Alias for compatibility - recipe_path points to the same file as preset_path
+        def recipe_path
+          preset_path
+        end
 
         # Load a recipe from a YAML file.
         #
@@ -81,21 +75,22 @@ module Ast
           raise ArgumentError, "Recipe file not found: #{path}" unless File.exist?(path)
 
           yaml = YAML.safe_load(File.read(path), permitted_classes: [Regexp, Symbol])
-          new(yaml, recipe_path: path)
+          new(yaml, preset_path: path)
         end
 
         # Create a recipe from a hash (parsed YAML or programmatic).
         #
         # @param config [Hash] Recipe configuration
-        # @param recipe_path [String, nil] Path to recipe file (for relative path resolution)
-        def initialize(config, recipe_path: nil)
-          @recipe_path = recipe_path
-          @name = config["name"] || "unnamed"
-          @description = config["description"]
+        # @param preset_path [String, nil] Path to recipe file (for relative path resolution)
+        # @param recipe_path [String, nil] Alias for preset_path (backward compatibility)
+        def initialize(config, preset_path: nil, recipe_path: nil)
+          # Support both preset_path and recipe_path for backward compatibility
+          effective_path = preset_path || recipe_path
+          super(config, preset_path: effective_path)
+
           @template_path = config["template"] || raise(ArgumentError, "Recipe must have 'template' key")
           @targets = Array(config["targets"] || ["*.md"])
           @injection = parse_injection(config["injection"] || {})
-          @merge_config = parse_merge_config(config["merge"] || {})
           @when_missing = (config["when_missing"] || "skip").to_sym
         end
 
@@ -106,7 +101,7 @@ module Ast
         def template_absolute_path(base_dir: nil)
           return @template_path if File.absolute_path?(@template_path)
 
-          base = base_dir || (recipe_path ? File.dirname(recipe_path) : Dir.pwd)
+          base = base_dir || (preset_path ? File.dirname(preset_path) : Dir.pwd)
           File.expand_path(@template_path, base)
         end
 
@@ -115,7 +110,7 @@ module Ast
         # @param base_dir [String] Base directory for glob expansion
         # @return [Array<String>] Absolute paths to target files
         def expand_targets(base_dir: nil)
-          base = base_dir || (recipe_path ? File.dirname(recipe_path) : Dir.pwd)
+          base = base_dir || (preset_path ? File.dirname(preset_path) : Dir.pwd)
 
           targets.flat_map do |pattern|
             if File.absolute_path?(pattern)
@@ -152,67 +147,11 @@ module Ast
           query.compact
         end
 
-        # Get the merge preference setting.
-        #
-        # @return [Symbol, Hash] Preference (:template, :destination, or per-type hash)
-        def preference
-          merge_config[:preference] || :template
-        end
-
-        # Get the add_missing setting, loading as callable if it's a script reference.
-        #
-        # @return [Boolean, Proc] Boolean value or callable filter
-        def add_missing
-          value = merge_config[:add_missing]
-          return true if value.nil?
-          return value if value == true || value == false
-          return value if value.respond_to?(:call)
-
-          # It's a script reference or inline lambda - load it
-          script_loader.load_callable(value)
-        end
-
-        # Convenience alias for boolean check.
-        #
-        # @return [Boolean, Proc]
-        def add_missing?
-          add_missing
-        end
-
         # Whether to use replace mode (template replaces section entirely).
         #
         # @return [Boolean]
         def replace_mode?
           merge_config[:replace_mode] == true
-        end
-
-        # Get the signature_generator callable, loading from script if needed.
-        #
-        # @return [Proc, nil] Signature generator callable
-        def signature_generator
-          value = merge_config[:signature_generator]
-          return nil if value.nil?
-          return value if value.respond_to?(:call)
-
-          script_loader.load_callable(value)
-        end
-
-        # Get the node_typing configuration with callables loaded.
-        #
-        # @return [Hash, nil] Hash of type => callable
-        def node_typing
-          value = merge_config[:node_typing]
-          return nil if value.nil?
-          return value if value.is_a?(Hash) && value.values.all? { |v| v.respond_to?(:call) }
-
-          script_loader.load_callable_hash(value)
-        end
-
-        # Get the script loader instance.
-        #
-        # @return [ScriptLoader]
-        def script_loader
-          @script_loader ||= ScriptLoader.new(recipe_path: recipe_path)
         end
 
         private
@@ -250,26 +189,6 @@ module Ast
           else
             text
           end
-        end
-
-        def parse_merge_config(config)
-          {
-            preference: parse_preference(config["preference"]),
-            add_missing: config["add_missing"],
-            replace_mode: config["replace_mode"] == true,
-            match_by: Array(config["match_by"]).map(&:to_sym),
-            deep: config["deep"] == true,
-            signature_generator: config["signature_generator"],
-            node_typing: config["node_typing"],
-          }
-        end
-
-        def parse_preference(pref)
-          return :template if pref.nil?
-          return pref.to_sym if pref.is_a?(String)
-
-          # Hash of type => preference
-          pref.transform_keys(&:to_sym).transform_values(&:to_sym) if pref.is_a?(Hash)
         end
       end
     end
