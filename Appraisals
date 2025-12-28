@@ -76,6 +76,14 @@ appraise "ruby-3-3" do
   eval_gemfile "modular/tree_sitter.gemfile"
 end
 
+appraise "ruby-3-4" do
+  eval_gemfile "modular/rspec.gemfile"
+  eval_gemfile "modular/x_std_libs/r3/libs.gemfile"
+
+  # runtime dependencies that we can't add to gemspec due to platform differences
+  eval_gemfile "modular/tree_sitter.gemfile"
+end
+
 # Only run security audit on the latest version of Ruby
 appraise "audit" do
   eval_gemfile "modular/x_std_libs.gemfile"

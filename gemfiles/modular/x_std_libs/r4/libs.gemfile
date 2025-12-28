@@ -1,0 +1,11 @@
+eval_gemfile "../../erb/r3/v5.0.gemfile"
+eval_gemfile "../../mutex_m/r3/v0.3.gemfile"
+eval_gemfile "../../stringio/r3/v3.0.gemfile"
+
+# Seems to be an undeclared dependency of yard.
+# /opt/hostedtoolcache/Ruby/4.0.0/x64/lib/ruby/gems/4.0.0/gems/yard-0.9.38/lib/yard/parser/ruby/legacy/irb/slex.rb:13: warning: irb/notifier is found in irb, which is not part of the default gems since Ruby 4.0.0.
+# You can add irb to your Gemfile or gemspec to fix this error.
+# rake aborted!
+# LoadError: cannot load such file -- irb/notifier (LoadError)
+# /opt/hostedtoolcache/Ruby/4.0.0/x64/bin/bundle:25:in '<main>'
+gem "irb", "~> 1.16" # ruby >= 2.7

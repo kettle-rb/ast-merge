@@ -1,6 +1,3 @@
-# Ex-Standard Library gems
-gem "irb", "~> 1.15", ">= 1.15.2" # removed from stdlib in 3.5
-
 platform :mri do
   # Debugging - Ensure ENV["DEBUG"] == "true" to use debuggers within spec suite
   # Use binding.break, binding.b, or debugger in code
