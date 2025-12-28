@@ -20,3 +20,6 @@ eval_gemfile "gemfiles/modular/style.gemfile"
 eval_gemfile "gemfiles/modular/documentation.gemfile"
 eval_gemfile "gemfiles/modular/optional.gemfile"
 eval_gemfile "gemfiles/modular/x_std_libs.gemfile"
+
+# See unlocked_deps appraisal for more details on irb inclusion
+gem "irb", "~> 1.16" # ruby >= 2.7
