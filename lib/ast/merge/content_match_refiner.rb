@@ -99,9 +99,12 @@ module Ast
           d_idx = dest_filtered.index(d_node) || 0
 
           compute_content_similarity(
-            t_node, d_node,
-            t_idx, d_idx,
-            total_template, total_dest
+            t_node,
+            d_node,
+            t_idx,
+            d_idx,
+            total_template,
+            total_dest,
           )
         end
       end
@@ -224,8 +227,8 @@ module Ast
       # @return [Float] Similarity score (0.0-1.0)
       def position_similarity(idx1, idx2, total1, total2)
         # Normalize positions to 0.0-1.0 range
-        pos1 = total1 > 1 ? idx1.to_f / (total1 - 1) : 0.5
-        pos2 = total2 > 1 ? idx2.to_f / (total2 - 1) : 0.5
+        pos1 = (total1 > 1) ? idx1.to_f / (total1 - 1) : 0.5
+        pos2 = (total2 > 1) ? idx2.to_f / (total2 - 1) : 0.5
 
         1.0 - (pos1 - pos2).abs
       end
@@ -257,7 +260,7 @@ module Ast
           curr_row[0] = j
 
           (1..m).each do |i|
-            cost = str1[i - 1] == str2[j - 1] ? 0 : 1
+            cost = (str1[i - 1] == str2[j - 1]) ? 0 : 1
             curr_row[i] = [
               curr_row[i - 1] + 1,      # insertion
               prev_row[i] + 1,          # deletion
@@ -273,4 +276,3 @@ module Ast
     end
   end
 end
-

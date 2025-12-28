@@ -57,13 +57,8 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 
-  describe "#run", :aggregate_failures do
+  describe "#run", :aggregate_failures, :markly_merge do
     let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :markly) }
-
-    before do
-      # Load markly-merge for testing
-      require "markly/merge"
-    end
 
     it "processes all target files" do
       results = runner.run
@@ -89,11 +84,10 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 
-  describe "#results_by_status" do
+  describe "#results_by_status", :markly_merge do
     let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :markly) }
 
     before do
-      require "markly/merge"
       runner.run
     end
 
@@ -104,11 +98,10 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 
-  describe "#summary" do
+  describe "#summary", :markly_merge do
     let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :markly) }
 
     before do
-      require "markly/merge"
       runner.run
     end
 
@@ -123,11 +116,10 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 
-  describe "#results_table" do
+  describe "#results_table", :markly_merge do
     let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :markly) }
 
     before do
-      require "markly/merge"
       runner.run
     end
 
@@ -140,11 +132,10 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 
-  describe "#summary_table" do
+  describe "#summary_table", :markly_merge do
     let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :markly) }
 
     before do
-      require "markly/merge"
       runner.run
     end
 
@@ -165,7 +156,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
         status: :updated,
         changed: true,
         has_anchor: true,
-        message: "Updated successfully"
+        message: "Updated successfully",
       )
 
       expect(result.path).to eq("/path/to/file.md")
@@ -177,4 +168,3 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 end
-

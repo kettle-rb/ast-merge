@@ -25,9 +25,9 @@ recipe = Ast::Merge::Recipe::Config.new({
   "template" => "template.md",
   "targets" => ["README.md", "docs/*.md"],
   "injection" => {
-    "anchor" => { "type" => "heading", "text" => "/My Section/" },
-    "position" => "replace"
-  }
+    "anchor" => {"type" => "heading", "text" => "/My Section/"},
+    "position" => "replace",
+  },
 })
 ```
 
@@ -42,7 +42,7 @@ runner = Ast::Merge::Recipe::Runner.new(
   dry_run: true,      # Don't write files
   verbose: true,      # Show detailed output
   parser: :markly,    # Parser to use
-  base_dir: Dir.pwd   # Base directory for paths
+  base_dir: Dir.pwd,   # Base directory for paths
 )
 
 # Run and get results
@@ -97,10 +97,10 @@ injection:
     type: heading           # Node type to match
     text: "/Gem Family/"    # Text pattern (regex if wrapped in //)
     level: 3                # Optional: heading level
-  
+
   # Position relative to anchor
   position: replace         # before, after, replace, first_child, last_child
-  
+
   # Boundary defines where the section ends (for replace)
   boundary:
     type: heading           # Stop at next heading of same/higher level
@@ -145,7 +145,7 @@ merge:
 # Must return a callable
 ->(node, entry) {
   # Only add link reference definitions
-  entry[:signature].is_a?(Array) && 
+  entry[:signature].is_a?(Array) &&
     entry[:signature].first == :link_ref
 }
 ```

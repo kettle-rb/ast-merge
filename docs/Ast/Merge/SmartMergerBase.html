@@ -89,7 +89,7 @@
   
   <dl>
       <dt>Includes:</dt>
-      <dd><span class='object_link'><a href="RegionMergeable.html" title="Ast::Merge::RegionMergeable (module)">RegionMergeable</a></span></dd>
+      <dd><span class='object_link'><a href="Detector/Mergeable.html" title="Ast::Merge::Detector::Mergeable (module)">Detector::Mergeable</a></span></dd>
   </dl>
   
   
@@ -122,13 +122,14 @@ analysis, and merge logic while inheriting the common API.</p>
 <p>All SmartMerger implementations support these common options:</p>
 
 <ul>
-  <li><code>preference</code> - <code>:destination</code> (default) or <code>:template</code></li>
+  <li><code>preference</code> - <code>:destination</code> (default) or <code>:template</code>, or Hash for per-type</li>
   <li><code>add_template_only_nodes</code> - <code>false</code> (default) or <code>true</code></li>
   <li><code>signature_generator</code> - Custom signature proc or <code>nil</code></li>
   <li><code>freeze_token</code> - Token for freeze block markers</li>
   <li><code>match_refiner</code> - Fuzzy match refiner or <code>nil</code></li>
   <li><code>regions</code> - Region configurations for nested merging</li>
   <li><code>region_placeholder</code> - Custom placeholder for regions</li>
+  <li><code>node_typing</code> - Hash mapping node types to callables for per-type preferences</li>
 </ul>
 
 <h2 id="implementing-a-smartmerger">Implementing a SmartMerger</h2>
@@ -150,6 +151,39 @@ analysis, and merge logic while inheriting the common API.</p>
   <li><code>build_resolver_options</code> - Additional resolver options</li>
 </ul>
 
+<h2 id="fileanalysis-error-handling-pattern">FileAnalysis Error Handling Pattern</h2>
+
+<p>All FileAnalysis classes must follow this consistent error handling pattern:</p>
+
+<ol>
+  <li>
+    <p><strong>Catch backend errors internally</strong> - Handle <code>TreeHaver::NotAvailable</code> and<br />
+similar backend errors inside the FileAnalysis class, storing them in <code>@errors</code><br />
+and setting <code>@ast = nil</code>. Do NOT re-raise these errors.</p>
+  </li>
+  <li>
+    <p><strong>Collect parse errors without raising</strong> - When the parser detects syntax errors<br />
+(e.g., <code>has_error?</code> returns true), collect them in <code>@errors</code> but do NOT raise.</p>
+  </li>
+  <li><strong>Implement <code>valid?</code></strong> - Return <code>false</code> when there are errors or no AST:
+    <pre class="code language-ruby"><code class="language-ruby">def valid?
+  @errors.empty? &amp;&amp; !@ast.nil?
+end
+</code></pre>
+  </li>
+  <li><strong>SmartMergerBase handles the rest</strong> - After FileAnalysis creation,<br />
+<code>parse_and_analyze</code> checks <code>valid?</code> and raises the appropriate parse error<br />
+(TemplateParseError or DestinationParseError) if the analysis is invalid.</li>
+</ol>
+
+<p>This pattern ensures:</p>
+<ul>
+  <li>Consistent error handling across all *-merge gems</li>
+  <li>TreeHaver::NotAvailable (which inherits from Exception) is handled safely</li>
+  <li>Parse errors are properly wrapped in format-specific error classes</li>
+  <li>No need to rescue Exception in SmartMergerBase</li>
+</ul>
+
 
   </div>
 </div>
@@ -157,6 +191,28 @@ analysis, and merge logic while inheriting the common API.</p>
   
   <div class="examples">
     <h4 class="tag_title">Examples:</h4>
+    
+      
+        <h5 class="example_title"><div class='inline'><p>FileAnalysis error handling</p>
+</div></h5>
+      
+      <pre class="example code"><code><span class='kw'>def</span> <span class='id identifier rubyid_parse_content'>parse_content</span>
+  <span class='id identifier rubyid_parser'>parser</span> <span class='op'>=</span> <span class='const'>TreeHaver</span><span class='period'>.</span><span class='id identifier rubyid_parser_for'>parser_for</span><span class='lparen'>(</span><span class='symbol'>:myformat</span><span class='comma'>,</span> <span class='label'>library_path:</span> <span class='ivar'>@parser_path</span><span class='rparen'>)</span>
+  <span class='ivar'>@ast</span> <span class='op'>=</span> <span class='id identifier rubyid_parser'>parser</span><span class='period'>.</span><span class='id identifier rubyid_parse'>parse</span><span class='lparen'>(</span><span class='ivar'>@source</span><span class='rparen'>)</span>
+
+  <span class='kw'>if</span> <span class='ivar'>@ast</span><span class='op'>&amp;.</span><span class='id identifier rubyid_root_node'>root_node</span><span class='op'>&amp;.</span><span class='id identifier rubyid_has_error?'>has_error?</span>
+    <span class='id identifier rubyid_collect_parse_errors'>collect_parse_errors</span><span class='lparen'>(</span><span class='ivar'>@ast</span><span class='period'>.</span><span class='id identifier rubyid_root_node'>root_node</span><span class='rparen'>)</span>
+    <span class='comment'># Do NOT raise here - SmartMergerBase will check valid?
+</span>  <span class='kw'>end</span>
+<span class='kw'>rescue</span> <span class='const'>TreeHaver</span><span class='op'>::</span><span class='const'>NotAvailable</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='ivar'>@errors</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span>
+  <span class='ivar'>@ast</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='comment'># Do NOT re-raise - SmartMergerBase will check valid?
+</span><span class='kw'>rescue</span> <span class='const'>StandardError</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='ivar'>@errors</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='ivar'>@ast</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='comment'># Do NOT re-raise - SmartMergerBase will check valid?
+</span><span class='kw'>end</span></code></pre>
     
       
         <h5 class="example_title"><div class='inline'><p>Implementing a custom SmartMerger</p>
@@ -193,8 +249,8 @@ analysis, and merge logic while inheriting the common API.</p>
   <h2>Constant Summary</h2>
   
   <h3 class="inherited">Constants included
-     from <span class='object_link'><a href="RegionMergeable.html" title="Ast::Merge::RegionMergeable (module)">RegionMergeable</a></span></h3>
-  <p class="inherited"><span class='object_link'><a href="RegionMergeable.html#DEFAULT_PLACEHOLDER_PREFIX-constant" title="Ast::Merge::RegionMergeable::DEFAULT_PLACEHOLDER_PREFIX (constant)">RegionMergeable::DEFAULT_PLACEHOLDER_PREFIX</a></span>, <span class='object_link'><a href="RegionMergeable.html#DEFAULT_PLACEHOLDER_SUFFIX-constant" title="Ast::Merge::RegionMergeable::DEFAULT_PLACEHOLDER_SUFFIX (constant)">RegionMergeable::DEFAULT_PLACEHOLDER_SUFFIX</a></span></p>
+     from <span class='object_link'><a href="Detector/Mergeable.html" title="Ast::Merge::Detector::Mergeable (module)">Detector::Mergeable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Detector/Mergeable.html#DEFAULT_PLACEHOLDER_PREFIX-constant" title="Ast::Merge::Detector::Mergeable::DEFAULT_PLACEHOLDER_PREFIX (constant)">Detector::Mergeable::DEFAULT_PLACEHOLDER_PREFIX</a></span>, <span class='object_link'><a href="Detector/Mergeable.html#DEFAULT_PLACEHOLDER_SUFFIX-constant" title="Ast::Merge::Detector::Mergeable::DEFAULT_PLACEHOLDER_SUFFIX (constant)">Detector::Mergeable::DEFAULT_PLACEHOLDER_SUFFIX</a></span></p>
 
 
   <h2>Instance Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
@@ -363,6 +419,34 @@ analysis, and merge logic while inheriting the common API.</p>
 
   
     <span class="summary_desc"><div class='inline'><p>Match refiner for fuzzy matching.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#node_typing-instance_method" title="#node_typing (instance method)">#<strong>node_typing</strong>  &#x21d2; Hash{Symbol,String =&gt; #call}<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Node typing configuration.</p>
 </div></span>
   
 </li>
@@ -552,7 +636,7 @@ analysis, and merge logic while inheriting the common API.</p>
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(template_content, dest_content, signature_generator: nil, preference: :destination, add_template_only_nodes: false, freeze_token: nil, match_refiner: nil, regions: nil, region_placeholder: nil, **format_options)  &#x21d2; SmartMergerBase </a>
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(template_content, dest_content, signature_generator: nil, preference: :destination, add_template_only_nodes: false, freeze_token: nil, match_refiner: nil, regions: nil, region_placeholder: nil, node_typing: nil, **format_options)  &#x21d2; SmartMergerBase </a>
     
 
     
@@ -678,15 +762,15 @@ analysis, and merge logic while inheriting the common API.</p>
   
   
   
-  <h3 class="inherited">Methods included from <span class='object_link'><a href="RegionMergeable.html" title="Ast::Merge::RegionMergeable (module)">RegionMergeable</a></span></h3>
-  <p class="inherited"><span class='object_link'><a href="RegionMergeable.html#extract_dest_regions-instance_method" title="Ast::Merge::RegionMergeable#extract_dest_regions (method)">#extract_dest_regions</a></span>, <span class='object_link'><a href="RegionMergeable.html#extract_template_regions-instance_method" title="Ast::Merge::RegionMergeable#extract_template_regions (method)">#extract_template_regions</a></span>, <span class='object_link'><a href="RegionMergeable.html#regions_configured%3F-instance_method" title="Ast::Merge::RegionMergeable#regions_configured? (method)">#regions_configured?</a></span>, <span class='object_link'><a href="RegionMergeable.html#setup_regions-instance_method" title="Ast::Merge::RegionMergeable#setup_regions (method)">#setup_regions</a></span>, <span class='object_link'><a href="RegionMergeable.html#substitute_merged_regions-instance_method" title="Ast::Merge::RegionMergeable#substitute_merged_regions (method)">#substitute_merged_regions</a></span></p>
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="Detector/Mergeable.html" title="Ast::Merge::Detector::Mergeable (module)">Detector::Mergeable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Detector/Mergeable.html#extract_dest_regions-instance_method" title="Ast::Merge::Detector::Mergeable#extract_dest_regions (method)">#extract_dest_regions</a></span>, <span class='object_link'><a href="Detector/Mergeable.html#extract_template_regions-instance_method" title="Ast::Merge::Detector::Mergeable#extract_template_regions (method)">#extract_template_regions</a></span>, <span class='object_link'><a href="Detector/Mergeable.html#regions_configured%3F-instance_method" title="Ast::Merge::Detector::Mergeable#regions_configured? (method)">#regions_configured?</a></span>, <span class='object_link'><a href="Detector/Mergeable.html#setup_regions-instance_method" title="Ast::Merge::Detector::Mergeable#setup_regions (method)">#setup_regions</a></span>, <span class='object_link'><a href="Detector/Mergeable.html#substitute_merged_regions-instance_method" title="Ast::Merge::Detector::Mergeable#substitute_merged_regions (method)">#substitute_merged_regions</a></span></p>
 <div id="constructor_details" class="method_details_list">
   <h2>Constructor Details</h2>
   
     <div class="method_details first">
   <h3 class="signature first" id="initialize-instance_method">
   
-    #<strong>initialize</strong>(template_content, dest_content, signature_generator: nil, preference: :destination, add_template_only_nodes: false, freeze_token: nil, match_refiner: nil, regions: nil, region_placeholder: nil, **format_options)  &#x21d2; <tt><span class='object_link'><a href="" title="Ast::Merge::SmartMergerBase (class)">SmartMergerBase</a></span></tt> 
+    #<strong>initialize</strong>(template_content, dest_content, signature_generator: nil, preference: :destination, add_template_only_nodes: false, freeze_token: nil, match_refiner: nil, regions: nil, region_placeholder: nil, node_typing: nil, **format_options)  &#x21d2; <tt><span class='object_link'><a href="" title="Ast::Merge::SmartMergerBase (class)">SmartMergerBase</a></span></tt> 
   
 
   
@@ -901,6 +985,31 @@ Examples:</p>
       
     </li>
   
+    <li>
+      
+        <span class='name'>node_typing</span>
+      
+      
+        <span class='type'>(<tt>Hash{Symbol,String =&gt; #call}</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>Node typing configuration<br />
+for per-node-type merge preferences. Maps node type names to callables that<br />
+can wrap nodes with custom merge_types for use with Hash-based preference.<br />
+@example<br />
+  node_typing = {<br />
+    CallNode: -&gt;(node) {<br />
+      NodeTyping.with_merge_type(node, :special) if special_node?(node)<br />
+    }<br />
+  }</p>
+</div>
+      
+    </li>
+  
 </ul>
 
 <p class="tag_title">Raises:</p>
@@ -940,50 +1049,55 @@ Examples:</p>
       <pre class="lines">
 
 
-145
-146
-147
-148
-149
-150
-151
-152
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
-165
-166
-167
-168
-169
-170
-171
-172
-173
-174
-175
-176
-177
-178
-179
-180
-181
-182
-183
-184
-185</pre>
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 145</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 206</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span>
   <span class='id identifier rubyid_template_content'>template_content</span><span class='comma'>,</span>
@@ -995,6 +1109,7 @@ Examples:</p>
   <span class='label'>match_refiner:</span> <span class='kw'>nil</span><span class='comma'>,</span>
   <span class='label'>regions:</span> <span class='kw'>nil</span><span class='comma'>,</span>
   <span class='label'>region_placeholder:</span> <span class='kw'>nil</span><span class='comma'>,</span>
+  <span class='label'>node_typing:</span> <span class='kw'>nil</span><span class='comma'>,</span>
   <span class='op'>**</span><span class='id identifier rubyid_format_options'>format_options</span>
 <span class='rparen'>)</span>
   <span class='ivar'>@template_content</span> <span class='op'>=</span> <span class='id identifier rubyid_template_content'>template_content</span>
@@ -1004,7 +1119,11 @@ Examples:</p>
   <span class='ivar'>@add_template_only_nodes</span> <span class='op'>=</span> <span class='id identifier rubyid_add_template_only_nodes'>add_template_only_nodes</span>
   <span class='ivar'>@freeze_token</span> <span class='op'>=</span> <span class='id identifier rubyid_freeze_token'>freeze_token</span> <span class='op'>||</span> <span class='id identifier rubyid_default_freeze_token'>default_freeze_token</span>
   <span class='ivar'>@match_refiner</span> <span class='op'>=</span> <span class='id identifier rubyid_match_refiner'>match_refiner</span>
+  <span class='ivar'>@node_typing</span> <span class='op'>=</span> <span class='id identifier rubyid_node_typing'>node_typing</span>
   <span class='ivar'>@format_options</span> <span class='op'>=</span> <span class='id identifier rubyid_format_options'>format_options</span>
+
+  <span class='comment'># Validate node_typing if provided
+</span>  <span class='const'><span class='object_link'><a href="NodeTyping.html" title="Ast::Merge::NodeTyping (module)">NodeTyping</a></span></span><span class='period'>.</span><span class='id identifier rubyid_validate!'><span class='object_link'><a href="NodeTyping.html#validate!-class_method" title="Ast::Merge::NodeTyping.validate! (method)">validate!</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_node_typing'>node_typing</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_node_typing'>node_typing</span>
 
   <span class='comment'># Set up region support
 </span>  <span class='id identifier rubyid_setup_regions'>setup_regions</span><span class='lparen'>(</span><span class='label'>regions:</span> <span class='id identifier rubyid_regions'>regions</span> <span class='op'>||</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>region_placeholder:</span> <span class='id identifier rubyid_region_placeholder'>region_placeholder</span><span class='rparen'>)</span>
@@ -1080,12 +1199,12 @@ Examples:</p>
       <pre class="lines">
 
 
-87
-88
-89</pre>
+135
+136
+137</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 87</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 135</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_add_template_only_nodes'>add_template_only_nodes</span>
   <span class='ivar'>@add_template_only_nodes</span>
@@ -1139,12 +1258,12 @@ Examples:</p>
       <pre class="lines">
 
 
-75
-76
-77</pre>
+123
+124
+125</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 75</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 123</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_aligner'>aligner</span>
   <span class='ivar'>@aligner</span>
@@ -1198,12 +1317,12 @@ Examples:</p>
       <pre class="lines">
 
 
-72
-73
-74</pre>
+120
+121
+122</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 72</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 120</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_dest_analysis'>dest_analysis</span>
   <span class='ivar'>@dest_analysis</span>
@@ -1257,12 +1376,12 @@ Examples:</p>
       <pre class="lines">
 
 
-66
-67
-68</pre>
+114
+115
+116</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 66</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 114</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_dest_content'>dest_content</span>
   <span class='ivar'>@dest_content</span>
@@ -1316,12 +1435,12 @@ Examples:</p>
       <pre class="lines">
 
 
-90
-91
-92</pre>
+138
+139
+140</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 90</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 138</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_freeze_token'>freeze_token</span>
   <span class='ivar'>@freeze_token</span>
@@ -1375,15 +1494,74 @@ Examples:</p>
       <pre class="lines">
 
 
-96
-97
-98</pre>
+144
+145
+146</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 96</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 144</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_match_refiner'>match_refiner</span>
   <span class='ivar'>@match_refiner</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="node_typing-instance_method">
+  
+    #<strong>node_typing</strong>  &#x21d2; <tt>Hash{Symbol,String =&gt; #call}</tt><sup>?</sup>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns Node typing configuration.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Hash{Symbol,String =&gt; #call}</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Node typing configuration</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+147
+148
+149</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 147</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_node_typing'>node_typing</span>
+  <span class='ivar'>@node_typing</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1434,12 +1612,12 @@ Examples:</p>
       <pre class="lines">
 
 
-84
-85
-86</pre>
+132
+133
+134</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 84</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 132</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_preference'>preference</span>
   <span class='ivar'>@preference</span>
@@ -1493,12 +1671,12 @@ Examples:</p>
       <pre class="lines">
 
 
-78
-79
-80</pre>
+126
+127
+128</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 78</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 126</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_resolver'>resolver</span>
   <span class='ivar'>@resolver</span>
@@ -1552,12 +1730,12 @@ Examples:</p>
       <pre class="lines">
 
 
-81
-82
-83</pre>
+129
+130
+131</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 81</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 129</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_result'>result</span>
   <span class='ivar'>@result</span>
@@ -1611,12 +1789,12 @@ Examples:</p>
       <pre class="lines">
 
 
-93
-94
-95</pre>
+141
+142
+143</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 93</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 141</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_signature_generator'>signature_generator</span>
   <span class='ivar'>@signature_generator</span>
@@ -1670,12 +1848,12 @@ Examples:</p>
       <pre class="lines">
 
 
-69
-70
-71</pre>
+117
+118
+119</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 69</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 117</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_template_analysis'>template_analysis</span>
   <span class='ivar'>@template_analysis</span>
@@ -1729,12 +1907,12 @@ Examples:</p>
       <pre class="lines">
 
 
-63
-64
-65</pre>
+111
+112
+113</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 63</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 111</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_template_content'>template_content</span>
   <span class='ivar'>@template_content</span>
@@ -1793,12 +1971,12 @@ Examples:</p>
       <pre class="lines">
 
 
-190
-191
-192</pre>
+256
+257
+258</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 190</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 256</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_merge'>merge</span>
   <span class='id identifier rubyid_merge_result'>merge_result</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
@@ -1852,24 +2030,24 @@ Examples:</p>
       <pre class="lines">
 
 
-199
-200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213</pre>
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 199</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 265</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_merge_result'>merge_result</span>
   <span class='kw'>return</span> <span class='ivar'>@merge_result</span> <span class='kw'>if</span> <span class='ivar'>@merge_result</span>
@@ -1937,17 +2115,17 @@ Examples:</p>
       <pre class="lines">
 
 
-220
-221
-222
-223
-224
-225
-226
-227</pre>
+286
+287
+288
+289
+290
+291
+292
+293</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 220</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 286</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_merge_with_debug'>merge_with_debug</span>
   <span class='id identifier rubyid_content'>content</span> <span class='op'>=</span> <span class='id identifier rubyid_merge'>merge</span>
@@ -2004,13 +2182,13 @@ Examples:</p>
       <pre class="lines">
 
 
-232
-233
-234
-235</pre>
+298
+299
+300
+301</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 232</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/smart_merger_base.rb', line 298</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_stats'>stats</span>
   <span class='id identifier rubyid_merge_result'>merge_result</span> <span class='comment'># Ensure merge has run
@@ -2026,9 +2204,9 @@ Examples:</p>
 </div>
 
       <div id="footer">
-  Generated on Thu Dec 18 16:26:22 2025 by
+  Generated on Sun Dec 28 16:22:21 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.38 (ruby-3.4.7).
+  0.9.38 (ruby-4.0.0).
 </div>
 
     </div>

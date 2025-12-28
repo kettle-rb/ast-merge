@@ -53,7 +53,7 @@ module Ast
         # @return [Proc, nil] The callable, or nil if reference is nil
         # @raise [ArgumentError] If script not found or doesn't return a callable
         def load_callable(reference)
-          return nil if reference.nil?
+          return if reference.nil?
           return reference if reference.respond_to?(:call)
 
           # Check if it's an inline lambda expression
@@ -70,7 +70,7 @@ module Ast
         # @param config [Hash, nil] Hash with script references as values
         # @return [Hash, nil] Hash with callables as values
         def load_callable_hash(config)
-          return nil if config.nil? || config.empty?
+          return if config.nil? || config.empty?
 
           config.transform_values { |ref| load_callable(ref) }
         end
@@ -98,7 +98,7 @@ module Ast
         def determine_base_dir(recipe_path, override_base_dir)
           return override_base_dir if override_base_dir
 
-          return nil unless recipe_path
+          return unless recipe_path
 
           # Convention: scripts folder has same name as recipe (without extension)
           recipe_dir = File.dirname(recipe_path)
@@ -179,4 +179,3 @@ module Ast
     end
   end
 end
-

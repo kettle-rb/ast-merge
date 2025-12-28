@@ -16,14 +16,18 @@ RSpec.describe "Ast::Merge integration examples" do
     # This is the MINIMAL required integration pattern for any *-merge gem.
     # Simply extend Ast::Merge::DebugLogger and configure env_var_name and log_prefix.
     # All methods (debug, info, warning, time, etc.) are inherited from the base module.
-    module ExampleMergeDebugLogger
-      extend Ast::Merge::DebugLogger
 
-      # Configure the environment variable name for this module
-      self.env_var_name = "EXAMPLE_MERGE_DEBUG"
+    # Use before block with stub_const to avoid leaky constant declaration
+    before do
+      stub_const("ExampleMergeDebugLogger", Module.new do
+        extend Ast::Merge::DebugLogger
 
-      # Configure the log prefix for this module
-      self.log_prefix = "[ExampleMerge]"
+        # Configure the environment variable name for this module
+        self.env_var_name = "EXAMPLE_MERGE_DEBUG"
+
+        # Configure the log prefix for this module
+        self.log_prefix = "[ExampleMerge]"
+      end)
     end
 
     # Dog-food the shared examples to validate minimal integration

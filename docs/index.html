@@ -149,15 +149,13 @@
     <tr>
       <td><a href="https://github.com/kettle-rb/prism-merge">prism-merge</a></td>
       <td>Ruby</td>
-      <td>
-<a href="https://github.com/ruby/prism">Prism</a> (via tree_haver)</td>
+      <td><a href="https://github.com/ruby/prism">Prism</a></td>
       <td>Smart merge for Ruby source files</td>
     </tr>
     <tr>
       <td><a href="https://github.com/kettle-rb/psych-merge">psych-merge</a></td>
       <td>YAML</td>
-      <td>
-<a href="https://github.com/ruby/psych">Psych</a> (via tree_haver)</td>
+      <td><a href="https://github.com/ruby/psych">Psych</a></td>
       <td>Smart merge for YAML files</td>
     </tr>
     <tr>
@@ -190,14 +188,14 @@
     <tr>
       <td><a href="https://github.com/kettle-rb/dotenv-merge">dotenv-merge</a></td>
       <td>Dotenv</td>
-      <td>internal (<a href="https://github.com/bkeepers/dotenv">dotenv</a>)</td>
+      <td>internal</td>
       <td>Smart merge for <code>.env</code> files</td>
     </tr>
     <tr>
       <td><a href="https://github.com/kettle-rb/toml-merge">toml-merge</a></td>
       <td>TOML</td>
       <td>
-<a href="https://github.com/tree-sitter-grammars/tree-sitter-toml">tree-sitter-toml</a> (via tree_haver)</td>
+<a href="https://github.com/emancu/toml-rb">Citrus + toml-rb</a> (default, via tree_haver), <a href="https://github.com/tree-sitter-grammars/tree-sitter-toml">tree-sitter-toml</a> (via tree_haver)</td>
       <td>Smart merge for TOML files</td>
     </tr>
     <tr>
@@ -301,33 +299,246 @@
 
 module MyFormat
   module Merge
-    class FreezeNode &lt; Ast::Merge::FreezeNode
-      # Override methods as needed for your format
+    # Inherit from base classes and pass **options for forward compatibility
+    
+    class SmartMerger &lt; Ast::Merge::SmartMergerBase
+      DEFAULT_FREEZE_TOKEN = &quot;myformat-merge&quot;
+      
+      def initialize(template, dest, my_custom_option: nil, **options)
+        @my_custom_option = my_custom_option
+        super(template, dest, **options)
+      end
+      
+      protected
+      
+      def analysis_class
+        FileAnalysis
+      end
+      
+      def default_freeze_token
+        DEFAULT_FREEZE_TOKEN
+      end
+      
+      def perform_merge
+        # Implement format-specific merge logic
+        # Returns a MergeResult
+      end
     end
-
-    class MergeResult &lt; Ast::Merge::MergeResult
-      # Add format-specific output methods
+    
+    class FileAnalysis
+      include Ast::Merge::FileAnalyzable
+      
+      def initialize(source, freeze_token: nil, signature_generator: nil, **options)
+        @source = source
+        @freeze_token = freeze_token
+        @signature_generator = signature_generator
+        # Process source...
+      end
+      
+      def compute_node_signature(node)
+        # Return signature array for node matching
+      end
+    end
+    
+    class ConflictResolver &lt; Ast::Merge::ConflictResolverBase
+      def initialize(template_analysis, dest_analysis, preference: :destination, 
+                     add_template_only_nodes: false, match_refiner: nil, **options)
+        super(
+          strategy: :batch,  # or :node, :boundary
+          preference: preference,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+          add_template_only_nodes: add_template_only_nodes,
+          match_refiner: match_refiner,
+          **options
+        )
+      end
+      
+      protected
+      
+      def resolve_batch(result)
+        # Implement batch resolution logic
+      end
+    end
+    
+    class MergeResult &lt; Ast::Merge::MergeResultBase
+      def initialize(**options)
+        super(**options)
+        @statistics = { merged_count: 0 }
+      end
+      
       def to_my_format
         to_s
       end
     end
-
-    class FileAnalysis
-      include Ast::Merge::FileAnalysisBase
-
-      # Implement required methods:
-      # - compute_node_signature(node)
-      # - extract_freeze_blocks
-    end
-
-    class SmartMerger
-      include Ast::Merge::MergerConfig
-
-      # Implement merge logic
+    
+    class MatchRefiner &lt; Ast::Merge::MatchRefinerBase
+      def initialize(threshold: 0.7, node_types: nil, **options)
+        super(threshold: threshold, node_types: node_types, **options)
+      end
+      
+      def similarity(template_node, dest_node)
+        # Return similarity score between 0.0 and 1.0
+      end
     end
   end
 end
 </code></pre>
+
+<h3 id="base-classes-reference">Base Classes Reference</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Base Class</th>
+      <th>Purpose</th>
+      <th>Key Methods to Implement</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>SmartMergerBase</code></td>
+      <td>Main merge orchestration</td>
+      <td>
+<code>analysis_class</code>, <code>perform_merge</code>
+</td>
+    </tr>
+    <tr>
+      <td><code>ConflictResolverBase</code></td>
+      <td>Resolve node conflicts</td>
+      <td>
+<code>resolve_batch</code> or <code>resolve_node_pair</code>
+</td>
+    </tr>
+    <tr>
+      <td><code>MergeResultBase</code></td>
+      <td>Track merge results</td>
+      <td>
+<code>to_s</code>, format-specific output</td>
+    </tr>
+    <tr>
+      <td><code>MatchRefinerBase</code></td>
+      <td>Fuzzy node matching</td>
+      <td><code>similarity</code></td>
+    </tr>
+    <tr>
+      <td><code>ContentMatchRefiner</code></td>
+      <td>Text content fuzzy matching</td>
+      <td>Ready to use</td>
+    </tr>
+    <tr>
+      <td><code>FileAnalyzable</code></td>
+      <td>File parsing/analysis</td>
+      <td><code>compute_node_signature</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="contentmatchrefiner">ContentMatchRefiner</h3>
+
+<p><code>Ast::Merge::ContentMatchRefiner</code> is a built-in match refiner for fuzzy text content matching using Levenshtein distance. Unlike signature-based matching which requires exact content hashes, this refiner allows matching nodes with similar (but not identical) content.</p>
+
+<pre class="code language-ruby"><code class="language-ruby"># Basic usage - match nodes with 70% similarity
+refiner = Ast::Merge::ContentMatchRefiner.new(threshold: 0.7)
+
+# Only match specific node types
+refiner = Ast::Merge::ContentMatchRefiner.new(
+  threshold: 0.6,
+  node_types: [:paragraph, :heading]
+)
+
+# Custom weights for scoring
+refiner = Ast::Merge::ContentMatchRefiner.new(
+  threshold: 0.7,
+  weights: {
+    content: 0.8,   # Levenshtein similarity (default: 0.7)
+    length: 0.1,    # Length similarity (default: 0.15)
+    position: 0.1   # Position in document (default: 0.15)
+  }
+)
+
+# Custom content extraction
+refiner = Ast::Merge::ContentMatchRefiner.new(
+  threshold: 0.7,
+  content_extractor: -&gt;(node) { node.text_content.downcase.strip }
+)
+
+# Use with a merger
+merger = MyFormat::SmartMerger.new(
+  template,
+  destination,
+  preference: :template,
+  match_refiner: refiner
+)
+</code></pre>
+
+<p>This is particularly useful for:</p>
+<ul>
+  <li>Paragraphs with minor edits (typos, rewording)</li>
+  <li>Headings with slight changes</li>
+  <li>Comments with updated text</li>
+  <li>Any text-based node that may have been slightly modified</li>
+</ul>
+
+<h3 id="namespace-reference">Namespace Reference</h3>
+
+<p>The <code>Ast::Merge</code> module is organized into several namespaces, each with detailed documentation:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Namespace</th>
+      <th>Purpose</th>
+      <th>Documentation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Ast::Merge::Detector</code></td>
+      <td>Region detection and merging</td>
+      <td><a href="lib/ast/merge/detector/README.md">lib/ast/merge/detector/README.md</a></td>
+    </tr>
+    <tr>
+      <td><code>Ast::Merge::Recipe</code></td>
+      <td>YAML-based merge recipes</td>
+      <td><a href="lib/ast/merge/recipe/README.md">lib/ast/merge/recipe/README.md</a></td>
+    </tr>
+    <tr>
+      <td><code>Ast::Merge::Comment</code></td>
+      <td>Comment parsing and representation</td>
+      <td><a href="lib/ast/merge/comment/README.md">lib/ast/merge/comment/README.md</a></td>
+    </tr>
+    <tr>
+      <td><code>Ast::Merge::Text</code></td>
+      <td>Plain text AST parsing</td>
+      <td><a href="lib/ast/merge/text/README.md">lib/ast/merge/text/README.md</a></td>
+    </tr>
+    <tr>
+      <td><code>Ast::Merge::RSpec</code></td>
+      <td>Shared RSpec examples</td>
+      <td><a href="lib/ast/merge/rspec/README.md">lib/ast/merge/rspec/README.md</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Key Classes by Namespace:</strong></p>
+
+<ul>
+  <li>
+<strong>Detector</strong>: <code>Region</code>, <code>Base</code>, <code>Mergeable</code>, <code>FencedCodeBlock</code>, <code>YamlFrontmatter</code>, <code>TomlFrontmatter</code>
+</li>
+  <li>
+<strong>Recipe</strong>: <code>Config</code>, <code>Runner</code>, <code>ScriptLoader</code>
+</li>
+  <li>
+<strong>Comment</strong>: <code>Line</code>, <code>Block</code>, <code>Empty</code>, <code>Parser</code>, <code>Style</code>
+</li>
+  <li>
+<strong>Text</strong>: <code>SmartMerger</code>, <code>FileAnalysis</code>, <code>LineNode</code>, <code>WordNode</code>, <code>Section</code>
+</li>
+  <li>
+<strong>RSpec</strong>: Shared examples and dependency tags for testing <code>*-merge</code> implementations</li>
+</ul>
 
 <h2 id="-info-you-can-shake-a-stick-at">💡 Info you can shake a stick at</h2>
 
@@ -574,8 +785,8 @@ Each implementation (like <code>prism-merge</code>, <code>psych-merge</code>, et
   destination,
   # When conflicts occur, prefer template or destination values
   preference: :template,            # or :destination (default), or a Hash for per-node-type
-  # Add nodes that only exist in template
-  add_template_only_nodes: true,    # default: false
+  # Add nodes that only exist in template (Boolean or callable filter)
+  add_template_only_nodes: true,    # default: false, or -&gt;(node, entry) { ... }
   # Custom node type handling
   node_typing: {},                # optional, for per-node-type preference
 )
@@ -600,9 +811,48 @@ Each implementation (like <code>prism-merge</code>, <code>psych-merge</code>, et
 
 <ul>
   <li>
-<strong><code>true</code></strong> - Add new nodes from template</li>
+<strong><code>true</code></strong> - Add all template-only nodes</li>
   <li>
 <strong><code>false</code></strong> (default) - Skip template-only nodes</li>
+  <li>
+<strong>Callable</strong> - Filter which template-only nodes to add</li>
+</ul>
+
+<h4 id="callable-filter">Callable Filter</h4>
+
+<p>When you need fine-grained control over which template-only nodes are added, pass a callable (Proc/Lambda) that receives <code>(node, entry)</code> and returns truthy to add or falsey to skip:</p>
+
+<pre class="code language-ruby"><code class="language-ruby"># Only add nodes with gem_family signatures
+merger = SomeFormat::Merge::SmartMerger.new(
+  template,
+  destination,
+  add_template_only_nodes: -&gt;(node, entry) {
+    sig = entry[:signature]
+    sig.is_a?(Array) &amp;&amp; sig.first == :gem_family
+  }
+)
+
+# Only add link definitions that match a pattern
+merger = Markly::Merge::SmartMerger.new(
+  template,
+  destination,
+  add_template_only_nodes: -&gt;(node, entry) {
+    entry[:template_node].type == :link_definition &amp;&amp;
+      entry[:signature]&amp;.last&amp;.include?(&quot;gem&quot;)
+  }
+)
+</code></pre>
+
+<p>The <code>entry</code> hash contains:</p>
+<ul>
+  <li>
+<code>:template_node</code> - The node being considered for addition</li>
+  <li>
+<code>:signature</code> - The node’s signature (Array or other value)</li>
+  <li>
+<code>:template_index</code> - Index in the template statements</li>
+  <li>
+<code>:dest_index</code> - Always <code>nil</code> for template-only nodes</li>
 </ul>
 
 <h2 id="-basic-usage">🔧 Basic Usage</h2>
@@ -826,7 +1076,7 @@ merger = MyMerger.new(
 <pre class="code language-ruby"><code class="language-ruby"># Create config preferring destination
 config = Ast::Merge::MergerConfig.destination_wins(
   freeze_token: &quot;my-freeze&quot;,
-  signature_generator: my_generator,
+  : my_generator,
   node_typing: my_typing,
 )
 
@@ -1038,9 +1288,9 @@ Please consider sponsoring me or the project.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Thu Dec 18 16:26:20 2025 by
+  Generated on Sun Dec 28 16:22:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.38 (ruby-3.4.7).
+  0.9.38 (ruby-4.0.0).
 </div>
 
     </div>

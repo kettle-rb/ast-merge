@@ -251,17 +251,57 @@ end
 - `silent_stream` - Output suppression
 - `timecop/rspec` - Time travel for tests
 
-**Other Helpers** (loaded by kettle-test):
-- `block_is_expected` - Enhanced block expectations (from `rspec-block_is_expected`)
-- `capture` - Capture output during tests (from `silent_stream`)
-- Timecop integration for time manipulation
+### Dependency Tags
 
-**Where these come from**:
-- External gems loaded by `kettle/test/external.rb` in the kettle-test gem
-- `rspec/stubbed_env` - Provides `stub_env` and `hide_env`
-- `rspec/block_is_expected` - Enhanced block expectations
-- `silent_stream` - Output suppression
-- `timecop/rspec` - Time travel for tests
+**IMPORTANT**: Use dependency tags to conditionally skip tests when optional dependencies are not available. DO NOT use `require` statements inside spec files.
+
+**Loading dependency tags** - Use the unified entry point:
+```ruby
+# In spec_helper.rb - loads everything (recommended)
+require "ast/merge/rspec"
+```
+
+This loads TreeHaver tags (parser backends) + Ast::Merge tags (merge gems) + shared examples.
+
+**Available dependency tags** (from `ast/merge/rspec/dependency_tags.rb`):
+- `:markly_merge` - Requires markly-merge gem
+- `:commonmarker_merge` - Requires commonmarker-merge gem
+- `:markdown_merge` - Requires markdown-merge gem
+- `:prism_merge` - Requires prism-merge gem
+- `:json_merge` - Requires json-merge gem
+- `:jsonc_merge` - Requires jsonc-merge gem
+- `:toml_merge` - Requires toml-merge gem
+- `:bash_merge` - Requires bash-merge gem
+- `:psych_merge` - Requires psych-merge gem
+- `:any_markdown_merge` - Requires any markdown merge gem
+
+**TreeHaver also provides** (from `tree_haver/rspec/dependency_tags`):
+- `:markly` - Requires markly gem (parser, not merger)
+- `:commonmarker` - Requires commonmarker gem (parser, not merger)
+- `:prism_backend` - Requires prism gem
+- Many more - see tree_haver documentation
+
+✅ **CORRECT** - Use dependency tag on describe/context/it:
+```ruby
+RSpec.describe SomeClass, :markly_merge do
+  # Entire describe block is skipped if markly-merge unavailable
+end
+
+describe "#method", :prism_merge do
+  # Just this context is skipped if prism-merge unavailable
+end
+
+it "does something", :json_merge do
+  # Just this example is skipped if json-merge unavailable
+end
+```
+
+❌ **WRONG** - Never use require inside spec files:
+```ruby
+before do
+  require "markly/merge"  # DO NOT DO THIS
+end
+```
 
 ### Running Tests
 

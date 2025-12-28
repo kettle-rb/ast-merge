@@ -19,7 +19,7 @@ Represents a single line of text.
 ```ruby
 line = Ast::Merge::Text::LineNode.new(
   content: "Hello, world!",
-  line_number: 1
+  line_number: 1,
 )
 
 line.type       # => :line
@@ -36,7 +36,7 @@ Represents a single word within a line.
 word = Ast::Merge::Text::WordNode.new(
   content: "Hello",
   line_number: 1,
-  column: 0
+  column: 0,
 )
 
 word.type  # => :word
@@ -69,7 +69,7 @@ merger = Ast::Merge::Text::SmartMerger.new(
   template,
   dest,
   preference: :destination,
-  add_template_only_nodes: true
+  add_template_only_nodes: true,
 )
 
 result = merger.merge
@@ -82,14 +82,14 @@ Resolves conflicts between matching lines.
 
 ```ruby
 resolver = Ast::Merge::Text::ConflictResolver.new(
-  preference: :template
+  preference: :template,
 )
 
 resolution = resolver.resolve(
   template_node,
   dest_node,
   template_index: 0,
-  dest_index: 0
+  dest_index: 0,
 )
 # => { decision: :template, source: :template, reason: "..." }
 ```
@@ -113,7 +113,7 @@ Split text into logical sections for section-aware merging.
 
 ```ruby
 splitter = Ast::Merge::Text::SectionSplitter.new(
-  section_pattern: /^##\s+/  # Split on markdown H2 headings
+  section_pattern: /^##\s+/,  # Split on markdown H2 headings
 )
 
 sections = splitter.split(content)
@@ -127,7 +127,7 @@ require "ast/merge/text"
 
 template = <<~TEXT
   # Configuration File
-  
+
   setting1 = value1
   setting2 = value2
   setting3 = value3
@@ -135,7 +135,7 @@ TEXT
 
 destination = <<~TEXT
   # Configuration File
-  
+
   setting1 = custom_value
   setting2 = value2
   # Custom comment
@@ -146,7 +146,7 @@ merger = Ast::Merge::Text::SmartMerger.new(
   template,
   destination,
   preference: :destination,
-  add_template_only_nodes: true
+  add_template_only_nodes: true,
 )
 
 result = merger.merge_result

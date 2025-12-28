@@ -421,6 +421,7 @@ module Ast
         def inspect: () -> String
 
         private
+
         def build_region: (
           type: Symbol,
           content: String,
@@ -549,6 +550,7 @@ module Ast
         def resolve_path: (String script_ref) -> String?
 
         private
+
         def load_from_file: (String path) -> untyped
         def parse_inline_lambda: (String code) -> (^(*untyped) -> untyped)?
       end

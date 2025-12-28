@@ -110,7 +110,8 @@ RSpec.describe Ast::Merge::DebugLogger do
 
   describe "BENCHMARK_AVAILABLE constant" do
     it "is defined as true or false" do
-      expect([true, false]).to include(described_class::BENCHMARK_AVAILABLE)
+      benchmark_available = described_class::BENCHMARK_AVAILABLE
+      expect(benchmark_available).to be(true).or be(false)
     end
   end
 

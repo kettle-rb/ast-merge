@@ -34,7 +34,7 @@ runner = Ast::Merge::RecipeRunner.new(
   parser: :markly,
 )
 
-results = runner.run
+runner.run
 
 # Output with TableTennis
 puts TableTennis.new(runner.results_table)

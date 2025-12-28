@@ -66,16 +66,18 @@ module Ast
           preset_path
         end
 
-        # Load a recipe from a YAML file.
-        #
-        # @param path [String] Path to the recipe YAML file
-        # @return [Config] Loaded recipe
-        # @raise [ArgumentError] If file doesn't exist or is invalid
-        def self.load(path)
-          raise ArgumentError, "Recipe file not found: #{path}" unless File.exist?(path)
+        class << self
+          # Load a recipe from a YAML file.
+          #
+          # @param path [String] Path to the recipe YAML file
+          # @return [Config] Loaded recipe
+          # @raise [ArgumentError] If file doesn't exist or is invalid
+          def load(path)
+            raise ArgumentError, "Recipe file not found: #{path}" unless File.exist?(path)
 
-          yaml = YAML.safe_load(File.read(path), permitted_classes: [Regexp, Symbol])
-          new(yaml, preset_path: path)
+            yaml = YAML.safe_load_file(path, permitted_classes: [Regexp, Symbol])
+            new(yaml, preset_path: path)
+          end
         end
 
         # Create a recipe from a hash (parsed YAML or programmatic).
@@ -167,7 +169,7 @@ module Ast
         end
 
         def parse_matcher(config)
-          return nil if config.empty?
+          return if config.empty?
 
           {
             type: config["type"]&.to_sym,
@@ -180,7 +182,7 @@ module Ast
         end
 
         def parse_text_pattern(text)
-          return nil if text.nil?
+          return if text.nil?
           return text if text.is_a?(Regexp)
 
           # Handle /regex/ syntax in YAML strings
@@ -194,4 +196,3 @@ module Ast
     end
   end
 end
-

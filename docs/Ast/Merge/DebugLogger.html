@@ -200,7 +200,8 @@ your module. To override inherited behavior, you must define <em>singleton metho
         <dt id="BENCHMARK_AVAILABLE-constant" class="">BENCHMARK_AVAILABLE =
           <div class="docstring">
   <div class="discussion">
-    <p>Benchmark is optional - gracefully degrade if not available</p>
+    <p>Benchmark is optional - gracefully degrade if not available<br />
+Use autoload to defer loading until actually needed</p>
 
 
   </div>
@@ -211,7 +212,7 @@ your module. To override inherited behavior, you must define <em>singleton metho
 </div>
         </dt>
         <dd><pre class="code"><span class='kw'>begin</span>
-  <span class='id identifier rubyid_require'>require</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>benchmark</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_autoload'>autoload</span><span class='lparen'>(</span><span class='symbol'>:Benchmark</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>benchmark</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
   <span class='kw'>true</span>
 <span class='kw'>rescue</span> <span class='const'>LoadError</span>
   <span class='comment'># :nocov:
@@ -630,12 +631,12 @@ your module. To override inherited behavior, you must define <em>singleton metho
       <pre class="lines">
 
 
-87
 88
-89</pre>
+89
+90</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 87</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 88</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_env_var_name'>env_var_name</span>
   <span class='ivar'>@env_var_name</span>
@@ -689,12 +690,12 @@ your module. To override inherited behavior, you must define <em>singleton metho
       <pre class="lines">
 
 
-92
 93
-94</pre>
+94
+95</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 92</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 93</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_log_prefix'>log_prefix</span>
   <span class='ivar'>@log_prefix</span>
@@ -757,7 +758,6 @@ and copies the BENCHMARK_AVAILABLE constant.</p>
       <pre class="lines">
 
 
-100
 101
 102
 103
@@ -772,10 +772,11 @@ and copies the BENCHMARK_AVAILABLE constant.</p>
 112
 113
 114
-115</pre>
+115
+116</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 100</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 101</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_extended'>extended</span><span class='lparen'>(</span><span class='id identifier rubyid_base'>base</span><span class='rparen'>)</span>
   <span class='comment'># Create a module with the accessors and prepend it to the singleton class.
@@ -865,16 +866,16 @@ and copies the BENCHMARK_AVAILABLE constant.</p>
       <pre class="lines">
 
 
-166
 167
 168
 169
 170
 171
-172</pre>
+172
+173</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 166</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 167</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='comma'>,</span> <span class='id identifier rubyid_context'>context</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>unless</span> <span class='id identifier rubyid_enabled?'>enabled?</span>
@@ -926,13 +927,13 @@ and copies the BENCHMARK_AVAILABLE constant.</p>
       <pre class="lines">
 
 
-125
 126
 127
-128</pre>
+128
+129</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 125</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 126</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_enabled?'>enabled?</span>
   <span class='id identifier rubyid_val'>val</span> <span class='op'>=</span> <span class='const'>ENV</span><span class='lbracket'>[</span><span class='id identifier rubyid_env_var_name'>env_var_name</span><span class='rbracket'>]</span>
@@ -983,7 +984,6 @@ When called as instance method, checks class first, then falls back to base.</p>
       <pre class="lines">
 
 
-135
 136
 137
 138
@@ -992,10 +992,11 @@ When called as instance method, checks class first, then falls back to base.</p>
 141
 142
 143
-144</pre>
+144
+145</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 135</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 136</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_env_var_name'>env_var_name</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Module</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_singleton_class'>singleton_class</span><span class='period'>.</span><span class='id identifier rubyid_method_defined?'>method_defined?</span><span class='lparen'>(</span><span class='symbol'>:env_var_name</span><span class='rparen'>)</span>
@@ -1073,7 +1074,6 @@ When called as instance method, checks class first, then falls back to base.</p>
       <pre class="lines">
 
 
-258
 259
 260
 261
@@ -1084,10 +1084,11 @@ When called as instance method, checks class first, then falls back to base.</p>
 266
 267
 268
-269</pre>
+269
+270</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 258</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 259</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_extract_lines'>extract_lines</span><span class='lparen'>(</span><span class='id identifier rubyid_node'>node</span><span class='rparen'>)</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_node'>node</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:location</span><span class='rparen'>)</span>
@@ -1168,17 +1169,17 @@ Override in submodules for file-type-specific node types.</p>
       <pre class="lines">
 
 
-230
 231
 232
 233
 234
 235
 236
-237</pre>
+237
+238</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 230</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 231</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_extract_node_info'>extract_node_info</span><span class='lparen'>(</span><span class='id identifier rubyid_node'>node</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_type_name'>type_name</span> <span class='op'>=</span> <span class='id identifier rubyid_safe_type_name'>safe_type_name</span><span class='lparen'>(</span><span class='id identifier rubyid_node'>node</span><span class='rparen'>)</span>
@@ -1237,14 +1238,14 @@ Override in submodules for file-type-specific node types.</p>
       <pre class="lines">
 
 
-177
 178
 179
 180
-181</pre>
+181
+182</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 177</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 178</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_info'>info</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>unless</span> <span class='id identifier rubyid_enabled?'>enabled?</span>
@@ -1317,15 +1318,15 @@ Override in submodules for file-type-specific node types.</p>
       <pre class="lines">
 
 
-218
 219
 220
 221
 222
-223</pre>
+223
+224</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 218</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 219</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_log_node'>log_node</span><span class='lparen'>(</span><span class='id identifier rubyid_node'>node</span><span class='comma'>,</span> <span class='label'>label:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Node</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>unless</span> <span class='id identifier rubyid_enabled?'>enabled?</span>
@@ -1378,7 +1379,6 @@ When called as instance method, checks class first, then falls back to base.</p>
       <pre class="lines">
 
 
-151
 152
 153
 154
@@ -1387,10 +1387,11 @@ When called as instance method, checks class first, then falls back to base.</p>
 157
 158
 159
-160</pre>
+160
+161</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 151</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 152</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_log_prefix'>log_prefix</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Module</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_singleton_class'>singleton_class</span><span class='period'>.</span><span class='id identifier rubyid_method_defined?'>method_defined?</span><span class='lparen'>(</span><span class='symbol'>:log_prefix</span><span class='rparen'>)</span>
@@ -1468,7 +1469,6 @@ When called as instance method, checks class first, then falls back to base.</p>
       <pre class="lines">
 
 
-243
 244
 245
 246
@@ -1477,10 +1477,11 @@ When called as instance method, checks class first, then falls back to base.</p>
 249
 250
 251
-252</pre>
+252
+253</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 243</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 244</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_safe_type_name'>safe_type_name</span><span class='lparen'>(</span><span class='id identifier rubyid_node'>node</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_klass'>klass</span> <span class='op'>=</span> <span class='id identifier rubyid_node'>node</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span>
@@ -1575,7 +1576,6 @@ When called as instance method, checks class first, then falls back to base.</p>
       <pre class="lines">
 
 
-195
 196
 197
 198
@@ -1592,10 +1592,11 @@ When called as instance method, checks class first, then falls back to base.</p>
 209
 210
 211
-212</pre>
+212
+213</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 195</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 196</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_time'>time</span><span class='lparen'>(</span><span class='id identifier rubyid_operation'>operation</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>yield</span> <span class='kw'>unless</span> <span class='id identifier rubyid_enabled?'>enabled?</span>
@@ -1664,12 +1665,12 @@ When called as instance method, checks class first, then falls back to base.</p>
       <pre class="lines">
 
 
-186
 187
-188</pre>
+188
+189</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 186</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/debug_logger.rb', line 187</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_warning'>warning</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_warn'>warn</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_log_prefix'>log_prefix</span><span class='embexpr_end'>}</span><span class='tstring_content'> WARNING] </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
@@ -1684,9 +1685,9 @@ When called as instance method, checks class first, then falls back to base.</p>
 </div>
 
       <div id="footer">
-  Generated on Thu Dec 18 16:26:20 2025 by
+  Generated on Sun Dec 28 16:22:20 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.38 (ruby-3.4.7).
+  0.9.38 (ruby-4.0.0).
 </div>
 
     </div>

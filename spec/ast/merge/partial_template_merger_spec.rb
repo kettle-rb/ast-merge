@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::PartialTemplateMerger do
-  before do
-    require "markly/merge"
-  end
-
+RSpec.describe Ast::Merge::PartialTemplateMerger, :markly_merge do
   let(:template) do
     <<~MD
       ### The Gem Family
@@ -70,7 +66,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
           template: template,
           destination: destination_with_section,
           anchor: {type: :heading, text: /Gem Family/},
-          parser: :markly
+          parser: :markly,
         )
       end
 
@@ -123,7 +119,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
           destination: destination_without_section,
           anchor: {type: :heading, text: /Gem Family/},
           parser: :markly,
-          when_missing: :skip
+          when_missing: :skip,
         )
       end
 
@@ -141,7 +137,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
             destination: destination_without_section,
             anchor: {type: :heading, text: /Gem Family/},
             parser: :markly,
-            when_missing: :append
+            when_missing: :append,
           )
         end
 
@@ -160,7 +156,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
             destination: destination_without_section,
             anchor: {type: :heading, text: /Gem Family/},
             parser: :markly,
-            when_missing: :prepend
+            when_missing: :prepend,
           )
         end
 
@@ -208,7 +204,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
           anchor: {type: :heading, text: /Section B/},
           boundary: {type: :heading},
           parser: :markly,
-          replace_mode: true  # Full replacement, not merge
+          replace_mode: true,  # Full replacement, not merge
         )
       end
 
@@ -260,7 +256,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
           boundary: {type: :heading},
           parser: :markly,
           preference: :template,
-          add_missing: true
+          add_missing: true,
           # replace_mode defaults to false - uses SmartMerger
         )
       end
@@ -282,7 +278,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
           destination: destination_with_section,
           anchor: {type: :heading, text: /Gem Family/},
           parser: :markly,
-          preference: :destination
+          preference: :destination,
         )
       end
 
@@ -300,7 +296,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
           destination: destination_with_section,
           anchor: {type: :heading, text: /Gem Family/},
           parser: :markly,
-          add_missing: false
+          add_missing: false,
         )
       end
 
@@ -319,7 +315,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
         has_section: true,
         changed: true,
         stats: {nodes_added: 2},
-        message: "Success"
+        message: "Success",
       )
     end
 
@@ -380,7 +376,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
         template: subsection_template,
         destination: destination_with_h2_and_h3,
         anchor: {type: :heading, text: /Subsection/},
-        parser: :markly
+        parser: :markly,
       )
     end
 
@@ -425,8 +421,6 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
           text = node.respond_to?(:to_plaintext) ? node.to_plaintext.to_s : node.to_s
           if text.include?("Feature")
             [:features, :list_item, text[0, 20]]
-          else
-            nil
           end
         end
       end
@@ -438,7 +432,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
           anchor: {type: :heading, text: /Features/},
           boundary: {type: :heading},
           parser: :markly,
-          signature_generator: custom_signature_generator
+          signature_generator: custom_signature_generator,
         )
       end
 
@@ -503,7 +497,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
           anchor: {type: :heading, text: /Special Section/},
           parser: :markly,
           node_typing: node_typing_config,
-          preference: :template
+          preference: :template,
         )
       end
 

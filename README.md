@@ -302,7 +302,7 @@ The `Ast::Merge` module is organized into several namespaces, each with detailed
 - **Recipe**: `Config`, `Runner`, `ScriptLoader`
 - **Comment**: `Line`, `Block`, `Empty`, `Parser`, `Style`
 - **Text**: `SmartMerger`, `FileAnalysis`, `LineNode`, `WordNode`, `Section`
-- **RSpec**: Shared examples for testing `*-merge` implementations
+- **RSpec**: Shared examples and dependency tags for testing `*-merge` implementations
 
 ## 💡 Info you can shake a stick at
 

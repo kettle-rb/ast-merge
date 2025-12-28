@@ -150,7 +150,7 @@ module Ast
           text: anchor[:text],
           position: :replace,
           boundary_type: boundary&.dig(:type),
-          boundary_text: boundary&.dig(:text)
+          boundary_text: boundary&.dig(:text),
         )
 
         if injection_point.nil?
@@ -176,7 +176,7 @@ module Ast
       end
 
       def normalize_text_pattern(text)
-        return nil if text.nil?
+        return if text.nil?
         return text if text.is_a?(Regexp)
 
         # Handle /regex/ syntax in strings
@@ -194,7 +194,7 @@ module Ast
             content: destination,
             has_section: false,
             changed: false,
-            message: "Section not found, skipping"
+            message: "Section not found, skipping",
           )
         when :append
           # Append template at end of document
@@ -203,7 +203,7 @@ module Ast
             content: new_content,
             has_section: false,
             changed: true,
-            message: "Section not found, appended template"
+            message: "Section not found, appended template",
           )
         when :prepend
           # Prepend template at start (after any frontmatter)
@@ -212,14 +212,14 @@ module Ast
             content: new_content,
             has_section: false,
             changed: true,
-            message: "Section not found, prepended template"
+            message: "Section not found, prepended template",
           )
         else
           Result.new(
             content: destination,
             has_section: false,
             changed: false,
-            message: "Section not found, no action taken"
+            message: "Section not found, no action taken",
           )
         end
       end
@@ -252,7 +252,7 @@ module Ast
           changed: changed,
           stats: stats,
           injection_point: injection_point,
-          message: changed ? "Section merged successfully" : "Section unchanged"
+          message: changed ? "Section merged successfully" : "Section unchanged",
         )
       end
 
@@ -329,8 +329,6 @@ module Ast
           inner.header_level
         elsif inner.respond_to?(:level)
           inner.level
-        else
-          nil
         end
       end
 
@@ -432,4 +430,3 @@ module Ast
     end
   end
 end
-

@@ -218,4 +218,3 @@ RSpec.describe Ast::Merge::Recipe::ScriptLoader do
     end
   end
 end
-

@@ -78,14 +78,95 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>lib/ast/merge.rb<span class="defines">,<br />
-  lib/ast/merge/text.rb,<br /> lib/ast/merge/region.rb,<br /> lib/ast/merge/comment.rb,<br /> lib/ast/merge/version.rb,<br /> lib/ast/merge/ast_node.rb,<br /> lib/ast/merge/freezable.rb,<br /> lib/ast/merge/node_typing.rb,<br /> lib/ast/merge/comment/line.rb,<br /> lib/ast/merge/debug_logger.rb,<br /> lib/ast/merge/text/section.rb,<br /> lib/ast/merge/comment/block.rb,<br /> lib/ast/merge/comment/empty.rb,<br /> lib/ast/merge/comment/style.rb,<br /> lib/ast/merge/merger_config.rb,<br /> lib/ast/merge/comment/parser.rb,<br /> lib/ast/merge/section_typing.rb,<br /> lib/ast/merge/text/line_node.rb,<br /> lib/ast/merge/text/word_node.rb,<br /> lib/ast/merge/file_analyzable.rb,<br /> lib/ast/merge/freeze_node_base.rb,<br /> lib/ast/merge/match_score_base.rb,<br /> lib/ast/merge/region_mergeable.rb,<br /> lib/ast/merge/merge_result_base.rb,<br /> lib/ast/merge/smart_merger_base.rb,<br /> lib/ast/merge/text/merge_result.rb,<br /> lib/ast/merge/text/smart_merger.rb,<br /> lib/ast/merge/match_refiner_base.rb,<br /> lib/ast/merge/text/file_analysis.rb,<br /> lib/ast/merge/region_detector_base.rb,<br /> lib/ast/merge/text/section_splitter.rb,<br /> lib/ast/merge/conflict_resolver_base.rb,<br /> lib/ast/merge/text/conflict_resolver.rb,<br /> lib/ast/merge/toml_frontmatter_detector.rb,<br /> lib/ast/merge/yaml_frontmatter_detector.rb,<br /> lib/ast/merge/fenced_code_block_detector.rb</span>
+    <dd>lib/ast/merge/rspec/dependency_tags.rb<span class="defines">,<br />
+  lib/ast/merge.rb,<br /> lib/ast/merge/text.rb,<br /> lib/ast/merge/recipe.rb,<br /> lib/ast/merge/comment.rb,<br /> lib/ast/merge/version.rb,<br /> lib/ast/merge/ast_node.rb,<br /> lib/ast/merge/freezable.rb,<br /> lib/ast/merge/node_typing.rb,<br /> lib/ast/merge/comment/line.rb,<br /> lib/ast/merge/debug_logger.rb,<br /> lib/ast/merge/text/section.rb,<br /> lib/ast/merge/comment/block.rb,<br /> lib/ast/merge/comment/empty.rb,<br /> lib/ast/merge/comment/style.rb,<br /> lib/ast/merge/detector/base.rb,<br /> lib/ast/merge/merger_config.rb,<br /> lib/ast/merge/recipe/config.rb,<br /> lib/ast/merge/recipe/preset.rb,<br /> lib/ast/merge/recipe/runner.rb,<br /> lib/ast/merge/comment/parser.rb,<br /> lib/ast/merge/section_typing.rb,<br /> lib/ast/merge/text/line_node.rb,<br /> lib/ast/merge/text/word_node.rb,<br /> lib/ast/merge/file_analyzable.rb,<br /> lib/ast/merge/freeze_node_base.rb,<br /> lib/ast/merge/match_score_base.rb,<br /> lib/ast/merge/merge_result_base.rb,<br /> lib/ast/merge/smart_merger_base.rb,<br /> lib/ast/merge/text/merge_result.rb,<br /> lib/ast/merge/text/smart_merger.rb,<br /> lib/ast/merge/detector/mergeable.rb,<br /> lib/ast/merge/match_refiner_base.rb,<br /> lib/ast/merge/text/file_analysis.rb,<br /> lib/ast/merge/navigable_statement.rb,<br /> lib/ast/merge/recipe/script_loader.rb,<br /> lib/ast/merge/content_match_refiner.rb,<br /> lib/ast/merge/text/section_splitter.rb,<br /> lib/ast/merge/conflict_resolver_base.rb,<br /> lib/ast/merge/text/conflict_resolver.rb,<br /> lib/ast/merge/partial_template_merger.rb,<br /> lib/ast/merge/detector/toml_frontmatter.rb,<br /> lib/ast/merge/detector/yaml_frontmatter.rb,<br /> lib/ast/merge/detector/fenced_code_block.rb</span>
 </dd>
   </dl>
   
 </div>
 
-<h2>Defined Under Namespace</h2>
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Ast::Merge RSpec Dependency Tags</p>
+
+<p>This module provides dependency detection helpers for conditional test execution<br />
+in the ast-merge gem family. It extends tree_haver’s dependency tags with<br />
+merge-gem-specific checks.</p>
+
+<p>== Available Tags</p>
+
+<p>=== Merge Gem Tags (run when dependency IS available)</p>
+
+<p>[:markly_merge]<br />
+  markly-merge gem is available and functional.</p>
+
+<p>[:commonmarker_merge]<br />
+  commonmarker-merge gem is available and functional.</p>
+
+<p>[:markdown_merge]<br />
+  markdown-merge gem is available and functional.</p>
+
+<p>[:prism_merge]<br />
+  prism-merge gem is available and functional.</p>
+
+<p>[:json_merge]<br />
+  json-merge gem is available and functional.</p>
+
+<p>[:jsonc_merge]<br />
+  jsonc-merge gem is available and functional.</p>
+
+<p>[:toml_merge]<br />
+  toml-merge gem is available and functional.</p>
+
+<p>[:bash_merge]<br />
+  bash-merge gem is available and functional.</p>
+
+<p>[:psych_merge]<br />
+  psych-merge gem is available and functional.</p>
+
+<p>[:any_markdown_merge]<br />
+  At least one markdown merge gem (markly-merge or commonmarker-merge) is available.</p>
+
+<p>=== Negated Tags (run when dependency is NOT available)</p>
+
+<p>All positive tags have negated versions prefixed with <code>not_</code>:</p>
+<ul>
+  <li>:not_markly_merge, :not_commonmarker_merge, :not_markdown_merge</li>
+  <li>:not_prism_merge, :not_json_merge, :not_jsonc_merge</li>
+  <li>:not_toml_merge, :not_bash_merge, :not_psych_merge</li>
+  <li>:not_any_markdown_merge</li>
+</ul>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+  <div class="examples">
+    <h4 class="tag_title">Examples:</h4>
+    
+      
+        <h5 class="example_title"><div class='inline'><p>Loading in spec_helper.rb</p>
+</div></h5>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_require'>require</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>ast/merge/rspec/dependency_tags</span><span class='tstring_end'>&quot;</span></span></code></pre>
+    
+      
+        <h5 class="example_title"><div class='inline'><p>Usage in specs</p>
+</div></h5>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_it'>it</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>requires markly-merge</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='symbol'>:markly_merge</span> <span class='kw'>do</span>
+  <span class='comment'># This test only runs when markly-merge is available
+</span><span class='kw'>end</span>
+
+<span class='id identifier rubyid_it'>it</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>requires prism-merge</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='symbol'>:prism_merge</span> <span class='kw'>do</span>
+  <span class='comment'># This test only runs when prism-merge is available
+</span><span class='kw'>end</span></code></pre>
+    
+  </div>
+
+
+</div><h2>Defined Under Namespace</h2>
 <p class="children">
   
     
@@ -107,9 +188,9 @@
 </div>
 
       <div id="footer">
-  Generated on Thu Dec 18 16:26:20 2025 by
+  Generated on Sun Dec 28 16:22:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.38 (ruby-3.4.7).
+  0.9.38 (ruby-4.0.0).
 </div>
 
     </div>

@@ -332,4 +332,3 @@ RSpec.describe Ast::Merge::Detector::Region do
     end
   end
 end
-

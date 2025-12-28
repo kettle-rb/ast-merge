@@ -48,16 +48,18 @@ module Ast
         # @return [String, nil] Path to the preset file (for script resolution)
         attr_reader :preset_path
 
-        # Load a preset from a YAML file.
-        #
-        # @param path [String] Path to the preset YAML file
-        # @return [Preset]
-        # @raise [ArgumentError] If file not found
-        def self.load(path)
-          raise ArgumentError, "Preset file not found: #{path}" unless File.exist?(path)
+        class << self
+          # Load a preset from a YAML file.
+          #
+          # @param path [String] Path to the preset YAML file
+          # @return [Preset]
+          # @raise [ArgumentError] If file not found
+          def load(path)
+            raise ArgumentError, "Preset file not found: #{path}" unless File.exist?(path)
 
-          yaml = YAML.safe_load(File.read(path), permitted_classes: [Regexp, Symbol])
-          new(yaml, preset_path: path)
+            yaml = YAML.safe_load_file(path, permitted_classes: [Regexp, Symbol])
+            new(yaml, preset_path: path)
+          end
         end
 
         # Initialize a preset from a hash.
@@ -105,7 +107,7 @@ module Ast
         # @return [Proc, nil] Signature generator callable
         def signature_generator
           value = merge_config[:signature_generator]
-          return nil if value.nil?
+          return if value.nil?
           return value if value.respond_to?(:call)
 
           script_loader.load_callable(value)
@@ -116,7 +118,7 @@ module Ast
         # @return [Hash, nil] Hash of type => callable
         def node_typing
           value = merge_config[:node_typing]
-          return nil if value.nil?
+          return if value.nil?
           return value if value.is_a?(Hash) && value.values.all? { |v| v.respond_to?(:call) }
 
           script_loader.load_callable_hash(value)
@@ -167,4 +169,3 @@ module Ast
     end
   end
 end
-

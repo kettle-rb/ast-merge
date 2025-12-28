@@ -62,15 +62,15 @@ Markdown-merge flattens the AST to a list of "statements" (top-level block nodes
 ```
 Flattened GEM_FAMILY_SECTION.md:
  0: heading              "### The `*-merge` Gem Family"
- 1: gap_line             
+ 1: gap_line
  2: paragraph            "The `*-merge` gem family provides..."
- 3: gap_line             
+ 3: gap_line
  4: table                "| Gem | Format | Parser Backend(s) |..."
- 5: gap_line             
+ 5: gap_line
  6: paragraph            "**Example implementations**..."
- 7: gap_line             
+ 7: gap_line
  8: table                "| Gem | Purpose | Description |..."
- 9: gap_line             
+ 9: gap_line
 10-35: link_definition   "[tree_haver]:", "[ast-merge]:", etc.
 36-37: gap_line
 ```
@@ -106,7 +106,7 @@ Investigation reveals a split in how nodes track their tree position:
 - Created independently from gap line detection or freeze marker parsing
 - Only know their line numbers, not their relationship to other nodes
 
-**The Problem**: When we flatten to a statement list, we lose the implicit sibling 
+**The Problem**: When we flatten to a statement list, we lose the implicit sibling
 relationships. We can't easily ask "what's the next statement?" without array indexing.
 
 ### IMPLEMENTED: NavigableStatement, InjectionPoint, InjectionPointFinder
@@ -148,7 +148,7 @@ Defines where content can be injected (language-agnostic):
 ```ruby
 # Positions for injection
 :before       # Insert as previous sibling
-:after        # Insert as next sibling  
+:after        # Insert as next sibling
 :first_child  # Insert as first child of anchor
 :last_child   # Insert as last child of anchor
 :replace      # Replace anchor (with optional boundary)
@@ -157,9 +157,9 @@ Defines where content can be injected (language-agnostic):
 point = InjectionPoint.new(anchor: class_stmt, position: :first_child)
 point = InjectionPoint.new(anchor: const_stmt, position: :replace)
 point = InjectionPoint.new(
-  anchor: start_stmt, 
-  position: :replace, 
-  boundary: end_stmt
+  anchor: start_stmt,
+  position: :replace,
+  boundary: end_stmt,
 )
 
 # Query the point
@@ -218,10 +218,10 @@ injection:
   anchor:
     type: class
     text: /class Choo/
-  
+
   # Inject as first child (top of class body)
   position: first_child
-  
+
   # For existing constants, update them
   merge:
     match_by: [type, name]  # Match constants by type and name
@@ -247,13 +247,13 @@ injection:
   anchor:
     type: heading
     text: /Gem Family/
-  
+
   # Replace from heading until next heading of same level
   position: replace
   boundary:
     type: heading
     level_lte: 3  # heading level <= 3
-  
+
 when_missing: skip
 ```
 
@@ -275,9 +275,9 @@ injection:
   anchor:
     type: mapping_key
     text: database
-  
+
   position: replace
-  
+
   merge:
     deep: true  # Deep merge nested structures
 ```
@@ -311,7 +311,7 @@ injection:
 
 merge:
   preference: template
-  
+
   # Script references - loaded from gem_family_section/ folder
   add_missing: add_missing_filter.rb
   signature_generator: signature_generator.rb
@@ -335,15 +335,13 @@ Recipes can reference Ruby scripts that return callable objects (lambda, proc, o
 2. **Script Format**: Each script file must return a callable:
    ```ruby
    # .merge-recipes/my_recipe/signature_generator.rb
-   lambda do |node|
-     # Return signature array or nil
-     text = node.to_s
-     if text.include?("special")
-       [:special, :node]
-     else
-       nil
-     end
-   end
+lambda do |node|
+  # Return signature array or nil
+  text = node.to_s
+  if text.include?("special")
+    [:special, :node]
+  end
+end
    ```
 
 3. **Inline Lambdas**: Simple expressions can be inline in YAML:
@@ -378,11 +376,11 @@ Dir["README.md", "vendor/*/README.md"].each do |path|
   finder = Ast::Merge::InjectionPointFinder.new(d_statements)
   point = finder.find(type: :heading, text: /Gem Family/, position: :replace)
 
-  if point
+  results << if point
     # Perform merge at injection point
-    results << { path: path, status: :updated }
+    { path: path, status: :updated }
   else
-    results << { path: path, status: :skipped }
+    { path: path, status: :skipped }
   end
 end
 

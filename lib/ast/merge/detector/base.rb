@@ -144,7 +144,7 @@ module Ast
         end
 
         # Detects all regions of this type in the given source.
-        # @param source [String] The full document content to scan
+        # @param _source [String] The full document content to scan
         # @return [Array<Region>] All detected regions, sorted by start_line
         # @abstract
         def detect_all(_source)
@@ -191,4 +191,3 @@ module Ast
     end
   end
 end
-

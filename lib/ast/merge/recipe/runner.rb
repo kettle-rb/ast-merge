@@ -156,7 +156,7 @@ module Ast
               when_missing: recipe.when_missing,
               replace_mode: recipe.replace_mode?,
               signature_generator: recipe.signature_generator,
-              node_typing: recipe.node_typing
+              node_typing: recipe.node_typing,
             )
 
             result = merger.merge
@@ -174,7 +174,7 @@ module Ast
               changed: false,
               has_anchor: false,
               message: e.message,
-              error: e
+              error: e,
             )
           end
         end
@@ -194,7 +194,7 @@ module Ast
               changed: true,
               has_anchor: true,
               message: dry_run ? "Would update" : "Updated",
-              stats: merge_result.stats
+              stats: merge_result.stats,
             )
           else
             Result.new(
@@ -204,7 +204,7 @@ module Ast
               changed: false,
               has_anchor: true,
               message: "No changes needed",
-              stats: merge_result.stats
+              stats: merge_result.stats,
             )
           end
         end
@@ -227,7 +227,7 @@ module Ast
             status: status,
             changed: merge_result.changed,
             has_anchor: false,
-            message: merge_result.message || "No matching anchor found"
+            message: merge_result.message || "No matching anchor found",
           )
         end
 
@@ -239,7 +239,7 @@ module Ast
 
           # If recipe has a path, try relative to recipe's parent directory
           if recipe.recipe_path
-            recipe_base = File.dirname(File.dirname(recipe.recipe_path))
+            recipe_base = File.dirname(recipe.recipe_path, 2)
             if path.start_with?(recipe_base)
               return path.sub("#{recipe_base}/", "")
             end
@@ -252,4 +252,3 @@ module Ast
     end
   end
 end
-

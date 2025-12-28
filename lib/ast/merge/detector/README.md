@@ -23,7 +23,7 @@ region = Ast::Merge::Detector::Region.new(
   start_line: 1,
   end_line: 4,
   delimiters: ["---", "---"],
-  metadata: { format: :yaml }
+  metadata: {format: :yaml},
 )
 
 region.line_range    # => 1..4
@@ -53,7 +53,7 @@ class MyBlockDetector < Ast::Merge::Detector::Base
       start_line: start,
       end_line: end_line,
       delimiters: ["<<<", ">>>"],
-      metadata: { custom: "data" }
+      metadata: {custom: "data"},
     )
     regions
   end
@@ -108,7 +108,7 @@ Mixin for adding region support to SmartMerger classes. Enables nested content m
 ```ruby
 class MySmartMerger < Ast::Merge::SmartMergerBase
   include Ast::Merge::Detector::Mergeable
-  
+
   def initialize(template, dest, regions: [], **options)
     super
     setup_regions(regions: regions)
@@ -123,13 +123,13 @@ merger = MySmartMerger.new(
     {
       detector: Ast::Merge::Detector::YamlFrontmatter.new,
       merger_class: Psych::Merge::SmartMerger,
-      merger_options: { preserve_order: true }
+      merger_options: {preserve_order: true},
     },
     {
       detector: Ast::Merge::Detector::FencedCodeBlock.ruby,
-      merger_class: Prism::Merge::SmartMerger
-    }
-  ]
+      merger_class: Prism::Merge::SmartMerger,
+    },
+  ],
 )
 ```
 

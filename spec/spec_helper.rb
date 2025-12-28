@@ -23,6 +23,10 @@ end
 # this library
 require "ast/merge"
 
+# RSpec support: dependency tags + shared examples
+# Loads TreeHaver tags (parser backends) + Ast::Merge tags (merge gems) + shared examples
+require "ast/merge/rspec"
+
 RSpec.configure do |config|
   config.before do
     # Speed up polling loops

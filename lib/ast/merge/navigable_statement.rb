@@ -66,50 +66,52 @@ module Ast
         @context = nil
       end
 
-      # Build a linked list of NavigableStatements from raw statements.
-      #
-      # @param raw_statements [Array<Object>] Raw statement nodes
-      # @return [Array<NavigableStatement>] Linked statement list
-      def self.build_list(raw_statements)
-        statements = raw_statements.each_with_index.map do |node, i|
-          new(node, index: i)
+      class << self
+        # Build a linked list of NavigableStatements from raw statements.
+        #
+        # @param raw_statements [Array<Object>] Raw statement nodes
+        # @return [Array<NavigableStatement>] Linked statement list
+        def build_list(raw_statements)
+          statements = raw_statements.each_with_index.map do |node, i|
+            new(node, index: i)
+          end
+
+          # Link siblings in flat list
+          statements.each_cons(2) do |prev_stmt, next_stmt|
+            prev_stmt.next_statement = next_stmt
+            next_stmt.prev_statement = prev_stmt
+          end
+
+          statements
         end
 
-        # Link siblings in flat list
-        statements.each_cons(2) do |prev_stmt, next_stmt|
-          prev_stmt.next_statement = next_stmt
-          next_stmt.prev_statement = prev_stmt
+        # Find statements matching a query.
+        #
+        # @param statements [Array<NavigableStatement>] Statement list
+        # @param type [Symbol, String, nil] Node type to match (nil = any)
+        # @param text [String, Regexp, nil] Text pattern to match
+        # @yield [NavigableStatement] Optional block for custom matching
+        # @return [Array<NavigableStatement>] Matching statements
+        def find_matching(statements, type: nil, text: nil, &block)
+          statements.select do |stmt|
+            matches = true
+            matches &&= stmt.type.to_s == type.to_s if type
+            matches &&= text.is_a?(Regexp) ? stmt.text.match?(text) : stmt.text.include?(text.to_s) if text
+            matches &&= yield(stmt) if block_given?
+            matches
+          end
         end
 
-        statements
-      end
-
-      # Find statements matching a query.
-      #
-      # @param statements [Array<NavigableStatement>] Statement list
-      # @param type [Symbol, String, nil] Node type to match (nil = any)
-      # @param text [String, Regexp, nil] Text pattern to match
-      # @yield [NavigableStatement] Optional block for custom matching
-      # @return [Array<NavigableStatement>] Matching statements
-      def self.find_matching(statements, type: nil, text: nil, &block)
-        statements.select do |stmt|
-          matches = true
-          matches &&= stmt.type.to_s == type.to_s if type
-          matches &&= text.is_a?(Regexp) ? stmt.text.match?(text) : stmt.text.include?(text.to_s) if text
-          matches &&= yield(stmt) if block_given?
-          matches
+        # Find the first statement matching criteria.
+        #
+        # @param statements [Array<NavigableStatement>] Statement list
+        # @param type [Symbol, String, nil] Node type to match
+        # @param text [String, Regexp, nil] Text pattern to match
+        # @yield [NavigableStatement] Optional block for custom matching
+        # @return [NavigableStatement, nil] First matching statement
+        def find_first(statements, type: nil, text: nil, &block)
+          find_matching(statements, type: type, text: text, &block).first
         end
-      end
-
-      # Find the first statement matching criteria.
-      #
-      # @param statements [Array<NavigableStatement>] Statement list
-      # @param type [Symbol, String, nil] Node type to match
-      # @param text [String, Regexp, nil] Text pattern to match
-      # @yield [NavigableStatement] Optional block for custom matching
-      # @return [NavigableStatement, nil] First matching statement
-      def self.find_first(statements, type: nil, text: nil, &block)
-        find_matching(statements, type: type, text: text, &block).first
       end
 
       # ============================================================
@@ -335,7 +337,6 @@ module Ast
         nil
       end
 
-
       # ============================================================
       # Utilities
       # ============================================================
@@ -402,11 +403,46 @@ module Ast
     class InjectionPoint
       # Valid positions for injection
       POSITIONS = %i[
-        before          # Insert as previous sibling of anchor
-        after           # Insert as next sibling of anchor
-        first_child     # Insert as first child of anchor
-        last_child      # Insert as last child of anchor
-        replace         # Replace anchor (and optionally through boundary)
+        before
+        #
+        Insert
+        as
+        previous
+        sibling
+        of
+        anchor
+        after
+        #
+        Insert
+        as
+        next
+        sibling
+        of
+        anchor
+        first_child
+        #
+        Insert
+        as
+        first
+        child
+        of
+        anchor
+        last_child
+        #
+        Insert
+        as
+        last
+        child
+        of
+        anchor
+        replace
+        #
+        Replace
+        anchor
+        (and
+        optionally
+        through
+        boundary)
       ].freeze
 
       # @return [NavigableStatement] The anchor node for injection
@@ -541,7 +577,7 @@ module Ast
       # @return [InjectionPoint, nil] Injection point if anchor found
       def find(type: nil, text: nil, position:, boundary_type: nil, boundary_text: nil, boundary_matcher: nil, boundary_same_or_shallower: false, &block)
         anchor = NavigableStatement.find_first(statements, type: type, text: text, &block)
-        return nil unless anchor
+        return unless anchor
 
         boundary = nil
         if position == :replace && (boundary_type || boundary_text || boundary_matcher || boundary_same_or_shallower)
@@ -566,7 +602,7 @@ module Ast
             boundary = NavigableStatement.find_first(
               remaining,
               type: boundary_type,
-              text: boundary_text
+              text: boundary_text,
             )
           end
         end
@@ -575,7 +611,7 @@ module Ast
           anchor: anchor,
           position: position,
           boundary: boundary,
-          match: {type: type, text: text}
+          match: {type: type, text: text},
         )
       end
 
@@ -592,4 +628,3 @@ module Ast
     end
   end
 end
-

@@ -186,4 +186,3 @@ RSpec.describe Ast::Merge::Recipe::Config do
     end
   end
 end
-

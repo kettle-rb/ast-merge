@@ -238,7 +238,6 @@ RSpec.describe Ast::Merge::Detector::TomlFrontmatter do
     end
   end
 
-
   describe "line calculation edge cases" do
     context "when full match does not end with newline" do
       let(:source) do

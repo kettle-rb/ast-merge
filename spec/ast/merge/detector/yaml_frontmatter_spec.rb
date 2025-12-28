@@ -216,7 +216,6 @@ RSpec.describe Ast::Merge::Detector::YamlFrontmatter do
     end
   end
 
-
   describe "line calculation edge cases" do
     context "when content is not empty and doesn't end with newline" do
       let(:source) do

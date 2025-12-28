@@ -28,11 +28,13 @@ require "digest"
 module ReadmeSectionMerge
   # ANSI color helpers for terminal output
   module Colors
-    def self.green(str) = "\e[32m#{str}\e[0m"
-    def self.red(str) = "\e[31m#{str}\e[0m"
-    def self.yellow(str) = "\e[33m#{str}\e[0m"
-    def self.cyan(str) = "\e[36m#{str}\e[0m"
-    def self.bold(str) = "\e[1m#{str}\e[0m"
+    class << self
+      def green(str) = "\e[32m#{str}\e[0m"
+      def red(str) = "\e[31m#{str}\e[0m"
+      def yellow(str) = "\e[33m#{str}\e[0m"
+      def cyan(str) = "\e[36m#{str}\e[0m"
+      def bold(str) = "\e[1m#{str}\e[0m"
+    end
   end
 
   # Path configuration
@@ -42,16 +44,18 @@ module ReadmeSectionMerge
     TEMPLATE_SECTION = File.join(File.dirname(EXAMPLES_DIR), "GEM_FAMILY_SECTION.md")
     OUTPUT_DIR = File.join(FIXTURES_DIR, "output")
 
-    def self.ensure_output_dir!
-      FileUtils.mkdir_p(OUTPUT_DIR)
-    end
+    class << self
+      def ensure_output_dir!
+        FileUtils.mkdir_p(OUTPUT_DIR)
+      end
 
-    def self.fixture_path(filename)
-      File.join(FIXTURES_DIR, filename)
-    end
+      def fixture_path(filename)
+        File.join(FIXTURES_DIR, filename)
+      end
 
-    def self.output_path(prefix, filename)
-      File.join(OUTPUT_DIR, "#{prefix}_#{filename}")
+      def output_path(prefix, filename)
+        File.join(OUTPUT_DIR, "#{prefix}_#{filename}")
+      end
     end
   end
 

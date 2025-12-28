@@ -46,11 +46,11 @@ end
 recipe_merge_gems = []
 if options[:recipe_file] && File.exist?(options[:recipe_file])
   begin
-    recipe_config = YAML.safe_load(File.read(options[:recipe_file]), permitted_classes: [Symbol])
+    recipe_config = YAML.safe_load_file(options[:recipe_file], permitted_classes: [Symbol])
     if recipe_config.is_a?(Hash) && recipe_config["merge_gems"]
       recipe_merge_gems = Array(recipe_config["merge_gems"])
     end
-  rescue => e
+  rescue
     # Ignore errors here, we'll catch them later
   end
 end
@@ -93,7 +93,7 @@ gemfile do
   recipe_merge_gems.each do |gem_spec|
     case gem_spec
     when String
-      gem gem_spec
+      gem(gem_spec)
     when Hash
       name = gem_spec["name"] || gem_spec[:name]
       gem_opts = {}
@@ -104,9 +104,9 @@ gemfile do
       gem_opts[:require] = gem_spec["require"] || gem_spec[:require] if gem_spec.key?("require") || gem_spec.key?(:require)
 
       if gem_opts.empty?
-        gem name
+        gem(name)
       else
-        gem name, **gem_opts
+        gem(name, **gem_opts)
       end
     end
   end
@@ -160,11 +160,11 @@ class AstMergeRecipeCLI
     $stderr.puts Colors.red("ERROR: #{e.message}")
     $stderr.puts
     $stderr.puts @option_parser
-    exit 1
+    exit(1)
   rescue => e
     $stderr.puts Colors.red("ERROR: #{e.message}")
     $stderr.puts e.backtrace.first(5).join("\n") if @options[:verbose]
-    exit 1
+    exit(1)
   end
 
   private
@@ -172,10 +172,10 @@ class AstMergeRecipeCLI
   def parse_options(argv)
     @option_parser = OptionParser.new do |opts|
       opts.banner = "Usage: #{File.basename($0)} RECIPE_FILE [options]"
-      opts.separator ""
-      opts.separator "Run a YAML-based merge recipe against target files."
-      opts.separator ""
-      opts.separator "Options:"
+      opts.separator("")
+      opts.separator("Run a YAML-based merge recipe against target files.")
+      opts.separator("")
+      opts.separator("Options:")
 
       opts.on("-n", "--dry-run", "Show what would change without modifying files") do
         @options[:dry_run] = true
@@ -185,26 +185,37 @@ class AstMergeRecipeCLI
         @options[:verbose] = true
       end
 
-      opts.on("-p", "--parser=PARSER", String,
+      opts.on(
+        "-p",
+        "--parser=PARSER",
+        String,
         "Parser to use (markly, commonmarker, prism, psych)",
-        "Default: markly") do |parser|
+        "Default: markly",
+      ) do |parser|
         @options[:parser] = parser.to_sym
       end
 
-      opts.on("-d", "--base-dir=DIR", String,
+      opts.on(
+        "-d",
+        "--base-dir=DIR",
+        String,
         "Base directory for path resolution",
-        "Default: current directory") do |dir|
+        "Default: current directory",
+      ) do |dir|
         @options[:base_dir] = File.expand_path(dir)
       end
 
-      opts.on("--dev-root=DIR", String,
-        "Root directory for development gems (implies dev mode)") do |dir|
+      opts.on(
+        "--dev-root=DIR",
+        String,
+        "Root directory for development gems (implies dev mode)",
+      ) do |dir|
         # Already handled in pre-parse
       end
 
       opts.on("-V", "--version", "Show version") do
         puts "ast-merge-recipe #{VERSION}"
-        exit 0
+        exit(0)
       end
 
       opts.on("-h", "--help", "Show this help message") do
@@ -216,7 +227,7 @@ class AstMergeRecipeCLI
         puts
         puts "Recipe YAML format:"
         puts "  See lib/ast/merge/recipe/README.md for full documentation"
-        exit 0
+        exit(0)
       end
     end
 
@@ -237,13 +248,13 @@ class AstMergeRecipeCLI
       $stderr.puts Colors.red("ERROR: No recipe file specified")
       $stderr.puts
       $stderr.puts @option_parser
-      exit 1
+      exit(1)
     end
 
     recipe_path = File.expand_path(@options[:recipe_file])
     unless File.exist?(recipe_path)
       $stderr.puts Colors.red("ERROR: Recipe file not found: #{recipe_path}")
-      exit 1
+      exit(1)
     end
 
     @options[:recipe_file] = recipe_path
@@ -262,7 +273,7 @@ class AstMergeRecipeCLI
       dry_run: @options[:dry_run],
       base_dir: @options[:base_dir],
       parser: @options[:parser],
-      verbose: @options[:verbose]
+      verbose: @options[:verbose],
     )
 
     # Run and display results
@@ -276,7 +287,7 @@ class AstMergeRecipeCLI
     print_summary(runner)
 
     # Exit with error if there were failures
-    exit 1 if runner.summary[:errors] > 0
+    exit(1) if runner.summary[:errors] > 0
   end
 
   def print_header
@@ -353,4 +364,3 @@ end
 
 # Run the CLI
 AstMergeRecipeCLI.new.run
-

@@ -1,61 +1,21 @@
 {
-  "BACKEND-GRAMMAR-DUPLICATION-ANALYSIS.md:3784123443": [
-    [193, 1, 19, "Lint/Syntax: dynamic constant assignment\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 3678561746],
-    [323, 3, 20, "Lint/Syntax: dynamic constant assignment\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 3830196542],
-    [533, 1, 19, "Lint/Syntax: dynamic constant assignment\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 3678561746],
-    [666, 1, 0, "Lint/Syntax: unexpected token $end\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 5381]
+  "README.md:3925757426": [
+    [654, 3, 1, "Lint/Syntax: unexpected token tCOLON\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 177567]
   ],
-  "BACKEND-TRANSITION-COMPLETE.md:2059155978": [
-    [106, 44, 1, "Lint/Syntax: unexpected token tRBRACK\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 177656],
-    [256, 1, 6, "Lint/Syntax: unexpected token kRESCUE\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 2123792210]
-  ],
-  "README.md:1900419018": [
-    [487, 3, 1, "Lint/Syntax: unexpected token tCOLON\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 177567]
-  ],
-  "SMART_MERGER_AUDIT.md:344722550": [
-    [155, 1, 0, "Lint/Syntax: unexpected token $end\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 5381]
-  ],
-  "TREEHAVER-MIGRATION-GUIDE.md:3977104894": [
-    [94, 1, 6, "Lint/Syntax: unexpected token kRESCUE\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 2123792210]
-  ],
-  "TREEHAVER-TRANSITION-SUMMARY.md:3228015204": [
-    [123, 1, 6, "Lint/Syntax: unexpected token kRESCUE\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 2123792210]
+  "docs/PARTIAL-TEMPLATE-MERGE-ARCHITECTURE.md:2433885434": [
+    [381, 6, 1, "Layout/SpaceInsideHashLiteralBraces: Space inside { detected.", 177541],
+    [381, 35, 1, "Layout/SpaceInsideHashLiteralBraces: Space inside } detected.", 177541],
+    [383, 6, 1, "Layout/SpaceInsideHashLiteralBraces: Space inside { detected.", 177541],
+    [383, 35, 1, "Layout/SpaceInsideHashLiteralBraces: Space inside } detected.", 177541]
   ],
   "examples/readme_section_merge/README.md:2140207292": [
     [16, 38, 1, "Lint/Syntax: trailing `_' in number\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 177658],
     [16, 39, 19, "Lint/Syntax: unexpected token tIDENTIFIER\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 275888237]
   ],
-  "examples/readme_section_merge/shared.rb:2648137218": [
-    [31, 5, 41, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 676585987],
-    [32, 5, 39, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3151552296],
-    [33, 5, 42, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 2517847901],
-    [34, 5, 40, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 220053193],
-    [35, 5, 39, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3709721677],
-    [45, 5, 71, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 1803943260],
-    [49, 5, 79, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 958037111],
-    [53, 5, 99, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3257598071]
+  "lib/ast/merge/comment/README.md:460348372": [
+    [118, 1, 1, "Lint/Syntax: unexpected token tLT\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 177561]
   ],
-  "spec/ast/merge/debug_logger_spec.rb:4077105382": [
-    [113, 14, 13, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 414119492]
-  ],
-  "spec/integration/freeze_node_edge_cases_spec.rb:1704010551": [
-    [13, 16, 19, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 3266944182],
-    [14, 16, 33, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 1265269949],
-    [26, 16, 26, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 4197319414],
-    [27, 16, 40, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 741439283],
-    [33, 16, 20, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 104745525],
-    [34, 16, 34, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 2860477502],
-    [40, 16, 23, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 1648951125],
-    [41, 16, 32, "RSpec/ExpectActual: Provide the actual value you are testing to `expect(...)`.", 3717629482],
-    [95, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
-    [110, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
-    [124, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
-    [136, 63, 26, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3606922876],
-    [159, 9, 46, "RSpec/ReceiveMessages: Use `receive_messages` instead of multiple stubs on lines [160].", 53655011],
-    [160, 9, 59, "RSpec/ReceiveMessages: Use `receive_messages` instead of multiple stubs on lines [159].", 443119685],
-    [667, 13, 40, "ThreadSafety/ClassAndModuleAttributes: Avoid mutating class and module attributes.", 2667817960]
-  ],
-  "spec/integration/integration_spec.rb:197900658": [
-    [19, 5, 279, "RSpec/LeakyConstantDeclaration: Stub module constant instead of declaring explicitly.", 4077310070]
+  "spec/ast/merge/navigable_statement_spec.rb:953270551": [
+    [3, 1, 45, "RSpec/MultipleDescribes: Do not use multiple top-level example groups - try to nest them.", 1966401495]
   ]
 }

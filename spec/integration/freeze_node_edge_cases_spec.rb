@@ -10,8 +10,10 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         # This covers the :hash_comment when branch (line 161)
         pattern = Ast::Merge::FreezeNodeBase.pattern_for(:hash_comment, "my-merge")
         expect(pattern).to be_a(Regexp)
-        expect("# my-merge:freeze").to match(pattern)
-        expect("# my-merge:unfreeze some reason").to match(pattern)
+        freeze_example = "# my-merge:freeze"
+        unfreeze_example = "# my-merge:unfreeze some reason"
+        expect(freeze_example).to match(pattern)
+        expect(unfreeze_example).to match(pattern)
         # Capture groups should work
         match = "# my-merge:freeze reason text".match(pattern)
         freeze_text = match[1]
@@ -23,22 +25,28 @@ RSpec.describe "Ast::Merge Branch Coverage" do
       it "builds html_comment pattern with token" do
         pattern = Ast::Merge::FreezeNodeBase.pattern_for(:html_comment, "my-merge")
         expect(pattern).to be_a(Regexp)
-        expect("<!-- my-merge:freeze -->").to match(pattern)
-        expect("<!-- my-merge:unfreeze reason here -->").to match(pattern)
+        freeze_example = "<!-- my-merge:freeze -->"
+        unfreeze_example = "<!-- my-merge:unfreeze reason here -->"
+        expect(freeze_example).to match(pattern)
+        expect(unfreeze_example).to match(pattern)
       end
 
       it "builds c_style_line pattern with token" do
         pattern = Ast::Merge::FreezeNodeBase.pattern_for(:c_style_line, "my-merge")
         expect(pattern).to be_a(Regexp)
-        expect("// my-merge:freeze").to match(pattern)
-        expect("// my-merge:unfreeze some reason").to match(pattern)
+        freeze_example = "// my-merge:freeze"
+        unfreeze_example = "// my-merge:unfreeze some reason"
+        expect(freeze_example).to match(pattern)
+        expect(unfreeze_example).to match(pattern)
       end
 
       it "builds c_style_block pattern with token" do
         pattern = Ast::Merge::FreezeNodeBase.pattern_for(:c_style_block, "my-merge")
         expect(pattern).to be_a(Regexp)
-        expect("/* my-merge:freeze */").to match(pattern)
-        expect("/* my-merge:unfreeze reason */").to match(pattern)
+        freeze_example = "/* my-merge:freeze */"
+        unfreeze_example = "/* my-merge:unfreeze reason */"
+        expect(freeze_example).to match(pattern)
+        expect(unfreeze_example).to match(pattern)
       end
 
       it "raises ArgumentError for unknown pattern type" do
@@ -92,7 +100,12 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         stub_env("TEST_BRANCH_DEBUG" => "1")
         location = double("Location", start_line: 5, end_line: 10)
         node = double("Node", location: location)
-        allow(node).to receive(:class).and_return(Class.new { def self.name = "TestNode" })
+        test_class = Class.new do
+          class << self
+            def name = "TestNode"
+          end
+        end
+        allow(node).to receive(:class).and_return(test_class)
 
         info = test_logger.extract_node_info(node)
         expect(info[:lines]).to eq("5..10")
@@ -107,7 +120,12 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         allow(location).to receive(:respond_to?).with(:line).and_return(true)
         node = double("Node", location: location)
         allow(node).to receive(:respond_to?).with(:location).and_return(true)
-        allow(node).to receive(:class).and_return(Class.new { def self.name = "TestNode" })
+        test_class = Class.new do
+          class << self
+            def name = "TestNode"
+          end
+        end
+        allow(node).to receive(:class).and_return(test_class)
 
         info = test_logger.extract_node_info(node)
         # When start_line/end_line not present and line is, extract_lines returns nil
@@ -121,7 +139,12 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         allow(node).to receive(:respond_to?).with(:location).and_return(false)
         allow(node).to receive(:respond_to?).with(:start_line).and_return(true)
         allow(node).to receive(:respond_to?).with(:end_line).and_return(true)
-        allow(node).to receive(:class).and_return(Class.new { def self.name = "TestNode" })
+        test_class = Class.new do
+          class << self
+            def name = "TestNode"
+          end
+        end
+        allow(node).to receive(:class).and_return(test_class)
 
         info = test_logger.extract_node_info(node)
         expect(info[:lines]).to eq("5..10")
@@ -133,7 +156,12 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         allow(node).to receive(:respond_to?).with(:location).and_return(false)
         allow(node).to receive(:respond_to?).with(:start_line).and_return(false)
         allow(node).to receive(:respond_to?).with(:end_line).and_return(false)
-        allow(node).to receive(:class).and_return(Class.new { def self.name = "TestNode" })
+        test_class = Class.new do
+          class << self
+            def name = "TestNode"
+          end
+        end
+        allow(node).to receive(:class).and_return(test_class)
 
         info = test_logger.extract_node_info(node)
         expect(info[:lines]).to be_nil
@@ -156,8 +184,7 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         klass = double("Class")
         allow(node).to receive(:class).and_return(klass)
         allow(klass).to receive(:respond_to?).with(:name).and_return(true)
-        allow(klass).to receive(:name).and_return(nil)
-        allow(klass).to receive(:to_s).and_return("AnonymousClass")
+        allow(klass).to receive_messages(name: nil, to_s: "AnonymousClass")
 
         result = test_logger.safe_type_name(node)
         expect(result).to eq("AnonymousClass")
@@ -664,7 +691,9 @@ RSpec.describe "Ast::Merge Branch Coverage" do
           include Ast::Merge::DebugLogger
 
           class << self
+            # rubocop:disable ThreadSafety/ClassAndModuleAttributes
             attr_accessor :env_var_name, :log_prefix
+            # rubocop:enable ThreadSafety/ClassAndModuleAttributes
           end
 
           self.env_var_name = "CUSTOM_DEBUG"

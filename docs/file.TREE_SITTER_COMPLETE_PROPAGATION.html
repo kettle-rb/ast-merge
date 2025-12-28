@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: TREE_SITTER_COMPLETE_PROPAGATION
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "TREE_SITTER_COMPLETE_PROPAGATION";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: TREE_SITTER_COMPLETE_PROPAGATION</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'><h1 id="tree-sitter-setup-script-propagation---complete-summary">Tree-Sitter Setup Script Propagation - Complete Summary</h1>
+
+<h2 id="overview">Overview</h2>
+
+<p>Fixed and propagated tree-sitter setup scripts across all gems in the kettle-rb ecosystem that require tree-sitter support.</p>
+
+<h2 id="problem-fixed">Problem Fixed</h2>
+
+<ol>
+  <li>
+<strong>Broken argument parsing</strong>: Scripts used <code>for arg in "$@"</code> with <code>shift</code>, which doesn’t work</li>
+  <li>
+<strong>Manual sudo management</strong>: Required explicit <code>--sudo</code> flag instead of auto-detection</li>
+  <li>
+<strong>Limited scope</strong>: Only 4 single-grammar gems had the script; integration testing gems were missing it</li>
+</ol>
+
+<h2 id="solution-implemented">Solution Implemented</h2>
+
+<h3 id="1-core-script-fixes">1. Core Script Fixes</h3>
+
+<p><strong>Fixed argument parsing</strong>:</p>
+<pre class="code language-bash"><code class="language-bash"># Before (broken)
+for arg in &quot;$@&quot;; do
+  case $arg in --sudo) SUDO=&quot;sudo&quot;; shift ;; esac
+done
+
+# After (working)
+while [[ $# -gt 0 ]]; do
+  case $1 in --sudo) SUDO=&quot;sudo&quot;; shift ;; esac
+done
+</code></pre>
+
+<p><strong>Added auto-detection</strong>:</p>
+<pre class="code language-bash"><code class="language-bash">if [ -z &quot;$SUDO&quot; ] &amp;&amp; [ &quot;$(id -u)&quot; -ne 0 ]; then
+  SUDO=&quot;sudo&quot;
+fi
+</code></pre>
+
+<h3 id="2-script-types">2. Script Types</h3>
+
+<p><strong>Single-Grammar Scripts</strong> (4 gems):</p>
+<ul>
+  <li>Install one specific grammar (toml, json, jsonc, or bash)</li>
+  <li>Used by gems that directly work with one file format</li>
+  <li>Gems: <code>toml-merge</code>, <code>json-merge</code>, <code>jsonc-merge</code>, <code>bash-merge</code>
+</li>
+</ul>
+
+<p><strong>Multi-Grammar Scripts</strong> (7 gems):</p>
+<ul>
+  <li>Install ALL grammars: toml, json, jsonc, bash</li>
+  <li>Used by integration testing and code-block-merging gems</li>
+  <li>Gems: <code>ast-merge</code>, <code>tree_haver</code>, <code>commonmarker-merge</code>, <code>markdown-merge</code>, <code>markly-merge</code>, <code>kettle-dev</code>, <code>kettle-jem</code>
+</li>
+</ul>
+
+<h2 id="complete-file-list">Complete File List</h2>
+
+<h3 id="setup-scripts-createdupdated-11-files">Setup Scripts Created/Updated (11 files)</h3>
+
+<p><strong>Single-grammar</strong> (updated with fixes):</p>
+<ol>
+  <li><code>vendor/toml-merge/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+  <li><code>vendor/json-merge/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+  <li><code>vendor/jsonc-merge/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+  <li><code>vendor/bash-merge/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+</ol>
+
+<p><strong>Multi-grammar</strong> (created new with all grammars):</p>
+<ol>
+  <li>
+<code>.github/scripts/ubuntu/setup-tree-sitter.sh</code> (ast-merge root)</li>
+  <li><code>vendor/tree_haver/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+  <li><code>vendor/commonmarker-merge/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+  <li><code>vendor/markdown-merge/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+  <li><code>vendor/markly-merge/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+  <li><code>vendor/kettle-dev/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+  <li><code>vendor/kettle-jem/.github/scripts/ubuntu/setup-tree-sitter.sh</code></li>
+</ol>
+
+<h3 id="workflow-files-updated-8-files---toml-merge-only">Workflow Files Updated (8 files - toml-merge only)</h3>
+
+<p>Removed explicit <code>--sudo</code> flag, now relies on auto-detection:</p>
+<ol>
+  <li><code>vendor/toml-merge/.github/workflows/current.yml</code></li>
+  <li><code>vendor/toml-merge/.github/workflows/supported.yml</code></li>
+  <li><code>vendor/toml-merge/.github/workflows/heads.yml</code></li>
+  <li><code>vendor/toml-merge/.github/workflows/dep-heads.yml</code></li>
+  <li><code>vendor/toml-merge/.github/workflows/coverage.yml</code></li>
+  <li><code>vendor/toml-merge/.github/workflows/locked_deps.yml</code></li>
+  <li><code>vendor/toml-merge/.github/workflows/unlocked_deps.yml</code></li>
+  <li><code>vendor/toml-merge/.github/workflows/truffle.yml</code></li>
+</ol>
+
+<h3 id="devcontainer-configs-updated-11-files">Devcontainer Configs Updated (11 files)</h3>
+
+<p>Added/updated postCreateCommand to call setup script:</p>
+<ol>
+  <li>
+<code>.devcontainer/devcontainer.json</code> (ast-merge root)</li>
+  <li><code>vendor/toml-merge/.devcontainer/devcontainer.json</code></li>
+  <li><code>vendor/json-merge/.devcontainer/devcontainer.json</code></li>
+  <li><code>vendor/jsonc-merge/.devcontainer/devcontainer.json</code></li>
+  <li><code>vendor/bash-merge/.devcontainer/devcontainer.json</code></li>
+  <li><code>vendor/tree_haver/.devcontainer/devcontainer.json</code></li>
+  <li><code>vendor/commonmarker-merge/.devcontainer/devcontainer.json</code></li>
+  <li><code>vendor/markdown-merge/.devcontainer/devcontainer.json</code></li>
+  <li><code>vendor/markly-merge/.devcontainer/devcontainer.json</code></li>
+  <li><code>vendor/kettle-dev/.devcontainer/devcontainer.json</code></li>
+  <li><code>vendor/kettle-jem/.devcontainer/devcontainer.json</code></li>
+</ol>
+
+<h3 id="documentation-files-created-2-files">Documentation Files Created (2 files)</h3>
+
+<ol>
+  <li>
+<code>vendor/toml-merge/.github/scripts/ubuntu/README.md</code> - Comprehensive guide</li>
+  <li>
+<code>TREE_SITTER_SETUP_FIXES.md</code> - High-level summary</li>
+</ol>
+
+<h2 id="gem-categories">Gem Categories</h2>
+
+<h3 id="category-1-direct-tree-sitter-usage-4-gems">Category 1: Direct Tree-Sitter Usage (4 gems)</h3>
+
+<p>These gems work with a single file format and use one specific grammar:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Grammar</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>toml-merge</td>
+      <td>tree-sitter-toml</td>
+      <td>TOML file merging</td>
+    </tr>
+    <tr>
+      <td>json-merge</td>
+      <td>tree-sitter-json</td>
+      <td>JSON file merging</td>
+    </tr>
+    <tr>
+      <td>jsonc-merge</td>
+      <td>tree-sitter-jsonc</td>
+      <td>JSON with Comments merging</td>
+    </tr>
+    <tr>
+      <td>bash-merge</td>
+      <td>tree-sitter-bash</td>
+      <td>Bash script merging</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Scripts</strong>: Single-grammar setup (installs one grammar only)</p>
+
+<h3 id="category-2-integration-testing-2-gems">Category 2: Integration Testing (2 gems)</h3>
+
+<p>These gems test multiple parsers and need all grammars:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ast-merge</td>
+      <td>Base library, integration tests with all *-merge gems</td>
+    </tr>
+    <tr>
+      <td>tree_haver</td>
+      <td>Parser adapter, integration tests with all backends</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Scripts</strong>: Multi-grammar setup (installs toml, json, jsonc, bash)</p>
+
+<h3 id="category-3-fenced-code-block-handling-3-gems">Category 3: Fenced Code Block Handling (3 gems)</h3>
+
+<p>These gems merge markdown files and recursively merge fenced code blocks using appropriate *-merge gems:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>commonmarker-merge</td>
+      <td>Markdown merging (comrak Rust backend)</td>
+    </tr>
+    <tr>
+      <td>markdown-merge</td>
+      <td>Base markdown merging library</td>
+    </tr>
+    <tr>
+      <td>markly-merge</td>
+      <td>Markdown merging (cmark-gfm C backend)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Scripts</strong>: Multi-grammar setup (needed for code blocks in various languages)</p>
+
+<h3 id="category-4-top-level-tools-2-gems">Category 4: Top-Level Tools (2 gems)</h3>
+
+<p>These gems orchestrate merging across multiple file types:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>kettle-dev</td>
+      <td>Gem development and templating tool</td>
+    </tr>
+    <tr>
+      <td>kettle-jem</td>
+      <td>Gem template library and recipes</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Scripts</strong>: Multi-grammar setup (need to handle all file types)</p>
+
+<h2 id="multi-grammar-script-details">Multi-Grammar Script Details</h2>
+
+<p>The multi-grammar script installs 4 grammars in a loop:</p>
+
+<pre class="code language-bash"><code class="language-bash">GRAMMARS=(&quot;toml&quot; &quot;json&quot; &quot;jsonc&quot; &quot;bash&quot;)
+
+for grammar in &quot;${GRAMMARS[@]}&quot;; do
+  echo &quot;Building and installing tree-sitter-${grammar}...&quot;
+  # Download, compile, and install each grammar
+  # ...
+done
+</code></pre>
+
+<p><strong>Key features</strong>:</p>
+<ul>
+  <li>Handles grammars with or without scanner.c</li>
+  <li>Proper error checking for each grammar</li>
+  <li>Reports all installed libraries at the end</li>
+</ul>
+
+<h2 id="testing-requirements">Testing Requirements</h2>
+
+<h3 id="for-single-grammar-gems-priority-toml-merge">For Single-Grammar Gems (Priority: toml-merge)</h3>
+
+<p><strong>GitHub Actions</strong>:</p>
+<ol>
+  <li>Trigger workflow in <code>vendor/toml-merge</code> (e.g., manually dispatch <code>current.yml</code>)</li>
+  <li>Verify “Install tree-sitter dependencies” step succeeds</li>
+  <li>Confirm tests pass with tree-sitter library available</li>
+</ol>
+
+<p><strong>Devcontainer</strong> (any of the 4 gems):</p>
+<ol>
+  <li>Rebuild devcontainer</li>
+  <li>Verify postCreateCommand succeeds</li>
+  <li>Check library installation:
+    <pre class="code language-bash"><code class="language-bash">ls -lh /usr/local/lib/libtree-sitter-{toml,json,jsonc,bash}.so
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="for-multi-grammar-gems-priority-tree_haver-or-ast-merge">For Multi-Grammar Gems (Priority: tree_haver or ast-merge)</h3>
+
+<p><strong>GitHub Actions</strong>:</p>
+<ul>
+  <li>If workflows exist that use the setup script, test them</li>
+  <li>Most don’t use it in CI yet (they install libtree-sitter-dev directly)</li>
+</ul>
+
+<p><strong>Devcontainer</strong> (priority: tree_haver, ast-merge):</p>
+<ol>
+  <li>Rebuild devcontainer</li>
+  <li>Verify all 4 grammars are installed:
+    <pre class="code language-bash"><code class="language-bash">ldconfig -p | grep libtree-sitter
+ls -lh /usr/local/lib/libtree-sitter-*.so
+</code></pre>
+  </li>
+  <li>Test with Ruby:
+    <pre class="code language-ruby"><code class="language-ruby">require &#39;bundler/setup&#39;
+require &#39;tree_haver&#39;
+   
+[:toml, :json, :jsonc, :bash].each do |grammar|
+  puts &quot;#{grammar}: #{TreeHaver::GrammarFinder.new(grammar).find_library_path}&quot;
+end
+</code></pre>
+  </li>
+</ol>
+
+<h2 id="statistics">Statistics</h2>
+
+<ul>
+  <li>
+<strong>Total files modified</strong>: 45</li>
+  <li>
+<strong>Gems updated</strong>: 11</li>
+  <li>
+<strong>Setup scripts</strong>: 11 (4 single-grammar + 7 multi-grammar)</li>
+  <li>
+<strong>Workflow files</strong>: 8 (toml-merge only)</li>
+  <li>
+<strong>Devcontainer configs</strong>: 11 (all gems)</li>
+  <li>
+<strong>New documentation</strong>: 2 files</li>
+</ul>
+
+<h2 id="key-benefits">Key Benefits</h2>
+
+<ol>
+  <li>
+<strong>Fixed critical bug</strong>: Proper argument parsing works in all environments</li>
+  <li>
+<strong>Simplified usage</strong>: Auto-detection eliminates need for explicit –sudo</li>
+  <li>
+<strong>Complete coverage</strong>: All gems that need tree-sitter now have setup scripts</li>
+  <li>
+<strong>Dual environment</strong>: Same script works in GHA and devcontainer</li>
+  <li>
+<strong>Easy troubleshooting</strong>: Can test GHA-like environment locally</li>
+  <li>
+<strong>Comprehensive</strong>: Multi-grammar scripts support integration testing and code block merging</li>
+  <li>
+<strong>Well documented</strong>: README explains design and troubleshooting</li>
+</ol>
+
+<h2 id="next-steps">Next Steps</h2>
+
+<ol>
+  <li>
+<strong>User testing</strong>: Verify GHA workflows and devcontainer builds</li>
+  <li>
+<strong>Monitor CI/CD</strong>: Watch for any failures in automated testing</li>
+  <li>
+<strong>Consider workflow updates</strong>: Some multi-grammar gems may want to use the setup script in GHA</li>
+  <li>
+<strong>Documentation</strong>: Each gem could reference the setup script in their own docs</li>
+</ol>
+
+<h2 id="notes">Notes</h2>
+
+<ul>
+  <li>The <code>--sudo</code> flag still works for backward compatibility</li>
+  <li>The <code>--workspace</code> parameter is informational only (for debugging)</li>
+  <li>json-merge, jsonc-merge, bash-merge don’t use setup script in GHA (install libtree-sitter-dev directly)</li>
+  <li>Only toml-merge had workflow files updated</li>
+  <li>Multi-grammar scripts install in order: toml, json, jsonc, bash</li>
+  <li>All scripts share the same dual-environment design and auto-detection logic</li>
+</ul>
+</div></div>
+
+      <div id="footer">
+  Generated on Sun Dec 28 16:22:19 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-4.0.0).
+</div>
+
+    </div>
+  </body>
+</html>

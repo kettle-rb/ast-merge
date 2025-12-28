@@ -20,6 +20,15 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- **RSpec Dependency Tags**: Conditional test execution based on available merge gems
+  - New `lib/ast/merge/rspec/dependency_tags.rb` provides automatic test filtering
+  - Tags for all merge gems: `:markly_merge`, `:prism_merge`, `:json_merge`, `:toml_merge`, etc.
+  - Composite tag `:any_markdown_merge` for tests that work with any markdown merger
+  - Negated tags (e.g., `:not_prism_merge`) for testing fallback behavior
+  - `AST_MERGE_DEBUG=1` environment variable prints dependency summary
+  - Eliminates need for `require` statements inside spec files
+  - See [lib/ast/merge/rspec/README.md](lib/ast/merge/rspec/README.md) for full documentation
+
 - **Recipe::Preset**: Base class for merge configuration presets
   - Provides merge configuration (signature generators, node typing, preferences) without requiring template files
   - `Recipe::Config` now inherits from `Preset`, adding template/target handling

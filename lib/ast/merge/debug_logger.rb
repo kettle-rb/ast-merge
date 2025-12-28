@@ -73,7 +73,7 @@ module Ast
       # Benchmark is optional - gracefully degrade if not available
       # Use autoload to defer loading until actually needed
       BENCHMARK_AVAILABLE = begin
-        autoload :Benchmark, "benchmark"
+        autoload(:Benchmark, "benchmark")
         true
       rescue LoadError
         # :nocov:

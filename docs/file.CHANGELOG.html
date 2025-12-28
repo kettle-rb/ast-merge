@@ -74,6 +74,222 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <ul>
   <li>
+<strong>RSpec Dependency Tags</strong>: Conditional test execution based on available merge gems
+    <ul>
+      <li>New <code>lib/ast/merge/rspec/dependency_tags.rb</code> provides automatic test filtering</li>
+      <li>Tags for all merge gems: <code>:markly_merge</code>, <code>:prism_merge</code>, <code>:json_merge</code>, <code>:toml_merge</code>, etc.</li>
+      <li>Composite tag <code>:any_markdown_merge</code> for tests that work with any markdown merger</li>
+      <li>Negated tags (e.g., <code>:not_prism_merge</code>) for testing fallback behavior</li>
+      <li>
+<code>AST_MERGE_DEBUG=1</code> environment variable prints dependency summary</li>
+      <li>Eliminates need for <code>require</code> statements inside spec files</li>
+      <li>See <a href="lib/ast/merge/rspec/README.md">lib/ast/merge/rspec/README.md</a> for full documentation</li>
+    </ul>
+  </li>
+  <li>
+<strong>Recipe::Preset</strong>: Base class for merge configuration presets
+    <ul>
+      <li>Provides merge configuration (signature generators, node typing, preferences) without requiring template files</li>
+      <li>
+<code>Recipe::Config</code> now inherits from <code>Preset</code>, adding template/target handling</li>
+      <li>
+<code>to_h</code> method converts preset to SmartMerger-compatible options hash</li>
+      <li>Enables kettle-jem and other libraries to define reusable merge presets</li>
+      <li>Supports script loading for signature generators and node typing via <code>ScriptLoader</code>
+</li>
+    </ul>
+  </li>
+  <li>
+<strong>exe/ast-merge-recipe</strong>: Shipped executable for running merge recipes
+    <ul>
+      <li>Uses <code>bundler/inline</code> for dependency management</li>
+      <li>Supports <code>--dry-run</code>, <code>--verbose</code>, <code>--parser</code>, <code>--base-dir</code> options</li>
+      <li>Uses <code>optparse</code> for proper option parsing</li>
+      <li>Loads merge gems from recipe YAML <code>merge_gems</code> section</li>
+      <li>Development mode via <code>KETTLE_RB_DEV=true</code> or <code>--dev-root</code> option</li>
+      <li>All gems sourced from gem.coop</li>
+    </ul>
+  </li>
+  <li>
+<strong>PartialTemplateMerger</strong>: Section-based merging for partial templates
+    <ul>
+      <li>Find and merge specific sections in destination documents</li>
+      <li>Support for both <code>replace_mode</code> (full replacement) and merge mode (intelligent merging)</li>
+      <li>Configurable anchor and boundary matchers for section detection</li>
+      <li>Custom <code>signature_generator</code> and <code>node_typing</code> support for advanced matching</li>
+      <li>
+<code>when_missing</code> behavior: <code>:skip</code>, <code>:append</code>, <code>:prepend</code>
+</li>
+    </ul>
+  </li>
+  <li>
+<strong>Recipe</strong>: YAML-based recipe system for defining merge operations
+    <ul>
+      <li>Load recipes from YAML files with <code>Recipe.load(path)</code>
+</li>
+      <li>Define template, targets, injection point, merge preferences</li>
+      <li>Support for <code>when_missing: skip|add|error</code> behavior</li>
+      <li>Support for <code>replace_mode</code> option</li>
+      <li>Automatic path resolution relative to recipe file location</li>
+    </ul>
+  </li>
+  <li>
+<strong>RecipeRunner</strong>: Execute recipes against multiple target files
+    <ul>
+      <li>Uses PartialTemplateMerger for section-based merging</li>
+      <li>Dry-run mode with <code>--dry-run</code> flag</li>
+      <li>Results tracking with status, stats, and error reporting</li>
+      <li>TableTennis integration for formatted output</li>
+      <li>Support for different parsers (markly, commonmarker, prism, psych)</li>
+    </ul>
+  </li>
+  <li>
+<strong>RecipeScriptLoader</strong>: Load Ruby scripts referenced by recipes
+    <ul>
+      <li>Convention: scripts in folder matching recipe basename (e.g., <code>my_recipe/</code> for <code>my_recipe.yml</code>)</li>
+      <li>Support for inline lambda expressions in YAML</li>
+      <li>Script caching for performance</li>
+      <li>Validation that scripts return callable objects</li>
+    </ul>
+  </li>
+  <li>
+<strong>bin/ast-merge-recipe</strong>: CLI for running merge recipes
+    <ul>
+      <li><code>bin/ast-merge-recipe RECIPE_FILE [--dry-run] [--verbose]</code></li>
+      <li>Color-coded output with status symbols</li>
+      <li>Summary table with counts</li>
+    </ul>
+  </li>
+  <li>
+<strong>NavigableStatement</strong>: New wrapper class for uniform node navigation (language-agnostic)
+    <ul>
+      <li>Provides flat list navigation (<code>next</code>, <code>previous</code>, <code>index</code>) for all nodes</li>
+      <li>Tree depth calculation with <code>tree_depth</code> method</li>
+      <li>
+<code>same_or_shallower_than?</code> for level-based boundary detection</li>
+      <li>Language-agnostic section boundaries using tree hierarchy</li>
+      <li>Provides tree navigation (<code>tree_parent</code>, <code>tree_next</code>, <code>tree_previous</code>) for parser-backed nodes</li>
+      <li>
+<code>synthetic?</code> method to detect nodes without tree navigation (GapLineNode, LinkDefinitionNode, etc.)</li>
+      <li>
+<code>type?</code> and <code>text_matches?</code> helpers for node matching</li>
+      <li>
+<code>node_attribute</code> for accessing parser-specific attributes with fallbacks</li>
+      <li>
+<code>each_following</code> and <code>take_until</code> for sequential traversal</li>
+      <li>
+<code>find_matching</code> and <code>find_first</code> class methods for querying statement lists</li>
+      <li>
+<code>build_list</code> class method to create linked statement lists from raw statements</li>
+    </ul>
+  </li>
+  <li>
+<strong>InjectionPoint</strong>: New class for defining where content can be injected (language-agnostic)
+    <ul>
+      <li>Supports positions: <code>:before</code>, <code>:after</code>, <code>:first_child</code>, <code>:last_child</code>, <code>:replace</code>
+</li>
+      <li>Optional boundary for replacement ranges</li>
+      <li>
+<code>replacement?</code>, <code>child_injection?</code>, <code>sibling_injection?</code> predicates</li>
+      <li>
+<code>replaced_statements</code> to get all statements in a replacement range</li>
+    </ul>
+  </li>
+  <li>
+<strong>InjectionPointFinder</strong>: New class for finding injection points by matching criteria
+    <ul>
+      <li>
+<code>find</code> to locate a single injection point by type/text pattern</li>
+      <li>
+<code>find_all</code> to locate all matching injection points</li>
+      <li>Works with any <code>*-merge</code> gem (prism-merge, markly-merge, psych-merge, etc.)</li>
+    </ul>
+  </li>
+  <li>
+<strong>SmartMergerBase</strong>: <code>add_template_only_nodes</code> now accepts a callable filter
+    <ul>
+      <li>Boolean <code>true</code>/<code>false</code> still works as before (add all or none)</li>
+      <li>Callable (Proc/Lambda) receives <code>(node, entry)</code> and returns truthy to add the node</li>
+      <li>Enables selective addition of template-only nodes based on signature, type, or content</li>
+      <li>Example use case: Add missing link reference definitions while skipping other template content</li>
+      <li>Entry hash includes <code>:template_node</code>, <code>:signature</code>, <code>:template_index</code> for filtering decisions</li>
+    </ul>
+  </li>
+  <li>
+<strong>ContentMatchRefiner</strong>: New match refiner for fuzzy text content matching
+    <ul>
+      <li>Uses Levenshtein distance to pair nodes with similar (but not identical) text</li>
+      <li>Configurable scoring weights for content similarity, length, and position</li>
+      <li>Custom content extractor support for parser-specific text extraction</li>
+      <li>Node type filtering to limit which types are processed</li>
+      <li>Can be combined with other refiners (e.g., TableMatchRefiner)</li>
+      <li>Useful for matching paragraphs, headings, comments with minor edits</li>
+    </ul>
+  </li>
+  <li>
+<strong>SmartMergerBase</strong>: Added validity check after FileAnalysis creation
+    <ul>
+      <li>Checks <code>valid?</code> after creating FileAnalysis and raises appropriate parse error if invalid</li>
+      <li>Catches silent failures like grammar not available or parse errors</li>
+      <li>Documented the FileAnalysis error handling pattern for all *-merge gems</li>
+    </ul>
+  </li>
+  <li>
+<strong>SmartMergerBase</strong>: Added explicit <code>node_typing</code> parameter
+    <ul>
+      <li>All child SmartMergers were already using <code>node_typing</code> via <code>**format_options</code>
+</li>
+      <li>Now explicitly documented and accessible via <code>attr_reader :node_typing</code>
+</li>
+      <li>Validates node_typing configuration via <code>NodeTyping.validate!</code> if provided</li>
+      <li>Enables per-node-type merge preferences across all <code>*-merge</code> gems</li>
+    </ul>
+  </li>
+  <li>
+<strong>ConflictResolverBase</strong>: Added <code>match_refiner</code> parameter and <code>**options</code> for forward compatibility
+    <ul>
+      <li>All batch-strategy resolvers were storing <code>match_refiner</code> locally</li>
+      <li>Now explicitly accepted in base class with <code>attr_reader :match_refiner</code>
+</li>
+      <li>Added <code>**options</code> catch-all for future parameters without breaking child classes</li>
+    </ul>
+  </li>
+  <li>
+<strong>MergeResultBase</strong>: Added <code>**options</code> for forward compatibility
+    <ul>
+      <li>Allows subclasses to accept new parameters without modification</li>
+      <li>Maintains backward compatibility with existing no-arg and keyword-arg constructors</li>
+    </ul>
+  </li>
+  <li>
+<strong>RBS Signatures</strong>: Added comprehensive type signatures for base classes
+    <ul>
+      <li>
+<code>SmartMergerBase</code> with all standard options and abstract method declarations</li>
+      <li>
+<code>ConflictResolverBase</code> with strategy-based resolution methods</li>
+      <li>
+<code>MergeResultBase</code> with unified constructor and decision tracking</li>
+      <li>
+<code>MatchRefinerBase</code> with similarity computation interface</li>
+      <li>
+<code>RegionMergeable</code> module for nested content merging</li>
+      <li>
+<code>NodeTyping</code> module with <code>Wrapper</code> class for typed nodes</li>
+      <li>Type aliases: <code>node_typing_callable</code>, <code>node_typing_hash</code>, <code>preference_type</code>
+</li>
+    </ul>
+  </li>
+  <li>
+<strong>Documentation</strong>: Updated README with comprehensive base class documentation
+    <ul>
+      <li>Standard options table with all <code>SmartMergerBase</code> parameters</li>
+      <li>Forward compatibility section explaining the <code>**options</code> pattern</li>
+      <li>Complete “Creating a New Merge Gem” example with all base classes</li>
+      <li>Base Classes Reference table</li>
+    </ul>
+  </li>
+  <li>
 <strong>tree_haver Integration</strong>: Major architectural enhancement
     <ul>
       <li>Added <code>tree_haver</code> (~&gt; 3.1) as a runtime dependency</li>
@@ -117,6 +333,43 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 <h3 id="changed">Changed</h3>
 
 <ul>
+  <li>
+<strong>BREAKING - Namespace Reorganization</strong>: Major restructuring for better organization
+    <ul>
+      <li>
+<code>Ast::Merge::Region</code> → <code>Ast::Merge::Detector::Region</code> (Struct moved into Detector namespace)</li>
+      <li>
+<code>Ast::Merge::RegionDetectorBase</code> → <code>Ast::Merge::Detector::Base</code>
+</li>
+      <li>
+<code>Ast::Merge::RegionMergeable</code> → <code>Ast::Merge::Detector::Mergeable</code>
+</li>
+      <li>
+<code>Ast::Merge::FencedCodeBlockDetector</code> → <code>Ast::Merge::Detector::FencedCodeBlock</code>
+</li>
+      <li>
+<code>Ast::Merge::YamlFrontmatterDetector</code> → <code>Ast::Merge::Detector::YamlFrontmatter</code>
+</li>
+      <li>
+<code>Ast::Merge::TomlFrontmatterDetector</code> → <code>Ast::Merge::Detector::TomlFrontmatter</code>
+</li>
+      <li>
+<code>Ast::Merge::Recipe</code> class → <code>Ast::Merge::Recipe::Config</code>
+</li>
+      <li>
+<code>Ast::Merge::RecipeRunner</code> → <code>Ast::Merge::Recipe::Runner</code>
+</li>
+      <li>
+<code>Ast::Merge::RecipeScriptLoader</code> → <code>Ast::Merge::Recipe::ScriptLoader</code>
+</li>
+      <li>
+<code>Ast::Merge::RegionMergeable::RegionConfig</code> → <code>Ast::Merge::Detector::Mergeable::Config</code>
+</li>
+      <li>
+<code>Ast::Merge::RegionMergeable::ExtractedRegion</code> → <code>Ast::Merge::Detector::Mergeable::ExtractedRegion</code>
+</li>
+    </ul>
+  </li>
   <li>
 <strong>Architecture</strong>: Refactored to use tree_haver as the parsing foundation
     <ul>
@@ -184,9 +437,9 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Thu Dec 18 16:26:20 2025 by
+  Generated on Sun Dec 28 16:22:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.38 (ruby-3.4.7).
+  0.9.38 (ruby-4.0.0).
 </div>
 
     </div>

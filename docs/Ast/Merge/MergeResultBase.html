@@ -589,7 +589,7 @@ Used for content that exists only in destination and is added to result.</p>
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(template_analysis: nil, dest_analysis: nil, conflicts: [], frozen_blocks: [], stats: {})  &#x21d2; MergeResultBase </a>
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(template_analysis: nil, dest_analysis: nil, conflicts: [], frozen_blocks: [], stats: {}, **options)  &#x21d2; MergeResultBase </a>
     
 
     
@@ -689,7 +689,7 @@ Used for content that exists only in destination and is added to result.</p>
     <div class="method_details first">
   <h3 class="signature first" id="initialize-instance_method">
   
-    #<strong>initialize</strong>(template_analysis: nil, dest_analysis: nil, conflicts: [], frozen_blocks: [], stats: {})  &#x21d2; <tt><span class='object_link'><a href="" title="Ast::Merge::MergeResultBase (class)">MergeResultBase</a></span></tt> 
+    #<strong>initialize</strong>(template_analysis: nil, dest_analysis: nil, conflicts: [], frozen_blocks: [], stats: {}, **options)  &#x21d2; <tt><span class='object_link'><a href="" title="Ast::Merge::MergeResultBase (class)">MergeResultBase</a></span></tt> 
   
 
   
@@ -794,6 +794,21 @@ Subclasses should call super with the parameters they use.</p>
       
     </li>
   
+    <li>
+      
+        <span class='name'>options</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Additional options for forward compatibility</p>
+</div>
+      
+    </li>
+  
 </ul>
 
 
@@ -803,7 +818,6 @@ Subclasses should call super with the parameters they use.</p>
       <pre class="lines">
 
 
-79
 80
 81
 82
@@ -817,17 +831,21 @@ Subclasses should call super with the parameters they use.</p>
 90
 91
 92
-93</pre>
+93
+94
+95
+96</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 79</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 80</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span>
   <span class='label'>template_analysis:</span> <span class='kw'>nil</span><span class='comma'>,</span>
   <span class='label'>dest_analysis:</span> <span class='kw'>nil</span><span class='comma'>,</span>
   <span class='label'>conflicts:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='comma'>,</span>
   <span class='label'>frozen_blocks:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='comma'>,</span>
-  <span class='label'>stats:</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='label'>stats:</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span>
+  <span class='op'>**</span><span class='id identifier rubyid_options'>options</span>
 <span class='rparen'>)</span>
   <span class='ivar'>@template_analysis</span> <span class='op'>=</span> <span class='id identifier rubyid_template_analysis'>template_analysis</span>
   <span class='ivar'>@dest_analysis</span> <span class='op'>=</span> <span class='id identifier rubyid_dest_analysis'>dest_analysis</span>
@@ -836,7 +854,8 @@ Subclasses should call super with the parameters they use.</p>
   <span class='ivar'>@conflicts</span> <span class='op'>=</span> <span class='id identifier rubyid_conflicts'>conflicts</span>
   <span class='ivar'>@frozen_blocks</span> <span class='op'>=</span> <span class='id identifier rubyid_frozen_blocks'>frozen_blocks</span>
   <span class='ivar'>@stats</span> <span class='op'>=</span> <span class='id identifier rubyid_stats'>stats</span>
-<span class='kw'>end</span></pre>
+  <span class='comment'># **options captured for forward compatibility - subclasses may use additional options
+</span><span class='kw'>end</span></pre>
     </td>
   </tr>
 </table>
@@ -1310,12 +1329,12 @@ Subclasses may override for different content models (e.g., string).</p>
       <pre class="lines">
 
 
-99
-100
-101</pre>
+102
+103
+104</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 99</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 102</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_content'>content</span>
   <span class='ivar'>@lines</span>
@@ -1370,12 +1389,12 @@ Used when region substitution replaces the merged content.</p>
       <pre class="lines">
 
 
-107
-108
-109</pre>
+110
+111
+112</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 107</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 110</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_content='>content=</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
   <span class='ivar'>@lines</span> <span class='op'>=</span> <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='period'>.</span><span class='id identifier rubyid_split'>split</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>\n</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='op'>-</span><span class='int'>1</span><span class='rparen'>)</span>
@@ -1423,12 +1442,12 @@ Used when region substitution replaces the merged content.</p>
       <pre class="lines">
 
 
-123
-124
-125</pre>
+126
+127
+128</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 123</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 126</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_content?'>content?</span>
   <span class='op'>!</span><span class='ivar'>@lines</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
@@ -1476,14 +1495,14 @@ Used when region substitution replaces the merged content.</p>
       <pre class="lines">
 
 
-141
-142
-143
 144
-145</pre>
+145
+146
+147
+148</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 141</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 144</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_decision_summary'>decision_summary</span>
   <span class='id identifier rubyid_summary'>summary</span> <span class='op'>=</span> <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='int'>0</span><span class='rparen'>)</span>
@@ -1533,12 +1552,12 @@ Used when region substitution replaces the merged content.</p>
       <pre class="lines">
 
 
-129
-130
-131</pre>
+132
+133
+134</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 129</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 132</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_empty?'>empty?</span>
   <span class='ivar'>@lines</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
@@ -1586,12 +1605,12 @@ Used when region substitution replaces the merged content.</p>
       <pre class="lines">
 
 
-149
-150
-151</pre>
+152
+153
+154</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 149</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 152</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_inspect'>inspect</span>
   <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>#&lt;</span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_content'> lines=</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_line_count'>line_count</span><span class='embexpr_end'>}</span><span class='tstring_content'> decisions=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@decisions</span><span class='period'>.</span><span class='id identifier rubyid_length'>length</span><span class='embexpr_end'>}</span><span class='tstring_content'>&gt;</span><span class='tstring_end'>&quot;</span></span>
@@ -1639,12 +1658,12 @@ Used when region substitution replaces the merged content.</p>
       <pre class="lines">
 
 
-135
-136
-137</pre>
+138
+139
+140</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 135</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 138</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_line_count'>line_count</span>
   <span class='ivar'>@lines</span><span class='period'>.</span><span class='id identifier rubyid_length'>length</span>
@@ -1698,12 +1717,12 @@ Subclasses may override to customize string output (e.g., adding trailing newlin
       <pre class="lines">
 
 
-116
-117
-118</pre>
+119
+120
+121</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 116</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/merge_result_base.rb', line 119</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_to_s'>to_s</span>
   <span class='ivar'>@lines</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>\n</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
@@ -1718,9 +1737,9 @@ Subclasses may override to customize string output (e.g., adding trailing newlin
 </div>
 
       <div id="footer">
-  Generated on Thu Dec 18 16:26:21 2025 by
+  Generated on Sun Dec 28 16:22:21 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.38 (ruby-3.4.7).
+  0.9.38 (ruby-4.0.0).
 </div>
 
     </div>

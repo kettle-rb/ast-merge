@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: BACKEND-TRANSITION-COMPLETE
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "BACKEND-TRANSITION-COMPLETE";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: BACKEND-TRANSITION-COMPLETE</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'><h1 id="backend-and-grammar-loading-transition---complete">Backend and Grammar Loading Transition - Complete</h1>
+
+<p><strong>Date:</strong> December 20, 2025  <br>
+<strong>Status:</strong> ✅ Complete</p>
+
+<h2 id="summary">Summary</h2>
+
+<p>Successfully transitioned all *-merge gems to complete TreeHaver dependence, eliminating duplicate backend and grammar loading functionality.</p>
+
+<h2 id="changes-made">Changes Made</h2>
+
+<h3 id="1--toml-merge-priority-1---complete-rewrite">1. ✅ toml-merge (Priority 1 - Complete Rewrite)</h3>
+
+<p><strong>Files Modified:</strong></p>
+<ul>
+  <li><code>vendor/toml-merge/lib/toml/merge/file_analysis.rb</code></li>
+  <li><code>vendor/toml-merge/lib/toml/merge/node_wrapper.rb</code></li>
+  <li><code>vendor/toml-merge/CHANGELOG.md</code></li>
+</ul>
+
+<p><strong>Changes:</strong></p>
+<ul>
+  <li>❌ <strong>REMOVED</strong>: <code>PARSER_SEARCH_PATHS</code> constant with hardcoded paths</li>
+  <li>❌ <strong>REMOVED</strong>: Direct use of <code>TreeSitter::Language.load</code> (old API)</li>
+  <li>❌ <strong>REMOVED</strong>: Custom ENV variable handling</li>
+  <li>❌ <strong>REMOVED</strong>: Manual error message construction</li>
+  <li>❌ <strong>REMOVED</strong>: Legacy fallback path search</li>
+  <li>✅ <strong>ADDED</strong>: <code>TreeHaver::GrammarFinder.new(:toml)</code> for grammar discovery</li>
+  <li>✅ <strong>ADDED</strong>: <code>TreeHaver::Parser</code> and <code>TreeHaver::Language</code> usage</li>
+  <li>✅ <strong>ADDED</strong>: <code>TreeHaver::Language.from_library()</code> for custom paths</li>
+  <li>✅ <strong>UPDATED</strong>: All documentation references from <code>TreeSitter::Node</code> to <code>TreeHaver::Node</code>
+</li>
+</ul>
+
+<p><strong>Before:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">PARSER_SEARCH_PATHS = [
+  &quot;/usr/lib/libtree-sitter-toml.so&quot;,
+  &quot;/usr/lib64/libtree-sitter-toml.so&quot;,
+  # ...
+].freeze
+
+def self.find_parser_path
+  env_path = ENV[&quot;TREE_SITTER_TOML_PATH&quot;]
+  return env_path if env_path &amp;&amp; File.exist?(env_path)
+  PARSER_SEARCH_PATHS.find { |path| File.exist?(path) }
+end
+
+def parse_toml
+  language = TreeSitter::Language.load(&quot;toml&quot;, @parser_path)
+  parser = TreeSitter::Parser.new
+  parser.language = language
+  @ast = parser.parse_string(nil, @source)
+end
+</code></pre>
+
+<p><strong>After:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def self.find_parser_path
+  return unless defined?(TreeHaver::GrammarFinder)
+  TreeHaver::GrammarFinder.new(:toml).find_library_path
+end
+
+def parse_toml
+  unless defined?(TreeHaver)
+    error_msg = &quot;TreeHaver not available. Install tree_haver gem.&quot;
+    @errors &lt;&lt; error_msg
+    @ast = nil
+    return
+  end
+
+  language = if @parser_path &amp;&amp; File.exist?(@parser_path)
+    TreeHaver::Language.from_library(@parser_path, symbol: &quot;tree_sitter_toml&quot;, name: &quot;toml&quot;)
+  elsif TreeHaver::Language.respond_to?(:toml)
+    TreeHaver::Language.toml
+  else
+    # TreeHaver provides helpful error messages
+    error_msg = TreeHaver::GrammarFinder.new(:toml).not_found_message
+    @errors &lt;&lt; error_msg
+    @ast = nil
+    return
+  end
+
+  parser = TreeHaver::Parser.new
+  parser.language = language
+  @ast = parser.parse(@source)
+end
+</code></pre>
+
+<hr>
+
+<h3 id="2--bash-merge-priority-2---remove-fallback">2. ✅ bash-merge (Priority 2 - Remove Fallback)</h3>
+
+<p><strong>Files Modified:</strong></p>
+<ul>
+  <li><code>vendor/bash-merge/lib/bash/merge/file_analysis.rb</code></li>
+  <li><code>vendor/bash-merge/CHANGELOG.md</code></li>
+</ul>
+
+<p><strong>Changes:</strong></p>
+<ul>
+  <li>❌ <strong>REMOVED</strong>: Legacy fallback path search with hardcoded paths</li>
+  <li>❌ <strong>REMOVED</strong>: Manual ENV variable handling</li>
+  <li>✅ <strong>SIMPLIFIED</strong>: <code>find_parser_path</code> to only use <code>TreeHaver::GrammarFinder</code>
+</li>
+</ul>
+
+<p><strong>Before:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def self.find_parser_path
+  if defined?(TreeHaver::GrammarFinder)
+    TreeHaver::GrammarFinder.new(:bash).find_library_path
+  else
+    env_path = ENV[&quot;TREE_SITTER_BASH_PATH&quot;]
+    return env_path if env_path &amp;&amp; File.exist?(env_path)
+    [&quot;/usr/lib/libtree-sitter-bash.so&quot;, ...].find { |path| File.exist?(path) }
+  end
+end
+</code></pre>
+
+<p><strong>After:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def self.find_parser_path
+  return unless defined?(TreeHaver::GrammarFinder)
+  TreeHaver::GrammarFinder.new(:bash).find_library_path
+end
+</code></pre>
+
+<hr>
+
+<h3 id="3--json-merge-priority-2---remove-fallback">3. ✅ json-merge (Priority 2 - Remove Fallback)</h3>
+
+<p><strong>Files Modified:</strong></p>
+<ul>
+  <li><code>vendor/json-merge/lib/json/merge/file_analysis.rb</code></li>
+  <li><code>vendor/json-merge/CHANGELOG.md</code></li>
+</ul>
+
+<p><strong>Changes:</strong></p>
+<ul>
+  <li>❌ <strong>REMOVED</strong>: Legacy fallback path search with hardcoded paths</li>
+  <li>❌ <strong>REMOVED</strong>: Manual ENV variable handling</li>
+  <li>✅ <strong>SIMPLIFIED</strong>: <code>find_parser_path</code> to only use <code>TreeHaver::GrammarFinder</code>
+</li>
+</ul>
+
+<p><strong>Note:</strong> The <code>parse_json</code> method was already using TreeHaver, so only the <code>find_parser_path</code> needed updating.</p>
+
+<hr>
+
+<h3 id="4--jsonc-merge-priority-2---remove-fallback">4. ✅ jsonc-merge (Priority 2 - Remove Fallback)</h3>
+
+<p><strong>Files Modified:</strong></p>
+<ul>
+  <li><code>vendor/jsonc-merge/lib/jsonc/merge/file_analysis.rb</code></li>
+  <li><code>vendor/jsonc-merge/CHANGELOG.md</code></li>
+</ul>
+
+<p><strong>Changes:</strong></p>
+<ul>
+  <li>❌ <strong>REMOVED</strong>: Legacy fallback path search with hardcoded paths</li>
+  <li>❌ <strong>REMOVED</strong>: Manual ENV variable handling (ENV[“TREE_SITTER_JSONC_PATH”])</li>
+  <li>✅ <strong>SIMPLIFIED</strong>: <code>find_parser_path</code> to only use <code>TreeHaver::GrammarFinder</code>
+</li>
+  <li>✅ <strong>CLARIFIED</strong>: Documentation that JSONC uses tree-sitter-json library (not a separate tree-sitter-jsonc)</li>
+</ul>
+
+<p><strong>Note:</strong> JSONC is JSON with Comments - it uses the same tree-sitter-json parser.</p>
+
+<hr>
+
+<h2 id="gems-that-did-not-need-changes">Gems That Did NOT Need Changes</h2>
+
+<h3 id="-already-perfect">✅ Already Perfect</h3>
+<ul>
+  <li>
+<strong>prism-merge</strong> - Uses Prism’s native parser (no tree-sitter)</li>
+  <li>
+<strong>rbs-merge</strong> - Uses RBS’s native parser (no tree-sitter)</li>
+  <li>
+<strong>dotenv-merge</strong> - Uses simple line-by-line parser (no tree-sitter)</li>
+  <li>
+<strong>markly-merge</strong> - Thin wrapper, delegates to markdown-merge</li>
+  <li>
+<strong>commonmarker-merge</strong> - Thin wrapper, delegates to markdown-merge</li>
+</ul>
+
+<h3 id="-needs-further-evaluation">🤔 Needs Further Evaluation</h3>
+<ul>
+  <li>
+<strong>markdown-merge</strong> - Has custom backend resolution logic that may be appropriate</li>
+  <li>
+<strong>psych-merge</strong> - Uses Psych’s native parser (could optionally use TreeHaver wrapper for consistency)</li>
+</ul>
+
+<hr>
+
+<h2 id="benefits-of-this-transition">Benefits of This Transition</h2>
+
+<h3 id="1--no-more-code-duplication">1. ✅ No More Code Duplication</h3>
+<ul>
+  <li>All grammar discovery logic is now centralized in <code>TreeHaver::GrammarFinder</code>
+</li>
+  <li>No more hardcoded path lists in each gem</li>
+  <li>No more duplicate ENV variable handling</li>
+</ul>
+
+<h3 id="2--better-security">2. ✅ Better Security</h3>
+<ul>
+  <li>
+<code>TreeHaver::GrammarFinder</code> includes <code>PathValidator</code> for security checks</li>
+  <li>Rejects path traversal attempts</li>
+  <li>Validates file extensions</li>
+  <li>Supports safe mode (trusted directories only)</li>
+</ul>
+
+<h3 id="3--platform-awareness">3. ✅ Platform Awareness</h3>
+<ul>
+  <li>Automatically handles <code>.so</code>, <code>.dylib</code>, <code>.dll</code> extensions</li>
+  <li>Platform-appropriate search paths</li>
+  <li>Better Windows support</li>
+</ul>
+
+<h3 id="4--multiple-backend-support">4. ✅ Multiple Backend Support</h3>
+<ul>
+  <li>Can use MRI (C), Rust, FFI, or Java tree-sitter backends</li>
+  <li>Can fall back to Citrus (pure Ruby) for portability</li>
+  <li>Backend selection handled by TreeHaver</li>
+</ul>
+
+<h3 id="5--better-error-messages">5. ✅ Better Error Messages</h3>
+<ul>
+  <li>TreeHaver provides helpful, context-aware error messages</li>
+  <li>Includes searched paths in error output</li>
+  <li>Suggests installation commands</li>
+</ul>
+
+<h3 id="6--maintainability">6. ✅ Maintainability</h3>
+<ul>
+  <li>Single source of truth for grammar loading</li>
+  <li>Changes to tree-sitter loading only need to happen in TreeHaver</li>
+  <li>Easier to add new language support</li>
+</ul>
+
+<hr>
+
+<h2 id="breaking-changes">Breaking Changes</h2>
+
+<p>All four updated gems have <strong>BREAKING CHANGES</strong>:</p>
+
+<ol>
+  <li>
+<strong>TreeHaver is now a hard requirement</strong> - no fallback</li>
+  <li>
+<strong>Environment variables still work</strong> but through TreeHaver (same names)</li>
+  <li>
+<strong>Custom parser paths still work</strong> via the <code>parser_path:</code> parameter</li>
+  <li>
+<strong>Return types changed</strong> from <code>TreeSitter::Node</code> to <code>TreeHaver::Node</code>
+</li>
+</ol>
+
+<p>These are documented in each gem’s CHANGELOG.md.</p>
+
+<hr>
+
+<h2 id="testing-status">Testing Status</h2>
+
+<ul>
+  <li>✅ Code changes complete</li>
+  <li>⏳ Integration tests pending (some test files may be in separate locations)</li>
+  <li>⏳ Need to verify all gems work in CI across Ruby versions</li>
+</ul>
+
+<hr>
+
+<h2 id="next-steps">Next Steps</h2>
+
+<ol>
+  <li>
+<strong>Test the changes</strong> - Run integration tests for each updated gem</li>
+  <li>
+<strong>Update main ast-merge</strong> if needed</li>
+  <li>
+<strong>Consider markdown-merge</strong> - Evaluate if backend resolution should move to TreeHaver</li>
+  <li>
+<strong>Consider psych-merge</strong> - Optionally add TreeHaver wrapper for consistency</li>
+  <li>
+<strong>Release new versions</strong> of toml-merge, bash-merge, json-merge, jsonc-merge</li>
+  <li>
+<strong>Update documentation</strong> to reference TreeHaver’s capabilities</li>
+</ol>
+
+<hr>
+
+<h2 id="migration-guide-for-users">Migration Guide for Users</h2>
+
+<h3 id="if-you-were-using-default-behavior">If you were using default behavior:</h3>
+<p>✅ <strong>No changes needed</strong> - TreeHaver will automatically find grammars</p>
+
+<h3 id="if-you-were-setting-env-variables">If you were setting ENV variables:</h3>
+<p>✅ <strong>No changes needed</strong> - Same ENV variables work through TreeHaver:</p>
+<ul>
+  <li><code>TREE_SITTER_TOML_PATH</code></li>
+  <li><code>TREE_SITTER_BASH_PATH</code></li>
+  <li><code>TREE_SITTER_JSON_PATH</code></li>
+  <li><code>TREE_SITTER_JSONC_PATH</code></li>
+</ul>
+
+<h3 id="if-you-were-passing-custom-parser-paths">If you were passing custom parser paths:</h3>
+<p>✅ <strong>No changes needed</strong> - <code>parser_path:</code> parameter still works:</p>
+<pre class="code language-ruby"><code class="language-ruby">FileAnalysis.new(source, parser_path: &quot;/custom/path/libtree-sitter-toml.so&quot;)
+</code></pre>
+
+<h3 id="if-you-were-catching-treesitter-exceptions">If you were catching TreeSitter exceptions:</h3>
+<p>⚠️ <strong>Update exception handling</strong> to catch TreeHaver exceptions:</p>
+<pre class="code language-ruby"><code class="language-ruby"># Before
+rescue TreeSitter::Error =&gt; e
+
+# After
+rescue TreeHaver::Error =&gt; e
+</code></pre>
+
+<hr>
+
+<h2 id="files-modified-summary">Files Modified Summary</h2>
+
+<p><strong>Total:</strong> 8 files modified across 4 gems</p>
+
+<h3 id="toml-merge-3-files">toml-merge (3 files)</h3>
+<ul>
+  <li>
+<code>lib/toml/merge/file_analysis.rb</code> - Complete rewrite of parsing logic</li>
+  <li>
+<code>lib/toml/merge/node_wrapper.rb</code> - Updated documentation</li>
+  <li>
+<code>CHANGELOG.md</code> - Documented breaking changes</li>
+</ul>
+
+<h3 id="bash-merge-2-files">bash-merge (2 files)</h3>
+<ul>
+  <li>
+<code>lib/bash/merge/file_analysis.rb</code> - Removed legacy fallback</li>
+  <li>
+<code>CHANGELOG.md</code> - Documented breaking changes</li>
+</ul>
+
+<h3 id="json-merge-2-files">json-merge (2 files)</h3>
+<ul>
+  <li>
+<code>lib/json/merge/file_analysis.rb</code> - Removed legacy fallback</li>
+  <li>
+<code>CHANGELOG.md</code> - Documented breaking changes</li>
+</ul>
+
+<h3 id="jsonc-merge-2-files">jsonc-merge (2 files)</h3>
+<ul>
+  <li>
+<code>lib/jsonc/merge/file_analysis.rb</code> - Removed legacy fallback</li>
+  <li>
+<code>CHANGELOG.md</code> - Documented breaking changes</li>
+</ul>
+
+<hr>
+
+<h2 id="code-quality-improvements">Code Quality Improvements</h2>
+
+<h3 id="before-across-all-gems">Before (Across All Gems)</h3>
+<ul>
+  <li>🔴 ~150 lines of duplicate path searching code</li>
+  <li>🔴 4 separate implementations of ENV variable handling</li>
+  <li>🔴 Manual error message construction</li>
+  <li>🔴 Hardcoded platform-specific paths</li>
+</ul>
+
+<h3 id="after">After</h3>
+<ul>
+  <li>✅ Single line: <code>TreeHaver::GrammarFinder.new(:language).find_library_path</code>
+</li>
+  <li>✅ All platform logic centralized</li>
+  <li>✅ All security logic centralized</li>
+  <li>✅ Consistent error messages</li>
+</ul>
+
+<hr>
+
+<h2 id="validation-checklist">Validation Checklist</h2>
+
+<ul class="task-list">
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Remove PARSER_SEARCH_PATHS constants</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Remove custom find_parser_path implementations</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Remove manual ENV variable checks</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Remove hardcoded path lists</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Replace TreeSitter::Language.load with TreeHaver API</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Update documentation references</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Update CHANGELOG.md files</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Ensure consistent messaging across gems</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled>Run integration tests</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled>Test on multiple platforms</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled>Test with different Ruby versions</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled>Update main documentation</li>
+</ul>
+
+<hr>
+
+<h2 id="success-criteria-met-">Success Criteria Met ✅</h2>
+
+<ol>
+  <li>✅ <strong>Eliminated duplication</strong> - No more hardcoded paths or custom finders</li>
+  <li>✅ <strong>Centralized in TreeHaver</strong> - All grammar loading goes through TreeHaver</li>
+  <li>✅ <strong>Consistent API</strong> - All gems use same pattern</li>
+  <li>✅ <strong>Documented changes</strong> - CHANGELOGs updated</li>
+  <li>✅ <strong>Backward compatible where possible</strong> - ENV vars and parser_path still work</li>
+</ol>
+
+<hr>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The transition to complete TreeHaver dependence is <strong>COMPLETE</strong> for the four gems that needed it:</p>
+<ul>
+  <li>✅ toml-merge (complete rewrite)</li>
+  <li>✅ bash-merge (fallback removal)</li>
+  <li>✅ json-merge (fallback removal)</li>
+  <li>✅ jsonc-merge (fallback removal)</li>
+</ul>
+
+<p>This eliminates ~150+ lines of duplicate code, improves security, enables multi-backend support, and provides a better user experience with helpful error messages.</p>
+
+<p>The code is now ready for testing and eventual release.</p>
+</div></div>
+
+      <div id="footer">
+  Generated on Sun Dec 28 16:22:19 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-4.0.0).
+</div>
+
+    </div>
+  </body>
+</html>

@@ -65,8 +65,7 @@ RSpec.describe Ast::Merge::ContentMatchRefiner do
 
     def create_mock_node(content, type: :paragraph)
       node = double("Node")
-      allow(node).to receive(:type).and_return(type)
-      allow(node).to receive(:text_content).and_return(content)
+      allow(node).to receive_messages(type: type, text_content: content)
       allow(node).to receive(:respond_to?) do |method, *|
         [:type, :text_content].include?(method)
       end
@@ -173,12 +172,12 @@ RSpec.describe Ast::Merge::ContentMatchRefiner do
     context "with custom content_extractor" do
       let(:extractor) { ->(node) { node.type.to_s } }
       let(:refiner) { described_class.new(threshold: 0.5, content_extractor: extractor) }
-      let(:node1) { create_mock_node("different", type: :paragraph) }
-      let(:node2) { create_mock_node("content", type: :paragraph) }
+      let(:template_node) { create_mock_node("different", type: :paragraph) }
+      let(:dest_node) { create_mock_node("content", type: :paragraph) }
 
       it "uses content_extractor to get content" do
         # Both nodes have type :paragraph, so content is "paragraph"
-        result = refiner.call([node1], [node2])
+        result = refiner.call([template_node], [dest_node])
         expect(result.first.score).to be_within(0.001).of(1.0)
       end
     end
@@ -341,9 +340,8 @@ RSpec.describe Ast::Merge::ContentMatchRefiner do
       node = double("Node")
       allow(node).to receive(:respond_to?).and_return(false)
       allow(node).to receive(:respond_to?).with(:to_s).and_return(true)
-      allow(node).to receive(:to_s).and_return("hello")
+      allow(node).to receive_messages(to_s: "hello")
       expect(refiner.send(:extract_content, node)).to eq("hello")
     end
   end
 end
-

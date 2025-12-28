@@ -4,19 +4,23 @@ RSpec.describe Ast::Merge::NavigableStatement do
   # Create a simple mock node for testing
   let(:mock_node) do
     node = Object.new
-    allow(node).to receive(:type).and_return(:paragraph)
-    allow(node).to receive(:signature).and_return([:paragraph, "test"])
-    allow(node).to receive(:to_s).and_return("Test content")
-    allow(node).to receive(:source_position).and_return({start_line: 1, end_line: 1})
+    allow(node).to receive_messages(
+      type: :paragraph,
+      signature: [:paragraph, "test"],
+      to_s: "Test content",
+      source_position: {start_line: 1, end_line: 1},
+    )
     node
   end
 
   let(:class_node) do
     node = Object.new
-    allow(node).to receive(:type).and_return(:class)
-    allow(node).to receive(:signature).and_return([:class, "Foo"])
-    allow(node).to receive(:to_s).and_return("class Foo\nend")
-    allow(node).to receive(:source_position).and_return({start_line: 1, end_line: 2})
+    allow(node).to receive_messages(
+      type: :class,
+      signature: [:class, "Foo"],
+      to_s: "class Foo\nend",
+      source_position: {start_line: 1, end_line: 2},
+    )
     node
   end
 
@@ -74,7 +78,10 @@ RSpec.describe Ast::Merge::NavigableStatement do
 
     it "yields each following statement" do
       collected = []
-      statements[1].each_following { |s| collected << s; true }
+      statements[1].each_following { |s|
+        collected << s
+        true
+      }
       expect(collected).to eq([statements[2], statements[3], statements[4]])
     end
 
@@ -97,17 +104,19 @@ RSpec.describe Ast::Merge::NavigableStatement do
     context "with parser-backed node that has tree methods" do
       let(:tree_node) do
         parent = Object.new
-        allow(parent).to receive(:type).and_return(:document)
+        allow(parent).to receive_messages(type: :document)
 
         next_node = Object.new
-        allow(next_node).to receive(:type).and_return(:paragraph)
+        allow(next_node).to receive_messages(type: :paragraph)
 
         node = Object.new
-        allow(node).to receive(:type).and_return(:class)
-        allow(node).to receive(:parent).and_return(parent)
-        allow(node).to receive(:next).and_return(next_node)
-        allow(node).to receive(:previous).and_return(nil)
-        allow(node).to receive(:source_position).and_return({start_line: 1, end_line: 1})
+        allow(node).to receive_messages(
+          type: :class,
+          parent: parent,
+          next: next_node,
+          previous: nil,
+          source_position: {start_line: 1, end_line: 1},
+        )
         node
       end
 
@@ -133,9 +142,11 @@ RSpec.describe Ast::Merge::NavigableStatement do
     context "with synthetic node (no tree methods)" do
       let(:synthetic_node) do
         node = Object.new
-        allow(node).to receive(:type).and_return(:gap_line)
-        allow(node).to receive(:to_s).and_return("")
-        allow(node).to receive(:source_position).and_return({start_line: 1, end_line: 1})
+        allow(node).to receive_messages(
+          type: :gap_line,
+          to_s: "",
+          source_position: {start_line: 1, end_line: 1},
+        )
         node
       end
 
@@ -157,39 +168,43 @@ RSpec.describe Ast::Merge::NavigableStatement do
     context "with nested tree structure" do
       let(:grandparent) do
         node = Object.new
-        allow(node).to receive(:type).and_return(:document)
-        allow(node).to receive(:parent).and_return(nil)
+        allow(node).to receive_messages(type: :document, parent: nil)
         node
       end
 
       let(:parent) do
         node = Object.new
-        allow(node).to receive(:type).and_return(:section)
-        allow(node).to receive(:parent).and_return(grandparent)
+        allow(node).to receive_messages(type: :section, parent: grandparent)
         node
       end
 
       let(:child_node) do
         node = Object.new
-        allow(node).to receive(:type).and_return(:paragraph)
-        allow(node).to receive(:parent).and_return(parent)
-        allow(node).to receive(:source_position).and_return({start_line: 1, end_line: 1})
+        allow(node).to receive_messages(
+          type: :paragraph,
+          parent: parent,
+          source_position: {start_line: 1, end_line: 1},
+        )
         node
       end
 
       let(:sibling_node) do
         node = Object.new
-        allow(node).to receive(:type).and_return(:heading)
-        allow(node).to receive(:parent).and_return(parent)
-        allow(node).to receive(:source_position).and_return({start_line: 2, end_line: 2})
+        allow(node).to receive_messages(
+          type: :heading,
+          parent: parent,
+          source_position: {start_line: 2, end_line: 2},
+        )
         node
       end
 
       let(:root_level_node) do
         node = Object.new
-        allow(node).to receive(:type).and_return(:heading)
-        allow(node).to receive(:parent).and_return(grandparent)
-        allow(node).to receive(:source_position).and_return({start_line: 3, end_line: 3})
+        allow(node).to receive_messages(
+          type: :heading,
+          parent: grandparent,
+          source_position: {start_line: 3, end_line: 3},
+        )
         node
       end
 
@@ -200,9 +215,11 @@ RSpec.describe Ast::Merge::NavigableStatement do
       describe "#tree_depth" do
         it "returns 0 for root level nodes" do
           root_node = Object.new
-          allow(root_node).to receive(:type).and_return(:document)
-          allow(root_node).to receive(:parent).and_return(nil)
-          allow(root_node).to receive(:source_position).and_return({start_line: 1, end_line: 1})
+          allow(root_node).to receive_messages(
+            type: :document,
+            parent: nil,
+            source_position: {start_line: 1, end_line: 1},
+          )
           stmt = described_class.new(root_node, index: 0)
           expect(stmt.tree_depth).to eq(0)
         end
@@ -268,9 +285,11 @@ RSpec.describe Ast::Merge::NavigableStatement do
     describe "#node_attribute" do
       let(:node_with_attr) do
         node = Object.new
-        allow(node).to receive(:type).and_return(:method)
-        allow(node).to receive(:name).and_return("foo")
-        allow(node).to receive(:to_s).and_return("def foo; end")
+        allow(node).to receive_messages(
+          type: :method,
+          name: "foo",
+          to_s: "def foo; end",
+        )
         node
       end
 
@@ -336,9 +355,11 @@ end
 RSpec.describe Ast::Merge::InjectionPoint do
   let(:mock_node) do
     node = Object.new
-    allow(node).to receive(:type).and_return(:paragraph)
-    allow(node).to receive(:to_s).and_return("Content")
-    allow(node).to receive(:source_position).and_return({start_line: 1, end_line: 1})
+    allow(node).to receive_messages(
+      type: :paragraph,
+      to_s: "Content",
+      source_position: {start_line: 1, end_line: 1},
+    )
     node
   end
 
@@ -409,9 +430,11 @@ RSpec.describe Ast::Merge::InjectionPoint do
     let(:nodes) do
       (0..4).map do |i|
         node = Object.new
-        allow(node).to receive(:type).and_return(:paragraph)
-        allow(node).to receive(:to_s).and_return("Content #{i}")
-        allow(node).to receive(:source_position).and_return({start_line: i + 1, end_line: i + 1})
+        allow(node).to receive_messages(
+          type: :paragraph,
+          to_s: "Content #{i}",
+          source_position: {start_line: i + 1, end_line: i + 1},
+        )
         node
       end
     end
@@ -432,7 +455,7 @@ RSpec.describe Ast::Merge::InjectionPoint do
       point = described_class.new(
         anchor: statements[1],
         position: :replace,
-        boundary: statements[3]
+        boundary: statements[3],
       )
       expect(point.replaced_statements).to eq([statements[1], statements[2], statements[3]])
     end
@@ -442,19 +465,25 @@ end
 RSpec.describe Ast::Merge::InjectionPointFinder do
   let(:nodes) do
     class_node = Object.new
-    allow(class_node).to receive(:type).and_return(:class)
-    allow(class_node).to receive(:to_s).and_return("class Foo\nend")
-    allow(class_node).to receive(:source_position).and_return({start_line: 1, end_line: 2})
+    allow(class_node).to receive_messages(
+      type: :class,
+      to_s: "class Foo\nend",
+      source_position: {start_line: 1, end_line: 2},
+    )
 
     const_node = Object.new
-    allow(const_node).to receive(:type).and_return(:constant)
-    allow(const_node).to receive(:to_s).and_return("BAR = 1")
-    allow(const_node).to receive(:source_position).and_return({start_line: 3, end_line: 3})
+    allow(const_node).to receive_messages(
+      type: :constant,
+      to_s: "BAR = 1",
+      source_position: {start_line: 3, end_line: 3},
+    )
 
     method_node = Object.new
-    allow(method_node).to receive(:type).and_return(:method)
-    allow(method_node).to receive(:to_s).and_return("def baz; end")
-    allow(method_node).to receive(:source_position).and_return({start_line: 4, end_line: 4})
+    allow(method_node).to receive_messages(
+      type: :method,
+      to_s: "def baz; end",
+      source_position: {start_line: 4, end_line: 4},
+    )
 
     [class_node, const_node, method_node]
   end
@@ -490,9 +519,11 @@ RSpec.describe Ast::Merge::InjectionPointFinder do
     let(:nodes_with_duplicates) do
       3.times.map do |i|
         node = Object.new
-        allow(node).to receive(:type).and_return(:constant)
-        allow(node).to receive(:to_s).and_return("CONST_#{i} = #{i}")
-        allow(node).to receive(:source_position).and_return({start_line: i + 1, end_line: i + 1})
+        allow(node).to receive_messages(
+          type: :constant,
+          to_s: "CONST_#{i} = #{i}",
+          source_position: {start_line: i + 1, end_line: i + 1},
+        )
         node
       end
     end
@@ -507,4 +538,3 @@ RSpec.describe Ast::Merge::InjectionPointFinder do
     end
   end
 end
-

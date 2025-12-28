@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: TODO-options-standardization
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "TODO-options-standardization";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: TODO-options-standardization</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'><h1 id="todo-standardize-options-pattern-across-merge-gems">TODO: Standardize <code>**options</code> Pattern Across Merge Gems</h1>
+
+<h2 id="overview">Overview</h2>
+
+<p>All merge gems have classes that inherit from <code>Ast::Merge</code> base classes. These child classes need to:</p>
+<ol>
+  <li>Follow the <code>**options</code> pattern for forward compatibility</li>
+  <li>Document which base options are not supported and why</li>
+  <li>Identify shared features that could be extracted to <code>ast-merge</code>
+</li>
+</ol>
+
+<h2 id="phase-1-inventory-base-classes-in-ast-merge">Phase 1: Inventory Base Classes in <code>ast-merge</code>
+</h2>
+
+<h3 id="task-11-analyze-astmergesmartmergerbase-">Task 1.1: Analyze <code>Ast::Merge::SmartMergerBase</code> ✅</h3>
+
+<p><strong>Location:</strong> <code>lib/ast/merge/smart_merger_base.rb</code> (418 lines)</p>
+
+<p><strong>Standard Options in <code>#initialize</code>:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_content,           # Required: String
+  dest_content,               # Required: String
+  signature_generator: nil,   # Proc or nil - custom signature generation
+  preference: :destination,   # Symbol or Hash - :destination, :template, or per-type Hash
+  add_template_only_nodes: false,  # Boolean
+  freeze_token: nil,          # String or nil - defaults to default_freeze_token
+  match_refiner: nil,         # #call or nil - for fuzzy matching
+  regions: nil,               # Array&lt;Hash&gt; or nil - nested region configs
+  region_placeholder: nil,    # String or nil - defaults to &quot;&lt;&lt;&lt;AST_MERGE_REGION_&quot;
+  **format_options            # ✅ Catch-all for format-specific options
+)
+</code></pre>
+
+<p><strong>Abstract Methods (MUST implement):</strong></p>
+<ul>
+  <li>
+<code>analysis_class</code> - Returns the FileAnalysis class for this format</li>
+  <li>
+<code>perform_merge</code> - Performs the format-specific merge logic</li>
+</ul>
+
+<p><strong>Optional Override Hooks:</strong></p>
+<ul>
+  <li>
+<code>default_freeze_token</code> - Returns format-specific freeze token (default: “ast-merge”)</li>
+  <li>
+<code>resolver_class</code> - Returns ConflictResolver class (default: nil)</li>
+  <li>
+<code>result_class</code> - Returns MergeResult class (default: nil)</li>
+  <li>
+<code>aligner_class</code> - Returns FileAligner class (default: nil)</li>
+  <li>
+<code>build_analysis_options</code> - Additional options for FileAnalysis (default: {})</li>
+  <li>
+<code>build_resolver_options</code> - Additional options for ConflictResolver (default: {})</li>
+  <li>
+<code>build_full_analysis_options</code> - Complete control over analysis options</li>
+  <li>
+<code>update_result_content(result, content)</code> - Update result after region substitution</li>
+  <li>
+<code>template_parse_error_class</code> - Custom error class (default: TemplateParseError)</li>
+  <li>
+<code>destination_parse_error_class</code> - Custom error class (default: DestinationParseError)</li>
+</ul>
+
+<p><strong>Includes:</strong> <code>RegionMergeable</code> module</p>
+
+<h3 id="task-12-analyze-astmergefileanalysisbase--does-not-exist">Task 1.2: Analyze <code>Ast::Merge::FileAnalysisBase</code> ❌ DOES NOT EXIST</h3>
+<ul>
+  <li>No base class exists for FileAnalysis</li>
+  <li>Each gem implements its own FileAnalysis independently</li>
+  <li>
+<strong>Recommendation:</strong> Consider creating <code>FileAnalysisBase</code> with common interface</li>
+</ul>
+
+<h3 id="task-13-analyze-astmergeconflictresolverbase-">Task 1.3: Analyze <code>Ast::Merge::ConflictResolverBase</code> ✅</h3>
+
+<p><strong>Location:</strong> <code>lib/ast/merge/conflict_resolver_base.rb</code> (400 lines)</p>
+
+<p><strong>Constructor Signature:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  strategy:,              # Required: :node, :batch, or :boundary
+  preference:,            # Required: Symbol or Hash
+  template_analysis:,     # Required: Analysis object
+  dest_analysis:,         # Required: Analysis object
+  add_template_only_nodes: false  # Boolean
+)
+# ⚠️ Does NOT use **options pattern - all params explicit
+</code></pre>
+
+<p><strong>Three Resolution Strategies:</strong></p>
+<ul>
+  <li>
+<code>:node</code> - Per-node resolution (calls <code>resolve_node_pair</code>)</li>
+  <li>
+<code>:batch</code> - Batch resolution (calls <code>resolve_batch</code>)</li>
+  <li>
+<code>:boundary</code> - Boundary resolution (calls <code>resolve_boundary</code>)</li>
+</ul>
+
+<p><strong>Decision Constants:</strong></p>
+<ul>
+  <li>
+<code>DECISION_DESTINATION</code>, <code>DECISION_TEMPLATE</code>, <code>DECISION_ADDED</code>
+</li>
+  <li>
+<code>DECISION_FROZEN</code>, <code>DECISION_IDENTICAL</code>, <code>DECISION_KEPT_DEST</code>
+</li>
+  <li>
+<code>DECISION_KEPT_TEMPLATE</code>, <code>DECISION_APPENDED</code>, <code>DECISION_FREEZE_BLOCK</code>
+</li>
+  <li>
+<code>DECISION_RECURSIVE</code>, <code>DECISION_REPLACED</code>
+</li>
+</ul>
+
+<h3 id="task-14-analyze-other-base-classes-">Task 1.4: Analyze other base classes ✅</h3>
+
+<h4 id="astmergemergeresultbase"><code>Ast::Merge::MergeResultBase</code></h4>
+<p><strong>Location:</strong> <code>lib/ast/merge/merge_result_base.rb</code> (170 lines)</p>
+
+<p><strong>Constructor Signature:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_analysis: nil,
+  dest_analysis: nil,
+  conflicts: [],
+  frozen_blocks: [],
+  stats: {}
+)
+# ⚠️ Does NOT use **options pattern - all params explicit with defaults
+</code></pre>
+
+<p><strong>Decision Constants:</strong> Same as ConflictResolverBase</p>
+
+<h4 id="astmergedebuglogger-module-not-class">
+<code>Ast::Merge::DebugLogger</code> (module, not class)</h4>
+<p><strong>Location:</strong> <code>lib/ast/merge/debug_logger.rb</code> (276 lines)</p>
+
+<ul>
+  <li>Module designed to be <code>extend</code>ed by child modules</li>
+  <li>Configurable via <code>env_var_name</code> and <code>log_prefix</code> accessors</li>
+  <li>No constructor - module methods only</li>
+  <li>Child modules override via singleton methods (<code>def self.method_name</code>)</li>
+</ul>
+
+<h4 id="astmergeregionmergeable-module">
+<code>Ast::Merge::RegionMergeable</code> (module)</h4>
+<p><strong>Location:</strong> <code>lib/ast/merge/region_mergeable.rb</code> (365 lines)</p>
+
+<ul>
+  <li>Mixin for SmartMerger classes</li>
+  <li>
+<code>setup_regions(regions:, region_placeholder:)</code> - main entry point</li>
+  <li>Provides <code>RegionConfig</code> and <code>ExtractedRegion</code> structs</li>
+  <li>Handles extraction, placeholder substitution, nested regions</li>
+</ul>
+
+<h4 id="astmergefreezenodebase"><code>Ast::Merge::FreezeNodeBase</code></h4>
+<p><strong>Location:</strong> <code>lib/ast/merge/freeze_node_base.rb</code> (435 lines)</p>
+
+<ul>
+  <li>Base class for freeze block nodes</li>
+  <li>Includes <code>Freezable</code> module</li>
+  <li>Constructor varies by subclass - not standardized</li>
+  <li>Configurable marker patterns (<code>:hash_comment</code>, <code>:html_comment</code>, etc.)</li>
+</ul>
+
+<h4 id="astmergematchrefinerbase"><code>Ast::Merge::MatchRefinerBase</code></h4>
+<p><strong>Location:</strong> <code>lib/ast/merge/match_refiner_base.rb</code> (313 lines)</p>
+
+<p><strong>Constructor Signature:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(**options)  # ✅ Uses **options pattern
+</code></pre>
+
+<ul>
+  <li>Implements <code>#call(template_nodes, dest_nodes, context = {})</code> interface</li>
+  <li>Provides helper methods: <code>greedy_match</code>, <code>find_best_match</code>, <code>filter_by_type</code>
+</li>
+  <li>Used for fuzzy matching after signature-based matching</li>
+</ul>
+
+<h4 id="astmergeregiondetectorbase"><code>Ast::Merge::RegionDetectorBase</code></h4>
+<p><strong>Location:</strong> <code>lib/ast/merge/region_detector_base.rb</code> (115 lines)</p>
+
+<ul>
+  <li>No constructor (uses defaults)</li>
+  <li>Abstract methods: <code>region_type</code>, <code>detect_all(source)</code>
+</li>
+  <li>Optional override: <code>strip_delimiters?</code>, <code>name</code>
+</li>
+</ul>
+
+<h4 id="astmergematchscorebase"><code>Ast::Merge::MatchScoreBase</code></h4>
+<p><strong>Location:</strong> <code>lib/ast/merge/match_score_base.rb</code></p>
+
+<ul>
+  <li>Data class for match scoring results</li>
+  <li>Used by MatchRefinerBase implementations</li>
+</ul>
+
+<hr>
+
+<h2 id="phase-2-audit-each-merge-gems-smartmerger">Phase 2: Audit Each Merge Gem’s SmartMerger</h2>
+
+<p>For each gem, check:</p>
+<ul>
+  <li>Does it inherit from <code>SmartMergerBase</code>?</li>
+  <li>Does it pass <code>**options</code> to <code>super()</code>?</li>
+  <li>Which base options does it NOT support?</li>
+  <li>Does it have unique options that could be generalized?</li>
+</ul>
+
+<h3 id="task-21-markdown-merge---markdownmergesmartmerger-">Task 2.1: <code>markdown-merge</code> - <code>Markdown::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; SmartMergerBase</code> (has its own <code>SmartMergerBase</code> in markdown-merge!)</p>
+
+<p><strong>⚠️ ISSUE:</strong> <code>markdown-merge</code> has its own <code>Markdown::Merge::SmartMergerBase</code> that does NOT inherit from <code>Ast::Merge::SmartMergerBase</code>. This is a separate implementation.</p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_content,
+  dest_content,
+  backend: Backends::AUTO,
+  signature_generator: nil,
+  preference: :destination,
+  add_template_only_nodes: false,
+  inner_merge_code_blocks: false,
+  freeze_token: FileAnalysis::DEFAULT_FREEZE_TOKEN,
+  match_refiner: nil,
+  node_typing: nil,
+  **parser_options           # ✅ Uses **options pattern
+)
+</code></pre>
+
+<p><strong>Unique Options:</strong></p>
+<ul>
+  <li>
+<code>backend</code> - <code>:commonmarker</code>, <code>:markly</code>, or <code>:auto</code>
+</li>
+  <li>
+<code>inner_merge_code_blocks</code> - Boolean or <code>CodeBlockMerger</code> instance</li>
+</ul>
+
+<p><strong>Missing from Base:</strong> Does NOT pass to <code>Ast::Merge::SmartMergerBase</code> - has own base class</p>
+
+<h3 id="task-22-markly-merge---marklymergesmartmerger-">Task 2.2: <code>markly-merge</code> - <code>Markly::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; Markdown::Merge::SmartMerger</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_content,
+  dest_content,
+  signature_generator: nil,
+  preference: :destination,
+  add_template_only_nodes: false,
+  inner_merge_code_blocks: DEFAULT_INNER_MERGE_CODE_BLOCKS,
+  freeze_token: DEFAULT_FREEZE_TOKEN,
+  flags: ::Markly::DEFAULT,
+  extensions: [:table],
+  match_refiner: nil,
+  node_typing: nil
+)
+# ⚠️ Does NOT use **options - all params explicit
+</code></pre>
+
+<p><strong>Unique Options:</strong></p>
+<ul>
+  <li>
+<code>flags</code> - Markly parse flags (e.g., <code>Markly::FOOTNOTES</code>)</li>
+  <li>
+<code>extensions</code> - Array of symbols (<code>:table</code>, <code>:strikethrough</code>, etc.)</li>
+</ul>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern - explicit params only</li>
+  <li>Forces <code>backend: :markly</code> when calling super</li>
+</ul>
+
+<h3 id="task-23-commonmarker-merge---commonmarkermergesmartmerger-">Task 2.3: <code>commonmarker-merge</code> - <code>Commonmarker::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; Markdown::Merge::SmartMerger</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_content,
+  dest_content,
+  signature_generator: nil,
+  preference: :destination,
+  add_template_only_nodes: false,
+  freeze_token: DEFAULT_FREEZE_TOKEN,
+  options: {},
+  match_refiner: nil,
+  node_typing: nil
+)
+# ⚠️ Does NOT use **options - all params explicit
+</code></pre>
+
+<p><strong>Unique Options:</strong></p>
+<ul>
+  <li>
+<code>options</code> - CommonMarker parse options hash</li>
+</ul>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern</li>
+  <li>Missing <code>inner_merge_code_blocks</code> in constructor (hardcoded to default)</li>
+  <li>Forces <code>backend: :commonmarker</code> when calling super</li>
+</ul>
+
+<h3 id="task-24-prism-merge---prismmergesmartmerger-">Task 2.4: <code>prism-merge</code> - <code>Prism::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; ::Ast::Merge::SmartMergerBase</code> ✅</p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_content,
+  dest_content,
+  signature_generator: nil,
+  preference: :destination,
+  add_template_only_nodes: false,
+  freeze_token: nil,
+  node_typing: nil,
+  max_recursion_depth: Float::INFINITY,
+  current_depth: 0,
+  match_refiner: nil,
+  regions: nil,
+  region_placeholder: nil,
+  text_merger_options: nil
+)
+# ⚠️ Does NOT use **options - all params explicit
+</code></pre>
+
+<p><strong>Unique Options:</strong></p>
+<ul>
+  <li>
+<code>node_typing</code> - Hash for per-node-type preferences</li>
+  <li>
+<code>max_recursion_depth</code> - Safety limit for recursive merging</li>
+  <li>
+<code>current_depth</code> - Internal tracking for recursion</li>
+  <li>
+<code>text_merger_options</code> - Options for comment-only file handling</li>
+</ul>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern</li>
+  <li>Does NOT use aligner/resolver (custom implementation)</li>
+</ul>
+
+<h3 id="task-25-toml-merge---tomlmergesmartmerger-">Task 2.5: <code>toml-merge</code> - <code>Toml::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; ::Ast::Merge::SmartMergerBase</code> ✅</p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_content,
+  dest_content,
+  signature_generator: nil,
+  preference: :destination,
+  add_template_only_nodes: false,
+  freeze_token: nil,
+  match_refiner: nil,
+  regions: nil,
+  region_placeholder: nil,
+  node_typing: nil
+)
+# ⚠️ Does NOT use **options - all params explicit
+</code></pre>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern</li>
+  <li>Passes <code>node_typing</code> to super but SmartMergerBase doesn’t accept it!</li>
+</ul>
+
+<h3 id="task-26-json-merge---jsonmergesmartmerger-">Task 2.6: <code>json-merge</code> - <code>Json::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; ::Ast::Merge::SmartMergerBase</code> ✅</p>
+
+<p><strong>Constructor:</strong> Same pattern as toml-merge</p>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern</li>
+  <li>Passes <code>node_typing</code> to super (but SmartMergerBase doesn’t have this param)</li>
+</ul>
+
+<h3 id="task-27-jsonc-merge---jsoncmergesmartmerger-">Task 2.7: <code>jsonc-merge</code> - <code>Jsonc::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; ::Ast::Merge::SmartMergerBase</code> ✅</p>
+
+<p><strong>Constructor:</strong> Same pattern as json-merge</p>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern</li>
+</ul>
+
+<h3 id="task-28-psych-merge---psychmergesmartmerger-">Task 2.8: <code>psych-merge</code> - <code>Psych::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; ::Ast::Merge::SmartMergerBase</code> ✅</p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_content,
+  dest_content,
+  signature_generator: nil,
+  preference: :destination,
+  add_template_only_nodes: false,
+  freeze_token: FileAnalysis::DEFAULT_FREEZE_TOKEN,
+  match_refiner: nil,
+  regions: nil,
+  region_placeholder: nil,
+  node_typing: nil
+)
+# ⚠️ Does NOT use **options - all params explicit
+</code></pre>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern</li>
+</ul>
+
+<h3 id="task-29-dotenv-merge---dotenvmergesmartmerger-">Task 2.9: <code>dotenv-merge</code> - <code>Dotenv::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; ::Ast::Merge::SmartMergerBase</code> ✅</p>
+
+<p><strong>Constructor:</strong> Same pattern as psych-merge</p>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern</li>
+</ul>
+
+<h3 id="task-210-bash-merge---bashmergesmartmerger-">Task 2.10: <code>bash-merge</code> - <code>Bash::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; ::Ast::Merge::SmartMergerBase</code> ✅</p>
+
+<p><strong>Constructor:</strong> Same pattern as psych-merge</p>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern</li>
+</ul>
+
+<h3 id="task-211-rbs-merge---rbsmergesmartmerger-">Task 2.11: <code>rbs-merge</code> - <code>Rbs::Merge::SmartMerger</code> ✅</h3>
+
+<p><strong>Inheritance:</strong> <code>SmartMerger &lt; ::Ast::Merge::SmartMergerBase</code> ✅</p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_content,
+  dest_content,
+  signature_generator: nil,
+  preference: :destination,
+  add_template_only_nodes: false,
+  freeze_token: nil,
+  match_refiner: nil,
+  regions: nil,
+  region_placeholder: nil,
+  node_typing: nil,
+  max_recursion_depth: Float::INFINITY
+)
+# ⚠️ Does NOT use **options - all params explicit
+</code></pre>
+
+<p><strong>Unique Options:</strong></p>
+<ul>
+  <li>
+<code>max_recursion_depth</code> - Like prism-merge</li>
+</ul>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ Does NOT use <code>**options</code> pattern</li>
+</ul>
+
+<hr>
+
+<h2 id="phase-2-summary">Phase 2 Summary</h2>
+
+<h3 id="inheritance-patterns-found">Inheritance Patterns Found</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Inherits From</th>
+      <th>Uses <code>**options</code>?</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>markdown-merge</td>
+      <td>Own <code>SmartMergerBase</code>
+</td>
+      <td>✅ Yes (<code>**parser_options</code>)</td>
+    </tr>
+    <tr>
+      <td>markly-merge</td>
+      <td><code>Markdown::Merge::SmartMerger</code></td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>commonmarker-merge</td>
+      <td><code>Markdown::Merge::SmartMerger</code></td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>prism-merge</td>
+      <td><code>Ast::Merge::SmartMergerBase</code></td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>toml-merge</td>
+      <td><code>Ast::Merge::SmartMergerBase</code></td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>json-merge</td>
+      <td><code>Ast::Merge::SmartMergerBase</code></td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>jsonc-merge</td>
+      <td><code>Ast::Merge::SmartMergerBase</code></td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>psych-merge</td>
+      <td><code>Ast::Merge::SmartMergerBase</code></td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>dotenv-merge</td>
+      <td><code>Ast::Merge::SmartMergerBase</code></td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>bash-merge</td>
+      <td><code>Ast::Merge::SmartMergerBase</code></td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>rbs-merge</td>
+      <td><code>Ast::Merge::SmartMergerBase</code></td>
+      <td>❌ No</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="common-options-across-all-gems">Common Options Across All Gems</h3>
+<p>All gems support these options:</p>
+<ul>
+  <li>
+<code>template_content</code>, <code>dest_content</code> (required)</li>
+  <li><code>signature_generator</code></li>
+  <li><code>preference</code></li>
+  <li><code>add_template_only_nodes</code></li>
+  <li><code>freeze_token</code></li>
+  <li><code>match_refiner</code></li>
+</ul>
+
+<h3 id="options-not-in-smartmergerbase-but-used-by-multiple-gems">Options NOT in SmartMergerBase but Used by Multiple Gems</h3>
+<ul>
+  <li>
+<code>node_typing</code> - Used by: prism, toml, json, jsonc, psych, dotenv, bash, rbs, markdown, markly, commonmarker</li>
+  <li>
+<code>max_recursion_depth</code> - Used by: prism, rbs</li>
+  <li>
+<code>inner_merge_code_blocks</code> - Used by: markdown, markly, commonmarker</li>
+</ul>
+
+<h3 id="recommendations-from-phase-2">Recommendations from Phase 2</h3>
+
+<ol>
+  <li>
+<strong>Add <code>node_typing</code> to <code>SmartMergerBase</code></strong> - It’s used by ALL gems</li>
+  <li>
+<strong>Add <code>**options</code> pattern to ALL child SmartMergers</strong> for forward compatibility</li>
+  <li>
+<strong>Consider adding <code>max_recursion_depth</code> to <code>SmartMergerBase</code></strong> - Used by multiple gems</li>
+  <li>
+<strong>Fix markdown-merge hierarchy</strong> - Should extend <code>Ast::Merge::SmartMergerBase</code>
+</li>
+</ol>
+
+<hr>
+
+<h2 id="phase-3-audit-each-merge-gems-fileanalysis">Phase 3: Audit Each Merge Gem’s FileAnalysis</h2>
+
+<p>All FileAnalysis classes include <code>Ast::Merge::FileAnalyzable</code> module which provides:</p>
+<ul>
+  <li>Common attr_readers: <code>source</code>, <code>lines</code>, <code>freeze_token</code>, <code>signature_generator</code>
+</li>
+  <li>Methods: <code>statements</code>, <code>freeze_blocks</code>, <code>in_freeze_block?</code>, <code>freeze_block_at</code>, <code>signature_at</code>, <code>generate_signature</code>
+</li>
+</ul>
+
+<h3 id="task-31-markdown-merge---markdownmergefileanalysisbase-">Task 3.1: <code>markdown-merge</code> - <code>Markdown::Merge::FileAnalysisBase</code> ✅</h3>
+
+<p><strong>Includes:</strong> <code>Ast::Merge::FileAnalyzable</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, freeze_token: DEFAULT_FREEZE_TOKEN, signature_generator: nil, **parser_options)
+# ✅ Uses **parser_options pattern
+</code></pre>
+
+<p><strong>Unique:</strong></p>
+<ul>
+  <li>Has its own <code>FileAnalysisBase</code> (not from ast-merge)</li>
+  <li>Abstract class - subclassed by backend-specific implementations</li>
+  <li>Subclass <code>FileAnalysis</code> wraps with backend detection</li>
+</ul>
+
+<h3 id="task-32-prism-merge---prismmergefileanalysis-">Task 3.2: <code>prism-merge</code> - <code>Prism::Merge::FileAnalysis</code> ✅</h3>
+
+<p><strong>Includes:</strong> <code>Ast::Merge::FileAnalyzable</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, freeze_token: DEFAULT_FREEZE_TOKEN, signature_generator: nil)
+# ⚠️ Does NOT use **options pattern - all params explicit
+</code></pre>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ No <code>**options</code> pattern - cannot accept new options without breaking</li>
+</ul>
+
+<h3 id="task-33-toml-merge---tomlmergefileanalysis-">Task 3.3: <code>toml-merge</code> - <code>Toml::Merge::FileAnalysis</code> ✅</h3>
+
+<p><strong>Includes:</strong> <code>Ast::Merge::FileAnalyzable</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, signature_generator: nil, parser_path: nil, **options)
+# ✅ Uses **options pattern
+</code></pre>
+
+<p><strong>Notes:</strong></p>
+<ul>
+  <li>Does NOT use <code>freeze_token</code> (TOML has no comment syntax for freeze markers)</li>
+  <li>
+<code>parser_path</code> - tree-sitter parser library path</li>
+</ul>
+
+<h3 id="task-34-json-merge---jsonmergefileanalysis-">Task 3.4: <code>json-merge</code> - <code>Json::Merge::FileAnalysis</code> ✅</h3>
+
+<p><strong>Includes:</strong> <code>Ast::Merge::FileAnalyzable</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, signature_generator: nil, parser_path: nil, **options)
+# ✅ Uses **options pattern
+</code></pre>
+
+<p><strong>Notes:</strong></p>
+<ul>
+  <li>Does NOT use <code>freeze_token</code> (standard JSON has no comments)</li>
+  <li>Same pattern as toml-merge</li>
+</ul>
+
+<h3 id="task-35-jsonc-merge---jsoncmergefileanalysis-">Task 3.5: <code>jsonc-merge</code> - <code>Jsonc::Merge::FileAnalysis</code> ✅</h3>
+
+<p><strong>Includes:</strong> <code>Ast::Merge::FileAnalyzable</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, freeze_token: DEFAULT_FREEZE_TOKEN, signature_generator: nil, parser_path: nil, **options)
+# ✅ Uses **options pattern
+</code></pre>
+
+<p><strong>Notes:</strong></p>
+<ul>
+  <li>DOES use <code>freeze_token</code> (JSONC supports comments)</li>
+  <li>Has <code>CommentTracker</code> for comment handling</li>
+</ul>
+
+<h3 id="task-36-psych-merge---psychmergefileanalysis-">Task 3.6: <code>psych-merge</code> - <code>Psych::Merge::FileAnalysis</code> ✅</h3>
+
+<p><strong>Includes:</strong> <code>Ast::Merge::FileAnalyzable</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, freeze_token: DEFAULT_FREEZE_TOKEN, signature_generator: nil, **options)
+# ✅ Uses **options pattern
+</code></pre>
+
+<p><strong>Notes:</strong></p>
+<ul>
+  <li>Has <code>CommentTracker</code> for comment handling</li>
+  <li>Supports freeze blocks via YAML comments</li>
+</ul>
+
+<h3 id="task-37-bash-merge---bashmergefileanalysis-">Task 3.7: <code>bash-merge</code> - <code>Bash::Merge::FileAnalysis</code> ✅</h3>
+
+<p><strong>Includes:</strong> <code>Ast::Merge::FileAnalyzable</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, freeze_token: DEFAULT_FREEZE_TOKEN, signature_generator: nil, parser_path: nil, **options)
+# ✅ Uses **options pattern
+</code></pre>
+
+<p><strong>Notes:</strong></p>
+<ul>
+  <li>Uses tree-sitter-bash via TreeHaver</li>
+  <li>Has <code>CommentTracker</code> for comment handling</li>
+</ul>
+
+<h3 id="task-38-dotenv-merge---dotenvmergefileanalysis-">Task 3.8: <code>dotenv-merge</code> - <code>Dotenv::Merge::FileAnalysis</code> ✅</h3>
+
+<p><strong>Includes:</strong> <code>Ast::Merge::FileAnalyzable</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, freeze_token: DEFAULT_FREEZE_TOKEN, signature_generator: nil, **options)
+# ✅ Uses **options pattern
+</code></pre>
+
+<p><strong>Notes:</strong></p>
+<ul>
+  <li>Custom line-based parsing (no external parser)</li>
+  <li>Has <code>EnvLine</code> for parsed lines</li>
+</ul>
+
+<h3 id="task-39-rbs-merge---rbsmergefileanalysis-">Task 3.9: <code>rbs-merge</code> - <code>Rbs::Merge::FileAnalysis</code> ✅</h3>
+
+<p><strong>Includes:</strong> <code>Ast::Merge::FileAnalyzable</code></p>
+
+<p><strong>Constructor:</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, freeze_token: DEFAULT_FREEZE_TOKEN, signature_generator: nil, **options)
+# ✅ Uses **options pattern
+</code></pre>
+
+<p><strong>Notes:</strong></p>
+<ul>
+  <li>Uses <code>RBS::Parser</code> for parsing</li>
+</ul>
+
+<hr>
+
+<h2 id="phase-3-summary">Phase 3 Summary</h2>
+
+<h3 id="options-pattern-usage-in-fileanalysis">
+<code>**options</code> Pattern Usage in FileAnalysis</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Uses <code>**options</code>?</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>markdown-merge</td>
+      <td>✅ Yes (<code>**parser_options</code>)</td>
+      <td>Has own FileAnalysisBase</td>
+    </tr>
+    <tr>
+      <td>prism-merge</td>
+      <td>❌ No</td>
+      <td>Only explicit params</td>
+    </tr>
+    <tr>
+      <td>toml-merge</td>
+      <td>✅ Yes</td>
+      <td>No freeze_token</td>
+    </tr>
+    <tr>
+      <td>json-merge</td>
+      <td>✅ Yes</td>
+      <td>No freeze_token</td>
+    </tr>
+    <tr>
+      <td>jsonc-merge</td>
+      <td>✅ Yes</td>
+      <td>With freeze_token</td>
+    </tr>
+    <tr>
+      <td>psych-merge</td>
+      <td>✅ Yes</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>bash-merge</td>
+      <td>✅ Yes</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>dotenv-merge</td>
+      <td>✅ Yes</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>rbs-merge</td>
+      <td>✅ Yes</td>
+      <td>-</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="common-interface-from-fileanalyzable">Common Interface (from FileAnalyzable)</h3>
+<p>All FileAnalysis classes share these attributes/methods:</p>
+<ul>
+  <li>
+<code>source</code> - Original source string</li>
+  <li>
+<code>lines</code> - Array of lines</li>
+  <li>
+<code>freeze_token</code> - Token for freeze markers</li>
+  <li>
+<code>signature_generator</code> - Custom signature proc</li>
+  <li>
+<code>statements</code> - All top-level nodes</li>
+  <li>
+<code>freeze_blocks</code> - Freeze block nodes</li>
+  <li>
+<code>generate_signature(node)</code> - Signature for matching</li>
+</ul>
+
+<h3 id="recommendations-from-phase-3">Recommendations from Phase 3</h3>
+
+<ol>
+  <li>
+<strong>Add <code>**options</code> to <code>Prism::Merge::FileAnalysis</code></strong> - Only FileAnalysis missing it</li>
+  <li>
+<strong>Standardize <code>freeze_token</code> handling</strong> - json-merge and toml-merge don’t use it because their formats don’t support comments, but should still accept it for consistency</li>
+  <li>
+<strong>Consider documenting which formats support freeze blocks</strong> - Not all do</li>
+</ol>
+
+<hr>
+
+<h2 id="phase-4-audit-other-inheriting-classes">Phase 4: Audit Other Inheriting Classes</h2>
+
+<h3 id="task-41-conflictresolver-classes-">Task 4.1: ConflictResolver classes ✅</h3>
+
+<p>All ConflictResolver classes inherit from <code>Ast::Merge::ConflictResolverBase</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Inherits From</th>
+      <th>Strategy</th>
+      <th>Constructor Pattern</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>toml-merge</td>
+      <td><code>Ast::Merge::ConflictResolverBase</code></td>
+      <td><code>:batch</code></td>
+      <td>Positional + keyword args, no <code>**options</code>
+</td>
+    </tr>
+    <tr>
+      <td>json-merge</td>
+      <td><code>Ast::Merge::ConflictResolverBase</code></td>
+      <td><code>:batch</code></td>
+      <td>Positional + keyword args, no <code>**options</code>
+</td>
+    </tr>
+    <tr>
+      <td>jsonc-merge</td>
+      <td><code>Ast::Merge::ConflictResolverBase</code></td>
+      <td><code>:batch</code></td>
+      <td>Positional + keyword args, no <code>**options</code>
+</td>
+    </tr>
+    <tr>
+      <td>psych-merge</td>
+      <td><code>Ast::Merge::ConflictResolverBase</code></td>
+      <td><code>:batch</code></td>
+      <td>Positional + keyword args, no <code>**options</code>
+</td>
+    </tr>
+    <tr>
+      <td>bash-merge</td>
+      <td><code>Ast::Merge::ConflictResolverBase</code></td>
+      <td><code>:batch</code></td>
+      <td>Positional + keyword args, no <code>**options</code>
+</td>
+    </tr>
+    <tr>
+      <td>rbs-merge</td>
+      <td><code>Ast::Merge::ConflictResolverBase</code></td>
+      <td><code>:node</code></td>
+      <td>All keyword args, no <code>**options</code>
+</td>
+    </tr>
+    <tr>
+      <td>markdown-merge</td>
+      <td><code>Ast::Merge::ConflictResolverBase</code></td>
+      <td><code>:node</code></td>
+      <td>All keyword args, no <code>**options</code>
+</td>
+    </tr>
+    <tr>
+      <td>prism-merge</td>
+      <td>N/A</td>
+      <td>Custom</td>
+      <td>No resolver (custom merge logic)</td>
+    </tr>
+    <tr>
+      <td>dotenv-merge</td>
+      <td>N/A</td>
+      <td>Custom</td>
+      <td>No resolver (custom merge logic)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Common Constructor Pattern (batch strategy):</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(template_analysis, dest_analysis, preference: :destination, add_template_only_nodes: false, match_refiner: nil)
+  super(
+    strategy: :batch,
+    preference: preference,
+    template_analysis: template_analysis,
+    dest_analysis: dest_analysis,
+    add_template_only_nodes: add_template_only_nodes
+  )
+  @match_refiner = match_refiner
+end
+# ⚠️ Does NOT use **options - stores match_refiner separately
+</code></pre>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>⚠️ None use <code>**options</code> pattern</li>
+  <li>
+<code>match_refiner</code> is stored locally, not passed to super</li>
+  <li>Base class doesn’t accept <code>match_refiner</code> option</li>
+</ul>
+
+<h3 id="task-42-mergeresult-classes-">Task 4.2: MergeResult classes ✅</h3>
+
+<p>All MergeResult classes inherit from <code>Ast::Merge::MergeResultBase</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Inherits From</th>
+      <th>Constructor</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>toml-merge</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td>
+<code>def initialize</code> (no args)</td>
+    </tr>
+    <tr>
+      <td>json-merge</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td>
+<code>def initialize</code> (no args)</td>
+    </tr>
+    <tr>
+      <td>jsonc-merge</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td>
+<code>def initialize</code> (no args)</td>
+    </tr>
+    <tr>
+      <td>psych-merge</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td>
+<code>def initialize</code> (no args)</td>
+    </tr>
+    <tr>
+      <td>bash-merge</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td>
+<code>def initialize</code> (no args)</td>
+    </tr>
+    <tr>
+      <td>rbs-merge</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td>
+<code>def initialize</code> (no args)</td>
+    </tr>
+    <tr>
+      <td>prism-merge</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td>
+<code>def initialize</code> (no args)</td>
+    </tr>
+    <tr>
+      <td>dotenv-merge</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td><code>def initialize(template_analysis, dest_analysis)</code></td>
+    </tr>
+    <tr>
+      <td>markdown-merge</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td><code>def initialize(content:, conflicts:, frozen_blocks:, stats:)</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Issues:</strong></p>
+<ul>
+  <li>Inconsistent constructor signatures</li>
+  <li>Some use no-arg constructors, some use keyword args, some use positional args</li>
+  <li>markdown-merge MergeResult stores <code>@content_raw</code> as string, not <code>@lines</code> array</li>
+  <li>⚠️ None use <code>**options</code> pattern</li>
+</ul>
+
+<h3 id="task-43-matchrefiner-classes-">Task 4.3: MatchRefiner classes ✅</h3>
+
+<p>All MatchRefiner classes inherit from <code>Ast::Merge::MatchRefinerBase</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Class</th>
+      <th>Inherits From</th>
+      <th>Uses <code>**options</code>?</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>prism-merge</td>
+      <td><code>MethodMatchRefiner</code></td>
+      <td><code>Ast::Merge::MatchRefinerBase</code></td>
+      <td>✅ Yes</td>
+    </tr>
+    <tr>
+      <td>toml-merge</td>
+      <td><code>TableMatchRefiner</code></td>
+      <td><code>Ast::Merge::MatchRefinerBase</code></td>
+      <td>✅ Yes</td>
+    </tr>
+    <tr>
+      <td>markdown-merge</td>
+      <td><code>TableMatchRefiner</code></td>
+      <td><code>Ast::Merge::MatchRefinerBase</code></td>
+      <td>✅ Yes</td>
+    </tr>
+    <tr>
+      <td>psych-merge</td>
+      <td><code>MappingMatchRefiner</code></td>
+      <td><code>Ast::Merge::MatchRefinerBase</code></td>
+      <td>✅ Yes</td>
+    </tr>
+    <tr>
+      <td>json-merge</td>
+      <td><code>ObjectMatchRefiner</code></td>
+      <td><code>Ast::Merge::MatchRefinerBase</code></td>
+      <td>✅ Yes</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Constructor Pattern (all use <code>**options</code>):</strong></p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(threshold: DEFAULT_THRESHOLD, weights: {}, **options)
+  super(threshold: threshold, node_types: [:table], **options)
+  @weights = DEFAULT_WEIGHTS.merge(weights)
+end
+# ✅ Uses **options pattern correctly
+</code></pre>
+
+<p><strong>Notes:</strong></p>
+<ul>
+  <li>✅ All MatchRefiner classes properly use <code>**options</code>
+</li>
+  <li>Base class <code>MatchRefinerBase</code> already uses <code>**options</code>
+</li>
+  <li>This is the model pattern for all classes</li>
+</ul>
+
+<hr>
+
+<h2 id="phase-4-summary">Phase 4 Summary</h2>
+
+<h3 id="classes-using-options-pattern">Classes Using <code>**options</code> Pattern</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Class Type</th>
+      <th>Uses <code>**options</code>?</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>SmartMerger (most gems)</td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>FileAnalysis (most gems)</td>
+      <td>✅ Yes</td>
+    </tr>
+    <tr>
+      <td>ConflictResolver (all gems)</td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>MergeResult (all gems)</td>
+      <td>❌ No</td>
+    </tr>
+    <tr>
+      <td>MatchRefiner (all gems)</td>
+      <td>✅ Yes</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="recommendations-from-phase-4">Recommendations from Phase 4</h3>
+
+<ol>
+  <li>
+<strong>Add <code>**options</code> to all ConflictResolver constructors</strong> for forward compatibility</li>
+  <li>
+<strong>Add <code>**options</code> to all MergeResult constructors</strong> for forward compatibility</li>
+  <li>
+<strong>Add <code>match_refiner</code> to <code>ConflictResolverBase</code></strong> - all batch resolvers use it</li>
+  <li>
+<strong>Standardize MergeResult constructors</strong> - inconsistent signatures make inheritance difficult</li>
+  <li>
+<strong>Consider making markdown-merge MergeResult use <code>@lines</code> pattern</strong> like others</li>
+</ol>
+
+<hr>
+
+<h2 id="consolidated-summary--action-items">Consolidated Summary &amp; Action Items</h2>
+
+<h3 id="overall-findings">Overall Findings</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Class Type</th>
+      <th>Base Class</th>
+      <th>Uses <code>**options</code>?</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>SmartMerger</td>
+      <td><code>Ast::Merge::SmartMergerBase</code></td>
+      <td>✅ Base has it</td>
+      <td>✅ All children updated</td>
+    </tr>
+    <tr>
+      <td>FileAnalysis</td>
+      <td>
+<code>Ast::Merge::FileAnalyzable</code> (module)</td>
+      <td>✅ All have it</td>
+      <td>✅ prism-merge fixed</td>
+    </tr>
+    <tr>
+      <td>ConflictResolver</td>
+      <td><code>Ast::Merge::ConflictResolverBase</code></td>
+      <td>✅ Base updated</td>
+      <td>✅ All children updated</td>
+    </tr>
+    <tr>
+      <td>MergeResult</td>
+      <td><code>Ast::Merge::MergeResultBase</code></td>
+      <td>✅ Base updated</td>
+      <td>✅ All children updated</td>
+    </tr>
+    <tr>
+      <td>MatchRefiner</td>
+      <td><code>Ast::Merge::MatchRefinerBase</code></td>
+      <td>✅ All have it</td>
+      <td>✅ Complete</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="priority-1-add-node_typing-to-smartmergerbase--done">Priority 1: Add <code>node_typing</code> to <code>SmartMergerBase</code> ✅ DONE</h3>
+
+<ul>
+  <li>Added explicit <code>node_typing</code> parameter to SmartMergerBase</li>
+  <li>Added <code>attr_reader :node_typing</code>
+</li>
+  <li>Validates via <code>NodeTyping.validate!</code> if provided</li>
+  <li>Updated CHANGELOG</li>
+</ul>
+
+<h3 id="priority-2-add-options-to-conflictresolverbase--done">Priority 2: Add <code>**options</code> to <code>ConflictResolverBase</code> ✅ DONE</h3>
+
+<ul>
+  <li>Added <code>match_refiner</code> parameter (was being stored locally by all children)</li>
+  <li>Added <code>**options</code> catch-all</li>
+  <li>Updated CHANGELOG</li>
+</ul>
+
+<h3 id="priority-3-add-options-to-mergeresultbase--done">Priority 3: Add <code>**options</code> to <code>MergeResultBase</code> ✅ DONE</h3>
+
+<ul>
+  <li>Added <code>**options</code> catch-all</li>
+  <li>Updated CHANGELOG</li>
+</ul>
+
+<h3 id="priority-4-add-options-to-all-child-smartmergers--done">Priority 4: Add <code>**options</code> to All Child SmartMergers ✅ DONE</h3>
+
+<p>Updated all 10 child SmartMergers (markdown-merge already had it):</p>
+<ul>
+  <li>✅ <code>vendor/prism-merge/lib/prism/merge/smart_merger.rb</code>
+</li>
+  <li>✅ <code>vendor/toml-merge/lib/toml/merge/smart_merger.rb</code>
+</li>
+  <li>✅ <code>vendor/json-merge/lib/json/merge/smart_merger.rb</code>
+</li>
+  <li>✅ <code>vendor/jsonc-merge/lib/jsonc/merge/smart_merger.rb</code>
+</li>
+  <li>✅ <code>vendor/psych-merge/lib/psych/merge/smart_merger.rb</code>
+</li>
+  <li>✅ <code>vendor/dotenv-merge/lib/dotenv/merge/smart_merger.rb</code>
+</li>
+  <li>✅ <code>vendor/bash-merge/lib/bash/merge/smart_merger.rb</code>
+</li>
+  <li>✅ <code>vendor/rbs-merge/lib/rbs/merge/smart_merger.rb</code>
+</li>
+  <li>✅ <code>vendor/markly-merge/lib/markly/merge/smart_merger.rb</code>
+</li>
+  <li>✅ <code>vendor/commonmarker-merge/lib/commonmarker/merge/smart_merger.rb</code>
+</li>
+</ul>
+
+<p>All CHANGELOGs updated.</p>
+
+<h3 id="priority-5-add-options-to-prismmergefileanalysis--done">Priority 5: Add <code>**options</code> to <code>Prism::Merge::FileAnalysis</code> ✅ DONE</h3>
+
+<ul>
+  <li>Added <code>**options</code> to Prism::Merge::FileAnalysis</li>
+  <li>Updated CHANGELOG</li>
+</ul>
+
+<h3 id="priority-6-add-options-to-all-child-conflictresolvers--done">Priority 6: Add <code>**options</code> to All Child ConflictResolvers ✅ DONE</h3>
+
+<p>Updated all 7 child ConflictResolvers:</p>
+<ul>
+  <li>✅ <code>vendor/toml-merge/lib/toml/merge/conflict_resolver.rb</code>
+</li>
+  <li>✅ <code>vendor/json-merge/lib/json/merge/conflict_resolver.rb</code>
+</li>
+  <li>✅ <code>vendor/jsonc-merge/lib/jsonc/merge/conflict_resolver.rb</code>
+</li>
+  <li>✅ <code>vendor/psych-merge/lib/psych/merge/conflict_resolver.rb</code>
+</li>
+  <li>✅ <code>vendor/bash-merge/lib/bash/merge/conflict_resolver.rb</code>
+</li>
+  <li>✅ <code>vendor/rbs-merge/lib/rbs/merge/conflict_resolver.rb</code>
+</li>
+  <li>✅ <code>vendor/markdown-merge/lib/markdown/merge/conflict_resolver.rb</code>
+</li>
+</ul>
+
+<p>All CHANGELOGs updated.</p>
+
+<h3 id="priority-7-add-options-to-all-child-mergeresults--done">Priority 7: Add <code>**options</code> to All Child MergeResults ✅ DONE</h3>
+
+<p>Updated all 9 child MergeResults:</p>
+<ul>
+  <li>✅ <code>vendor/prism-merge/lib/prism/merge/merge_result.rb</code>
+</li>
+  <li>✅ <code>vendor/toml-merge/lib/toml/merge/merge_result.rb</code>
+</li>
+  <li>✅ <code>vendor/json-merge/lib/json/merge/merge_result.rb</code>
+</li>
+  <li>✅ <code>vendor/jsonc-merge/lib/jsonc/merge/merge_result.rb</code>
+</li>
+  <li>✅ <code>vendor/psych-merge/lib/psych/merge/merge_result.rb</code>
+</li>
+  <li>✅ <code>vendor/dotenv-merge/lib/dotenv/merge/merge_result.rb</code>
+</li>
+  <li>✅ <code>vendor/bash-merge/lib/bash/merge/merge_result.rb</code>
+</li>
+  <li>✅ <code>vendor/rbs-merge/lib/rbs/merge/merge_result.rb</code>
+</li>
+  <li>✅ <code>vendor/markdown-merge/lib/markdown/merge/merge_result.rb</code>
+</li>
+</ul>
+
+<p>All CHANGELOGs updated.</p>
+
+<hr>
+
+<h2 id="documentation-needed">Documentation Needed</h2>
+
+<h3 id="options-matrix-table-for-readmedocs">Options Matrix Table (for README/docs)</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>SmartMergerBase</th>
+      <th>prism</th>
+      <th>markdown</th>
+      <th>toml</th>
+      <th>json</th>
+      <th>psych</th>
+      <th>bash</th>
+      <th>dotenv</th>
+      <th>rbs</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>signature_generator</code></td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><code>preference</code></td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><code>add_template_only_nodes</code></td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><code>freeze_token</code></td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>❌*</td>
+      <td>❌*</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><code>match_refiner</code></td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><code>regions</code></td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><code>region_placeholder</code></td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><code>node_typing</code></td>
+      <td>❌**</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><code>max_recursion_depth</code></td>
+      <td>❌</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><code>inner_merge_code_blocks</code></td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td><code>backend</code></td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>* Format doesn’t support comments for freeze markers  <br>
+** Should be added to base class</p>
+
+<hr>
+
+<h2 id="completed-phases">Completed Phases</h2>
+
+<ul class="task-list">
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Phase 1: Inventory Base Classes in <code>ast-merge</code>
+</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Phase 2: Audit Each Merge Gem’s SmartMerger</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Phase 3: Audit Each Merge Gem’s FileAnalysis</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Phase 4: Audit Other Inheriting Classes (ConflictResolver, MergeResult, MatchRefiner)</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Phase 5: Identify Shared Features for Extraction</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Phase 6: Implementation - All priorities (1-7) completed
+    <ul>
+      <li>Priority 1: Added <code>node_typing</code> to <code>SmartMergerBase</code>
+</li>
+      <li>Priority 2: Added <code>**options</code> and <code>match_refiner</code> to <code>ConflictResolverBase</code>
+</li>
+      <li>Priority 3: Added <code>**options</code> to <code>MergeResultBase</code>
+</li>
+      <li>Priority 4: Added <code>**options</code> to all 10 child SmartMergers</li>
+      <li>Priority 5: Added <code>**options</code> to <code>Prism::Merge::FileAnalysis</code>
+</li>
+      <li>Priority 6: Added <code>**options</code> to all 7 child ConflictResolvers</li>
+      <li>Priority 7: Added <code>**options</code> to all 9 child MergeResults</li>
+    </ul>
+  </li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled checked>Phase 7: Documentation
+    <ul>
+      <li>Updated <code>sig/ast/merge.rbs</code> with comprehensive type signatures for all base classes</li>
+      <li>Updated README with Standard Options table</li>
+      <li>Added Forward Compatibility section explaining <code>**options</code> pattern</li>
+      <li>Updated “Creating a New Merge Gem” example with all base classes</li>
+      <li>Added Base Classes Reference table</li>
+      <li>Updated CHANGELOG with all changes</li>
+    </ul>
+  </li>
+</ul>
+
+<hr>
+
+<h2 id="phase-5-identify-shared-features-for-extraction">Phase 5: Identify Shared Features for Extraction</h2>
+
+<p>Features that appear in multiple gems and could move to <code>ast-merge</code>:</p>
+
+<h3 id="task-51-nodetypenormalizer-pattern-">Task 5.1: <code>NodeTypeNormalizer</code> pattern ✅</h3>
+
+<p><strong>Currently in:</strong> <code>markdown-merge</code>, <code>toml-merge</code></p>
+
+<p><strong>Pattern:</strong> Both implement nearly identical <code>NodeTypeNormalizer</code> modules that:</p>
+<ul>
+  <li>Map backend-specific node types to canonical types</li>
+  <li>Support runtime registration of new backends via <code>register_backend</code>
+</li>
+  <li>Use <code>Ast::Merge::NodeTyping::Wrapper</code> to wrap nodes</li>
+  <li>Provide <code>canonical_type(type)</code> lookup method</li>
+</ul>
+
+<p><strong>Differences:</strong></p>
+<ul>
+  <li>markdown-merge: Maps commonmarker/markly types → canonical markdown types (heading, paragraph, code_block, etc.)</li>
+  <li>toml-merge: Maps tree-sitter/citrus types → canonical TOML types (table, pair, array_of_tables, etc.)</li>
+</ul>
+
+<p><strong>Recommendation:</strong> ✅ <strong>Extract to <code>ast-merge</code></strong></p>
+
+<p>Create <code>Ast::Merge::NodeTypeNormalizerBase</code> module with:</p>
+<pre class="code language-ruby"><code class="language-ruby">module Ast::Merge::NodeTypeNormalizerBase
+  def self.included(base)
+    base.extend(ClassMethods)
+    base.instance_variable_set(:@backend_mappings, {})
+  end
+
+  module ClassMethods
+    def register_backend(name, mappings)
+      @backend_mappings[name] = mappings.freeze
+    end
+
+    def canonical_type(raw_type, backend: nil)
+      # Lookup logic
+    end
+
+    def table_type?(type)  # Format-specific, override in child
+      false
+    end
+  end
+end
+</code></pre>
+
+<p><strong>Files affected:</strong></p>
+<ul>
+  <li>
+<code>vendor/markdown-merge/lib/markdown/merge/node_type_normalizer.rb</code> (216 lines)</li>
+  <li>
+<code>vendor/toml-merge/lib/toml/merge/node_type_normalizer.rb</code> (293 lines)</li>
+</ul>
+
+<h3 id="task-52-commenttracker-pattern-">Task 5.2: <code>CommentTracker</code> pattern ✅</h3>
+
+<p><strong>Currently in:</strong> <code>psych-merge</code>, <code>bash-merge</code>, <code>jsonc-merge</code></p>
+
+<p><strong>Pattern:</strong> All three implement nearly identical <code>CommentTracker</code> classes that:</p>
+<ul>
+  <li>Parse source to extract comments with line numbers</li>
+  <li>Provide <code>comment_at(line_num)</code> lookup</li>
+  <li>Provide <code>comments_in_range(range)</code> lookup</li>
+  <li>Provide <code>leading_comments_before(line_num)</code> lookup</li>
+  <li>Provide <code>inline_comment_at(line_num)</code> lookup</li>
+  <li>Track full-line vs inline comments</li>
+</ul>
+
+<p><strong>Differences:</strong></p>
+<ul>
+  <li>psych-merge/bash-merge: Use <code>#</code> for comments (identical regex)</li>
+  <li>jsonc-merge: Uses <code>//</code> and <code>/* */</code> for comments (different regex)</li>
+</ul>
+
+<p><strong>Recommendation:</strong> ✅ <strong>Extract to <code>ast-merge</code></strong></p>
+
+<p>Create <code>Ast::Merge::CommentTrackerBase</code> class with:</p>
+<pre class="code language-ruby"><code class="language-ruby">class Ast::Merge::CommentTrackerBase
+  attr_reader :comments, :lines
+
+  def initialize(source)
+    @source = source
+    @lines = source.lines.map(&amp;:chomp)
+    @comments = extract_comments
+    @comments_by_line = @comments.group_by { |c| c[:line] }
+  end
+
+  def comment_at(line_num)
+    @comments_by_line[line_num]&amp;.first
+  end
+
+  def comments_in_range(range)
+    @comments.select { |c| range.cover?(c[:line]) }
+  end
+
+  def leading_comments_before(line_num)
+    # Common implementation
+  end
+
+  def inline_comment_at(line_num)
+    # Common implementation
+  end
+
+  protected
+
+  # Abstract: subclasses implement format-specific comment extraction
+  def extract_comments
+    raise NotImplementedError
+  end
+end
+</code></pre>
+
+<p><strong>Subclasses:</strong></p>
+<ul>
+  <li>
+<code>Ast::Merge::HashCommentTracker</code> - For <code>#</code> style (Ruby, YAML, Bash, Python, etc.)</li>
+  <li>
+<code>Ast::Merge::CStyleCommentTracker</code> - For <code>//</code> and <code>/* */</code> style (JSONC, JS, etc.)</li>
+</ul>
+
+<p><strong>Files affected:</strong></p>
+<ul>
+  <li>
+<code>vendor/psych-merge/lib/psych/merge/comment_tracker.rb</code> (156 lines)</li>
+  <li>
+<code>vendor/bash-merge/lib/bash/merge/comment_tracker.rb</code> (154 lines)</li>
+  <li>
+<code>vendor/jsonc-merge/lib/jsonc/merge/comment_tracker.rb</code> (196 lines)</li>
+</ul>
+
+<h3 id="task-53-node_typing-configuration-">Task 5.3: <code>node_typing</code> configuration ✅</h3>
+
+<p><strong>Currently in:</strong> ALL merge gems pass <code>node_typing</code> option</p>
+
+<p><strong>Status:</strong> <code>Ast::Merge::NodeTyping</code> module already exists in ast-merge!</p>
+
+<p><strong>Issue:</strong> <code>SmartMergerBase</code> doesn’t explicitly accept <code>node_typing</code> - it’s only captured via <code>**format_options</code></p>
+
+<p><strong>Recommendation:</strong> ✅ <strong>Add explicit <code>node_typing</code> parameter to <code>SmartMergerBase</code></strong></p>
+
+<p>Already covered in Priority 1 action item.</p>
+
+<h3 id="task-54-inner_merge_-pattern-">Task 5.4: <code>inner_merge_*</code> pattern ✅</h3>
+
+<p><strong>Currently in:</strong> <code>markdown-merge</code> (CodeBlockMerger)</p>
+
+<p><strong>Pattern:</strong> <code>CodeBlockMerger</code> enables merging content inside fenced code blocks:</p>
+<ul>
+  <li>Detects code block language (ruby, yaml, json, toml, etc.)</li>
+  <li>Delegates to appropriate *-merge gem for that language</li>
+  <li>Returns merged content to replace the code block</li>
+</ul>
+
+<p><strong>Recommendation:</strong> ⚠️ <strong>Consider but defer</strong></p>
+
+<p>This is currently markdown-specific. Could be generalized to:</p>
+<ul>
+  <li>
+<code>Ast::Merge::InnerContentMerger</code> - Base class for merging nested content</li>
+  <li>Allow any format to have “regions” that can be merged with different mergers</li>
+</ul>
+
+<p><strong>Note:</strong> The <code>regions</code> option in <code>SmartMergerBase</code> already provides similar functionality via <code>RegionMergeable</code>. The <code>CodeBlockMerger</code> could potentially use that infrastructure.</p>
+
+<h3 id="task-55-comment-only-file-handling-">Task 5.5: Comment-only file handling ✅</h3>
+
+<p><strong>Currently in:</strong> <code>prism-merge</code> uses <code>Ast::Merge::Text::SmartMerger</code></p>
+
+<p><strong>Status:</strong> <code>Ast::Merge::Text::SmartMerger</code> already exists in ast-merge!</p>
+
+<p><strong>Pattern:</strong> When prism-merge detects a file is comment-only (no Ruby code), it delegates to <code>Text::SmartMerger</code> for line-based merging.</p>
+
+<p><strong>Recommendation:</strong> ✅ <strong>Document this pattern for other gems</strong></p>
+
+<p>Other gems could benefit from similar fallback:</p>
+<ul>
+  <li>
+<code>psych-merge</code>: Comment-only YAML files</li>
+  <li>
+<code>bash-merge</code>: Comment-only scripts</li>
+  <li>
+<code>toml-merge</code>: Comment-only TOML files (if that makes sense)</li>
+</ul>
+
+<h3 id="task-56-emitter-pattern-">Task 5.6: <code>Emitter</code> pattern ✅</h3>
+
+<p><strong>Currently in:</strong> <code>psych-merge</code>, <code>json-merge</code>, <code>jsonc-merge</code>, <code>bash-merge</code></p>
+
+<p><strong>Pattern:</strong> Several gems have <code>Emitter</code> classes that convert merged AST back to source:</p>
+<ul>
+  <li>Take nodes/lines and produce formatted output</li>
+  <li>Handle indentation, newlines, formatting</li>
+  <li>May preserve comments</li>
+</ul>
+
+<p><strong>Differences:</strong> Each format has different emission rules, so harder to generalize.</p>
+
+<p><strong>Recommendation:</strong> ⚠️ <strong>No extraction</strong> - Too format-specific</p>
+
+<h3 id="task-57-nodewrapper-pattern-">Task 5.7: <code>NodeWrapper</code> pattern ✅</h3>
+
+<p><strong>Currently in:</strong> <code>psych-merge</code>, <code>json-merge</code>, <code>jsonc-merge</code>, <code>toml-merge</code>, <code>bash-merge</code></p>
+
+<p><strong>Pattern:</strong> Many gems have <code>NodeWrapper</code> classes that:</p>
+<ul>
+  <li>Wrap parser-specific nodes with common interface</li>
+  <li>Provide <code>start_line</code>, <code>end_line</code> methods</li>
+  <li>Provide <code>type</code>, <code>children</code> methods</li>
+  <li>Support signature generation</li>
+</ul>
+
+<p><strong>Recommendation:</strong> ⚠️ <strong>Consider creating interface/protocol</strong></p>
+
+<p>Could create <code>Ast::Merge::NodeWrapperInterface</code> module that defines the expected interface without implementation:</p>
+<pre class="code language-ruby"><code class="language-ruby">module Ast::Merge::NodeWrapperInterface
+  # Expected methods:
+  # - start_line, end_line
+  # - type
+  # - children (optional)
+  # - signature (optional)
+end
+</code></pre>
+
+<p>This would document the contract without forcing implementation.</p>
+
+<hr>
+
+<h2 id="phase-5-summary">Phase 5 Summary</h2>
+
+<h3 id="features-ready-for-extraction">Features Ready for Extraction</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Priority</th>
+      <th>Effort</th>
+      <th>Files Affected</th>
+      <th>Lines Saved</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>NodeTypeNormalizerBase</code></td>
+      <td>High</td>
+      <td>Medium</td>
+      <td>2</td>
+      <td>~400</td>
+    </tr>
+    <tr>
+      <td><code>CommentTrackerBase</code></td>
+      <td>High</td>
+      <td>Medium</td>
+      <td>3</td>
+      <td>~350</td>
+    </tr>
+    <tr>
+      <td>
+<code>node_typing</code> in base</td>
+      <td>High</td>
+      <td>Low</td>
+      <td>1</td>
+      <td>0 (adds clarity)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="features-to-documentrecommend">Features to Document/Recommend</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+<code>Text::SmartMerger</code> fallback</td>
+      <td>Document pattern for other gems</td>
+    </tr>
+    <tr>
+      <td><code>RegionMergeable</code></td>
+      <td>Document how it relates to <code>inner_merge_*</code>
+</td>
+    </tr>
+    <tr>
+      <td><code>NodeWrapperInterface</code></td>
+      <td>Consider creating interface module</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="features-not-worth-extracting">Features Not Worth Extracting</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Reason</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+<code>Emitter</code> classes</td>
+      <td>Too format-specific</td>
+    </tr>
+    <tr>
+      <td><code>CodeBlockMerger</code></td>
+      <td>Markdown-specific, use <code>regions</code> instead</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="recommended-extraction-order">Recommended Extraction Order</h3>
+
+<ol>
+  <li>
+<strong><code>CommentTrackerBase</code></strong> - High value, low risk, 3 gems benefit immediately</li>
+  <li>
+<strong><code>NodeTypeNormalizerBase</code></strong> - High value, 2 gems benefit, enables future standardization</li>
+  <li>
+<strong><code>NodeWrapperInterface</code></strong> - Low effort documentation, helps standardize patterns</li>
+</ol>
+
+<hr>
+
+<h2 id="phase-6-documentation">Phase 6: Documentation</h2>
+
+<h3 id="task-61-create-options-matrix">Task 6.1: Create Options Matrix</h3>
+<ul class="task-list">
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled>Table showing which options each gem supports</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled>Document why unsupported options don’t apply</li>
+</ul>
+
+<h3 id="task-62-update-copilot_instructionsmd">Task 6.2: Update COPILOT_INSTRUCTIONS.md</h3>
+<ul class="task-list">
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled>Add section on options standardization</li>
+  <li class="task-list-item">
+<input type="checkbox" class="task-list-item-checkbox" disabled>Add examples of correct <code>**options</code> usage</li>
+</ul>
+
+<hr>
+
+<h2 id="notes">Notes</h2>
+
+<h3 id="options-from-smartmergerbase-current">Options from SmartMergerBase (current)</h3>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(
+  template_content,
+  dest_content,
+  signature_generator: nil,      # All gems should support
+  preference: :destination,       # All gems should support
+  add_template_only_nodes: false, # All gems should support
+  freeze_token: nil,              # All gems should support
+  match_refiner: nil,             # May not apply to all formats
+  regions: nil,                   # May not apply to all formats
+  region_placeholder: nil,        # May not apply to all formats
+  **format_options                # Catch-all for format-specific
+)
+</code></pre>
+
+<h3 id="inheritance-patterns-observed">Inheritance Patterns Observed</h3>
+
+<ol>
+  <li>
+<strong>Direct inheritance</strong>: <code>Prism::Merge::SmartMerger &lt; Ast::Merge::SmartMergerBase</code>
+</li>
+  <li>
+<strong>Multi-level inheritance</strong>: <code>Markly::Merge::SmartMerger &lt; Markdown::Merge::SmartMerger &lt; SmartMergerBase</code>
+</li>
+  <li>
+<strong>Composition</strong>: Some gems may use composition instead of inheritance</li>
+</ol>
+
+<hr>
+
+<h2 id="progress-tracking">Progress Tracking</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>SmartMerger</th>
+      <th>FileAnalysis</th>
+      <th>ConflictResolver</th>
+      <th>MergeResult</th>
+      <th>MatchRefiner</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ast-merge</td>
+      <td>✅ Base Class</td>
+      <td>✅ Module</td>
+      <td>✅ Base Class</td>
+      <td>✅ Base Class</td>
+      <td>✅ Base Class</td>
+    </tr>
+    <tr>
+      <td>prism-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>N/A (custom)</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+    </tr>
+    <tr>
+      <td>markdown-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+    </tr>
+    <tr>
+      <td>markly-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ (via md)</td>
+      <td>✅ (via md)</td>
+      <td>✅ (via md)</td>
+      <td>✅ (via md)</td>
+    </tr>
+    <tr>
+      <td>commonmarker-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ (via md)</td>
+      <td>✅ (via md)</td>
+      <td>✅ (via md)</td>
+      <td>✅ (via md)</td>
+    </tr>
+    <tr>
+      <td>toml-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+    </tr>
+    <tr>
+      <td>json-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+    </tr>
+    <tr>
+      <td>jsonc-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td>psych-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+    </tr>
+    <tr>
+      <td>dotenv-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>N/A (custom)</td>
+      <td>✅ Has **opts</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td>bash-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td>rbs-merge</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>✅ Has **opts</td>
+      <td>N/A</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Legend: ✅ = Has **options, N/A = Not applicable</p>
+
+<hr>
+
+<h2 id="phase-1-summary">Phase 1 Summary</h2>
+
+<h3 id="classes-with-options-pattern-">Classes with <code>**options</code> Pattern ✅</h3>
+<ul>
+  <li>
+<code>SmartMergerBase</code> - Uses <code>**format_options</code>
+</li>
+  <li>
+<code>MatchRefinerBase</code> - Uses <code>**options</code>
+</li>
+</ul>
+
+<h3 id="classes-without-options-pattern-️">Classes WITHOUT <code>**options</code> Pattern ⚠️</h3>
+<ul>
+  <li>
+<code>ConflictResolverBase</code> - All params explicit (5 keyword args)</li>
+  <li>
+<code>MergeResultBase</code> - All params explicit (5 keyword args with defaults)</li>
+</ul>
+
+<h3 id="missing-base-classes">Missing Base Classes</h3>
+<ul>
+  <li>
+<code>FileAnalysisBase</code> - Does NOT exist, each gem implements independently</li>
+</ul>
+
+<h3 id="recommendations-from-phase-1">Recommendations from Phase 1</h3>
+<ol>
+  <li>
+<strong>Consider adding <code>**options</code> to <code>ConflictResolverBase</code></strong> for forward compatibility</li>
+  <li>
+<strong>Consider adding <code>**options</code> to <code>MergeResultBase</code></strong> for forward compatibility</li>
+  <li>
+<strong>Consider creating <code>FileAnalysisBase</code></strong> with common interface:
+    <ul>
+      <li>Standard options: <code>freeze_token</code>, <code>signature_generator</code>, <code>parser_path</code>
+</li>
+      <li>Abstract methods: <code>parse</code>, <code>statements</code>, <code>valid?</code>, <code>errors</code>
+</li>
+    </ul>
+  </li>
+</ol>
+</div></div>
+
+      <div id="footer">
+  Generated on Sun Dec 28 16:22:19 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-4.0.0).
+</div>
+
+    </div>
+  </body>
+</html>

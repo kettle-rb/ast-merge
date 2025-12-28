@@ -93,13 +93,13 @@ RSpec.describe Ast::Merge::Recipe::Preset do
   describe "#add_missing" do
     it "defaults to true" do
       preset = described_class.new(minimal_config)
-      expect(preset.add_missing).to eq(true)
+      expect(preset.add_missing).to be(true)
     end
 
     it "returns false when configured" do
       config = minimal_config.merge("merge" => {"add_missing" => false})
       preset = described_class.new(config)
-      expect(preset.add_missing).to eq(false)
+      expect(preset.add_missing).to be(false)
     end
   end
 
@@ -112,7 +112,7 @@ RSpec.describe Ast::Merge::Recipe::Preset do
       expect(hash).to include(:preference)
       expect(hash).to include(:add_template_only_nodes)
       expect(hash[:preference]).to eq(:destination)
-      expect(hash[:add_template_only_nodes]).to eq(false)
+      expect(hash[:add_template_only_nodes]).to be(false)
       expect(hash[:freeze_token]).to eq("my-freeze")
     end
 
@@ -161,4 +161,3 @@ RSpec.describe Ast::Merge::Recipe::Preset do
     end
   end
 end
-
