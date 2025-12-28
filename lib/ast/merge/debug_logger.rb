@@ -71,8 +71,9 @@ module Ast
     # @note Shared examples require +silent_stream+ and +rspec-stubbed_env+ gems.
     module DebugLogger
       # Benchmark is optional - gracefully degrade if not available
+      # Use autoload to defer loading until actually needed
       BENCHMARK_AVAILABLE = begin
-        require "benchmark"
+        autoload :Benchmark, "benchmark"
         true
       rescue LoadError
         # :nocov:

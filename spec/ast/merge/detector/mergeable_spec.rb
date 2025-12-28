@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::RegionMergeable do
+RSpec.describe Ast::Merge::Detector::Mergeable do
   # Create a minimal merger class that includes the module
   let(:merger_class) do
     Class.new do
-      include Ast::Merge::RegionMergeable
+      include Ast::Merge::Detector::Mergeable
 
       attr_reader :template_content, :dest_content
 
@@ -38,7 +38,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#setup_regions" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     it "configures region detection" do
       merger = merger_class.new("t", "d", regions: [{detector: detector}])
@@ -68,14 +68,14 @@ RSpec.describe Ast::Merge::RegionMergeable do
     end
 
     it "returns true when regions configured" do
-      detector = Ast::Merge::YamlFrontmatterDetector.new
+      detector = Ast::Merge::Detector::YamlFrontmatter.new
       merger = merger_class.new("t", "d", regions: [{detector: detector}])
       expect(merger.regions_configured?).to be true
     end
   end
 
   describe "#extract_template_regions" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     context "with no regions configured" do
       it "returns content unchanged" do
@@ -120,7 +120,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
       end
 
       it "raises PlaceholderCollisionError" do
-        merger = merger_class.new("t", "d", regions: [{detector: Ast::Merge::YamlFrontmatterDetector.new}])
+        merger = merger_class.new("t", "d", regions: [{detector: Ast::Merge::Detector::YamlFrontmatter.new}])
 
         expect {
           merger.extract_template_regions(source)
@@ -131,7 +131,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
         merger = merger_class.new(
           "t",
           "d",
-          regions: [{detector: Ast::Merge::YamlFrontmatterDetector.new}],
+          regions: [{detector: Ast::Merge::Detector::YamlFrontmatter.new}],
           region_placeholder: "###MY_PLACEHOLDER_",
         )
 
@@ -143,7 +143,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#extract_dest_regions" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
     let(:source) do
       <<~MD
         ---
@@ -175,7 +175,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#substitute_merged_regions" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     context "with no regions configured" do
       it "returns content unchanged" do
@@ -263,9 +263,9 @@ RSpec.describe Ast::Merge::RegionMergeable do
     end
   end
 
-  describe "RegionConfig struct" do
-    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+  describe "Config struct" do
+    let(:config_class) { Ast::Merge::Detector::Mergeable::Config }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     it "creates with required detector" do
       config = config_class.new(detector: detector)
@@ -302,8 +302,8 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#build_region_configs" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
-    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
+    let(:config_class) { Ast::Merge::Detector::Mergeable::Config }
 
     context "when config is already a RegionConfig" do
       it "passes through unchanged" do
@@ -337,9 +337,9 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "ExtractedRegion struct" do
-    let(:struct_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
+    let(:struct_class) { Ast::Merge::Detector::Mergeable::ExtractedRegion }
     let(:region) do
-      Ast::Merge::Region.new(
+      Ast::Merge::Detector::Region.new(
         type: :yaml_frontmatter,
         content: "title: Test",
         start_line: 1,
@@ -349,8 +349,8 @@ RSpec.describe Ast::Merge::RegionMergeable do
       )
     end
     let(:config) do
-      Ast::Merge::RegionMergeable::RegionConfig.new(
-        detector: Ast::Merge::YamlFrontmatterDetector.new,
+      Ast::Merge::Detector::Mergeable::Config.new(
+        detector: Ast::Merge::Detector::YamlFrontmatter.new,
       )
     end
 
@@ -370,8 +370,8 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "multiple region types" do
-    let(:yaml_detector) { Ast::Merge::YamlFrontmatterDetector.new }
-    let(:ruby_detector) { Ast::Merge::FencedCodeBlockDetector.ruby }
+    let(:yaml_detector) { Ast::Merge::Detector::YamlFrontmatter.new }
+    let(:ruby_detector) { Ast::Merge::Detector::FencedCodeBlock.ruby }
 
     let(:source) do
       <<~MD
@@ -408,9 +408,9 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#merge_region edge cases" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
-    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
-    let(:extracted_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
+    let(:config_class) { Ast::Merge::Detector::Mergeable::Config }
+    let(:extracted_class) { Ast::Merge::Detector::Mergeable::ExtractedRegion }
 
     context "when both template and dest extracted are nil" do
       it "returns nil" do
@@ -422,7 +422,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
 
     context "when only template region exists" do
       let(:template_region) do
-        Ast::Merge::Region.new(
+        Ast::Merge::Detector::Region.new(
           type: :yaml_frontmatter,
           content: "title: Template\n",
           start_line: 1,
@@ -452,7 +452,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
 
     context "when only dest region exists" do
       let(:dest_region) do
-        Ast::Merge::Region.new(
+        Ast::Merge::Detector::Region.new(
           type: :yaml_frontmatter,
           content: "author: Jane\n",
           start_line: 1,
@@ -482,7 +482,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
 
     context "with merger_class configured" do
       let(:template_region) do
-        Ast::Merge::Region.new(
+        Ast::Merge::Detector::Region.new(
           type: :yaml_frontmatter,
           content: "title: Template\n",
           start_line: 1,
@@ -493,7 +493,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
       end
 
       let(:dest_region) do
-        Ast::Merge::Region.new(
+        Ast::Merge::Detector::Region.new(
           type: :yaml_frontmatter,
           content: "title: Dest\nauthor: Jane\n",
           start_line: 1,
@@ -538,11 +538,11 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#reconstruct_region_with_delimiters edge cases" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     context "when region has no delimiters" do
       let(:region) do
-        Ast::Merge::Region.new(
+        Ast::Merge::Detector::Region.new(
           type: :raw,
           content: "raw content",
           start_line: 1,
@@ -561,7 +561,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
 
     context "when content doesn't end with newline" do
       let(:region) do
-        Ast::Merge::Region.new(
+        Ast::Merge::Detector::Region.new(
           type: :yaml_frontmatter,
           content: "title: Test",
           start_line: 1,
@@ -580,7 +580,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
 
     context "when content ends with newline" do
       let(:region) do
-        Ast::Merge::Region.new(
+        Ast::Merge::Detector::Region.new(
           type: :yaml_frontmatter,
           content: "title: Test\n",
           start_line: 1,
@@ -599,7 +599,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#validate_no_placeholder_collision!" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     context "with nil content" do
       it "does not raise" do
@@ -621,12 +621,12 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#replace_region_with_placeholder edge cases" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     context "with LF line endings (not CRLF)" do
       let(:source_with_lf) { "line1\nline2\nline3\n" }
       let(:region) do
-        Ast::Merge::Region.new(
+        Ast::Merge::Detector::Region.new(
           type: :test,
           content: "line2",
           start_line: 2,
@@ -646,9 +646,9 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#merge_region when merge_region returns nil" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
-    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
-    let(:extracted_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
+    let(:config_class) { Ast::Merge::Detector::Mergeable::Config }
+    let(:extracted_class) { Ast::Merge::Detector::Mergeable::ExtractedRegion }
 
     context "when both template and dest extracted have nil config" do
       it "returns nil and doesn't substitute" do
@@ -662,12 +662,12 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#merge_region with regions in config" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
-    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
-    let(:extracted_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
+    let(:config_class) { Ast::Merge::Detector::Mergeable::Config }
+    let(:extracted_class) { Ast::Merge::Detector::Mergeable::ExtractedRegion }
 
     let(:template_region) do
-      Ast::Merge::Region.new(
+      Ast::Merge::Detector::Region.new(
         type: :yaml_frontmatter,
         content: "title: Template\n",
         start_line: 1,
@@ -678,7 +678,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
     end
 
     let(:dest_region) do
-      Ast::Merge::Region.new(
+      Ast::Merge::Detector::Region.new(
         type: :yaml_frontmatter,
         content: "title: Dest\n",
         start_line: 1,
@@ -689,7 +689,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
     end
 
     context "when config has nested regions" do
-      let(:nested_detector) { Ast::Merge::FencedCodeBlockDetector.ruby }
+      let(:nested_detector) { Ast::Merge::Detector::FencedCodeBlock.ruby }
       let(:config) do
         config_class.new(
           detector: detector,
@@ -727,12 +727,12 @@ RSpec.describe Ast::Merge::RegionMergeable do
   end
 
   describe "#merge_region with dest_text empty" do
-    let(:detector) { Ast::Merge::YamlFrontmatterDetector.new }
-    let(:config_class) { Ast::Merge::RegionMergeable::RegionConfig }
-    let(:extracted_class) { Ast::Merge::RegionMergeable::ExtractedRegion }
+    let(:detector) { Ast::Merge::Detector::YamlFrontmatter.new }
+    let(:config_class) { Ast::Merge::Detector::Mergeable::Config }
+    let(:extracted_class) { Ast::Merge::Detector::Mergeable::ExtractedRegion }
 
     let(:template_region) do
-      Ast::Merge::Region.new(
+      Ast::Merge::Detector::Region.new(
         type: :yaml_frontmatter,
         content: "title: Template\n",
         start_line: 1,
@@ -744,7 +744,7 @@ RSpec.describe Ast::Merge::RegionMergeable do
 
     # Empty region with no content
     let(:dest_region) do
-      Ast::Merge::Region.new(
+      Ast::Merge::Detector::Region.new(
         type: :yaml_frontmatter,
         content: "",
         start_line: 1,

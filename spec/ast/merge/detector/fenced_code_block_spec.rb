@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::FencedCodeBlockDetector do
+RSpec.describe Ast::Merge::Detector::FencedCodeBlock do
   describe ".new" do
     it "creates a detector with language" do
       detector = described_class.new("ruby")
@@ -411,7 +411,7 @@ RSpec.describe Ast::Merge::FencedCodeBlockDetector do
     let(:detector) { described_class.new("ruby", aliases: ["rb"]) }
 
     it "includes class name" do
-      expect(detector.inspect).to include("FencedCodeBlockDetector")
+      expect(detector.inspect).to include("FencedCodeBlock")
     end
 
     it "includes language" do

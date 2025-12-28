@@ -20,6 +20,77 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- **exe/ast-merge-recipe**: Shipped executable for running merge recipes
+  - Uses `bundler/inline` for dependency management
+  - Supports `--dry-run`, `--verbose`, `--parser`, `--base-dir` options
+  - Uses `optparse` for proper option parsing
+  - Loads merge gems from recipe YAML `merge_gems` section
+  - Development mode via `KETTLE_RB_DEV=true` or `--dev-root` option
+  - All gems sourced from gem.coop
+
+- **PartialTemplateMerger**: Section-based merging for partial templates
+  - Find and merge specific sections in destination documents
+  - Support for both `replace_mode` (full replacement) and merge mode (intelligent merging)
+  - Configurable anchor and boundary matchers for section detection
+  - Custom `signature_generator` and `node_typing` support for advanced matching
+  - `when_missing` behavior: `:skip`, `:append`, `:prepend`
+
+- **Recipe**: YAML-based recipe system for defining merge operations
+  - Load recipes from YAML files with `Recipe.load(path)`
+  - Define template, targets, injection point, merge preferences
+  - Support for `when_missing: skip|add|error` behavior
+  - Support for `replace_mode` option
+  - Automatic path resolution relative to recipe file location
+
+- **RecipeRunner**: Execute recipes against multiple target files
+  - Uses PartialTemplateMerger for section-based merging
+  - Dry-run mode with `--dry-run` flag
+  - Results tracking with status, stats, and error reporting
+  - TableTennis integration for formatted output
+  - Support for different parsers (markly, commonmarker, prism, psych)
+
+- **RecipeScriptLoader**: Load Ruby scripts referenced by recipes
+  - Convention: scripts in folder matching recipe basename (e.g., `my_recipe/` for `my_recipe.yml`)
+  - Support for inline lambda expressions in YAML
+  - Script caching for performance
+  - Validation that scripts return callable objects
+
+- **bin/ast-merge-recipe**: CLI for running merge recipes
+  - `bin/ast-merge-recipe RECIPE_FILE [--dry-run] [--verbose]`
+  - Color-coded output with status symbols
+  - Summary table with counts
+
+- **NavigableStatement**: New wrapper class for uniform node navigation (language-agnostic)
+  - Provides flat list navigation (`next`, `previous`, `index`) for all nodes
+  - Tree depth calculation with `tree_depth` method
+  - `same_or_shallower_than?` for level-based boundary detection
+  - Language-agnostic section boundaries using tree hierarchy
+  - Provides tree navigation (`tree_parent`, `tree_next`, `tree_previous`) for parser-backed nodes
+  - `synthetic?` method to detect nodes without tree navigation (GapLineNode, LinkDefinitionNode, etc.)
+  - `type?` and `text_matches?` helpers for node matching
+  - `node_attribute` for accessing parser-specific attributes with fallbacks
+  - `each_following` and `take_until` for sequential traversal
+  - `find_matching` and `find_first` class methods for querying statement lists
+  - `build_list` class method to create linked statement lists from raw statements
+
+- **InjectionPoint**: New class for defining where content can be injected (language-agnostic)
+  - Supports positions: `:before`, `:after`, `:first_child`, `:last_child`, `:replace`
+  - Optional boundary for replacement ranges
+  - `replacement?`, `child_injection?`, `sibling_injection?` predicates
+  - `replaced_statements` to get all statements in a replacement range
+
+- **InjectionPointFinder**: New class for finding injection points by matching criteria
+  - `find` to locate a single injection point by type/text pattern
+  - `find_all` to locate all matching injection points
+  - Works with any `*-merge` gem (prism-merge, markly-merge, psych-merge, etc.)
+
+- **SmartMergerBase**: `add_template_only_nodes` now accepts a callable filter
+  - Boolean `true`/`false` still works as before (add all or none)
+  - Callable (Proc/Lambda) receives `(node, entry)` and returns truthy to add the node
+  - Enables selective addition of template-only nodes based on signature, type, or content
+  - Example use case: Add missing link reference definitions while skipping other template content
+  - Entry hash includes `:template_node`, `:signature`, `:template_index` for filtering decisions
+
 - **ContentMatchRefiner**: New match refiner for fuzzy text content matching
   - Uses Levenshtein distance to pair nodes with similar (but not identical) text
   - Configurable scoring weights for content similarity, length, and position
@@ -83,6 +154,19 @@ Please file a bug if you notice a violation of semantic versioning.
   - Documentation proving that language-specific parsers create full ASTs of embedded code blocks
 
 ### Changed
+
+- **BREAKING - Namespace Reorganization**: Major restructuring for better organization
+  - `Ast::Merge::Region` → `Ast::Merge::Detector::Region` (Struct moved into Detector namespace)
+  - `Ast::Merge::RegionDetectorBase` → `Ast::Merge::Detector::Base`
+  - `Ast::Merge::RegionMergeable` → `Ast::Merge::Detector::Mergeable`
+  - `Ast::Merge::FencedCodeBlockDetector` → `Ast::Merge::Detector::FencedCodeBlock`
+  - `Ast::Merge::YamlFrontmatterDetector` → `Ast::Merge::Detector::YamlFrontmatter`
+  - `Ast::Merge::TomlFrontmatterDetector` → `Ast::Merge::Detector::TomlFrontmatter`
+  - `Ast::Merge::Recipe` class → `Ast::Merge::Recipe::Config`
+  - `Ast::Merge::RecipeRunner` → `Ast::Merge::Recipe::Runner`
+  - `Ast::Merge::RecipeScriptLoader` → `Ast::Merge::Recipe::ScriptLoader`
+  - `Ast::Merge::RegionMergeable::RegionConfig` → `Ast::Merge::Detector::Mergeable::Config`
+  - `Ast::Merge::RegionMergeable::ExtractedRegion` → `Ast::Merge::Detector::Mergeable::ExtractedRegion`
 
 - **Architecture**: Refactored to use tree_haver as the parsing foundation
   - All tree-sitter-based gems (bash-merge, json-merge, jsonc-merge, toml-merge) now use tree_haver

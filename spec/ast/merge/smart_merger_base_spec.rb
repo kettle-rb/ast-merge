@@ -197,7 +197,7 @@ RSpec.describe Ast::Merge::SmartMergerBase do
   end
 
   describe "with regions" do
-    let(:yaml_detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:yaml_detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     let(:template) do
       <<~MD
@@ -315,7 +315,7 @@ RSpec.describe Ast::Merge::SmartMergerBase do
 
   describe "inheritance" do
     it "includes RegionMergeable" do
-      expect(described_class.ancestors).to include(Ast::Merge::RegionMergeable)
+      expect(described_class.ancestors).to include(Ast::Merge::Detector::Mergeable)
     end
   end
 
@@ -331,7 +331,7 @@ RSpec.describe Ast::Merge::SmartMergerBase do
   end
 
   describe "region substitution in merge_result" do
-    let(:yaml_detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:yaml_detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     let(:template_with_yaml) do
       <<~MD

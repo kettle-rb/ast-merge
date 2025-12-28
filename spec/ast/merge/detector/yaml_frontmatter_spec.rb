@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::YamlFrontmatterDetector do
+RSpec.describe Ast::Merge::Detector::YamlFrontmatter do
   let(:detector) { described_class.new }
 
   describe "#region_type" do
@@ -32,7 +32,7 @@ RSpec.describe Ast::Merge::YamlFrontmatterDetector do
 
       it "returns a Region object" do
         regions = detector.detect_all(source)
-        expect(regions.first).to be_a(Ast::Merge::Region)
+        expect(regions.first).to be_a(Ast::Merge::Detector::Region)
       end
 
       it "captures content without delimiters" do
@@ -216,13 +216,6 @@ RSpec.describe Ast::Merge::YamlFrontmatterDetector do
     end
   end
 
-  describe "#build_regions" do
-    it "raises NotImplementedError since detect_all is overridden" do
-      expect {
-        detector.send(:build_regions, "source", [])
-      }.to raise_error(NotImplementedError, /overrides detect_all/)
-    end
-  end
 
   describe "line calculation edge cases" do
     context "when content is not empty and doesn't end with newline" do

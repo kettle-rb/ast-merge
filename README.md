@@ -60,21 +60,21 @@ Ast::Merge is **not typically used directly** - instead, use one of the format-s
 
 The `*-merge` gem family provides intelligent, AST-based merging for various file formats. At the foundation is [tree_haver][tree_haver], which provides a unified cross-Ruby parsing API that works seamlessly across MRI, JRuby, and TruffleRuby.
 
-| Gem | Format | Parser Backend(s) | Description |
-|-----|--------|-------------------|-------------|
-| [tree_haver][tree_haver] | Multi | MRI C, Rust, FFI, Java, Prism, Psych, Commonmarker, Markly, Citrus | **Foundation**: Cross-Ruby adapter for parsing libraries (like Faraday for HTTP) |
-| [ast-merge][ast-merge] | Text | internal | **Infrastructure**: Shared base classes and merge logic for all `*-merge` gems |
-| [prism-merge][prism-merge] | Ruby | [Prism][prism] | Smart merge for Ruby source files |
-| [psych-merge][psych-merge] | YAML | [Psych][psych] | Smart merge for YAML files |
-| [json-merge][json-merge] | JSON | [tree-sitter-json][ts-json] (via tree_haver) | Smart merge for JSON files |
-| [jsonc-merge][jsonc-merge] | JSONC | [tree-sitter-json][ts-json] (via tree_haver) | ⚠️ Proof of concept; Smart merge for JSON with Comments |
-| [bash-merge][bash-merge] | Bash | [tree-sitter-bash][ts-bash] (via tree_haver) | Smart merge for Bash scripts |
-| [rbs-merge][rbs-merge] | RBS | [RBS][rbs] | Smart merge for Ruby type signatures |
-| [dotenv-merge][dotenv-merge] | Dotenv | internal | Smart merge for `.env` files |
-| [toml-merge][toml-merge] | TOML | [Citrus + toml-rb][toml-rb] (default), [tree-sitter-toml][ts-toml] (via tree_haver) | Smart merge for TOML files |
-| [markdown-merge][markdown-merge] | Markdown | [Commonmarker][commonmarker] / [Markly][markly] (via tree_haver) | **Foundation**: Shared base for Markdown mergers with inner code block merging |
-| [markly-merge][markly-merge] | Markdown | [Markly][markly] (via tree_haver) | Smart merge for Markdown (CommonMark via cmark-gfm C) |
-| [commonmarker-merge][commonmarker-merge] | Markdown | [Commonmarker][commonmarker] (via tree_haver) | Smart merge for Markdown (CommonMark via comrak Rust) |
+| Gem                                      | Format   | Parser Backend(s)                                                                                   | Description                                                                      |
+|------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [tree_haver][tree_haver]                 | Multi    | MRI C, Rust, FFI, Java, Prism, Psych, Commonmarker, Markly, Citrus                                  | **Foundation**: Cross-Ruby adapter for parsing libraries (like Faraday for HTTP) |
+| [ast-merge][ast-merge]                   | Text     | internal                                                                                            | **Infrastructure**: Shared base classes and merge logic for all `*-merge` gems   |
+| [prism-merge][prism-merge]               | Ruby     | [Prism][prism]                                                                                      | Smart merge for Ruby source files                                                |
+| [psych-merge][psych-merge]               | YAML     | [Psych][psych]                                                                                      | Smart merge for YAML files                                                       |
+| [json-merge][json-merge]                 | JSON     | [tree-sitter-json][ts-json] (via tree_haver)                                                        | Smart merge for JSON files                                                       |
+| [jsonc-merge][jsonc-merge]               | JSONC    | [tree-sitter-jsonc][ts-jsonc] (via tree_haver)                                                      | ⚠️ Proof of concept; Smart merge for JSON with Comments                          |
+| [bash-merge][bash-merge]                 | Bash     | [tree-sitter-bash][ts-bash] (via tree_haver)                                                        | Smart merge for Bash scripts                                                     |
+| [rbs-merge][rbs-merge]                   | RBS      | [RBS][rbs]                                                                                          | Smart merge for Ruby type signatures                                             |
+| [dotenv-merge][dotenv-merge]             | Dotenv   | internal                                                                                            | Smart merge for `.env` files                                                     |
+| [toml-merge][toml-merge]                 | TOML     | [Citrus + toml-rb][toml-rb] (default, via tree_haver), [tree-sitter-toml][ts-toml] (via tree_haver) | Smart merge for TOML files                                                       |
+| [markdown-merge][markdown-merge]         | Markdown | [Commonmarker][commonmarker] / [Markly][markly] (via tree_haver)                                    | **Foundation**: Shared base for Markdown mergers with inner code block merging   |
+| [markly-merge][markly-merge]             | Markdown | [Markly][markly] (via tree_haver)                                                                   | Smart merge for Markdown (CommonMark via cmark-gfm C)                            |
+| [commonmarker-merge][commonmarker-merge] | Markdown | [Commonmarker][commonmarker] (via tree_haver)                                                       | Smart merge for Markdown (CommonMark via comrak Rust)                            |
 
 **Example implementations** for the gem templating use case:
 
@@ -284,6 +284,26 @@ This is particularly useful for:
 - Comments with updated text
 - Any text-based node that may have been slightly modified
 
+### Namespace Reference
+
+The `Ast::Merge` module is organized into several namespaces, each with detailed documentation:
+
+| Namespace | Purpose | Documentation |
+|-----------|---------|---------------|
+| `Ast::Merge::Detector` | Region detection and merging | [lib/ast/merge/detector/README.md](lib/ast/merge/detector/README.md) |
+| `Ast::Merge::Recipe` | YAML-based merge recipes | [lib/ast/merge/recipe/README.md](lib/ast/merge/recipe/README.md) |
+| `Ast::Merge::Comment` | Comment parsing and representation | [lib/ast/merge/comment/README.md](lib/ast/merge/comment/README.md) |
+| `Ast::Merge::Text` | Plain text AST parsing | [lib/ast/merge/text/README.md](lib/ast/merge/text/README.md) |
+| `Ast::Merge::RSpec` | Shared RSpec examples | [lib/ast/merge/rspec/README.md](lib/ast/merge/rspec/README.md) |
+
+**Key Classes by Namespace:**
+
+- **Detector**: `Region`, `Base`, `Mergeable`, `FencedCodeBlock`, `YamlFrontmatter`, `TomlFrontmatter`
+- **Recipe**: `Config`, `Runner`, `ScriptLoader`
+- **Comment**: `Line`, `Block`, `Empty`, `Parser`, `Style`
+- **Text**: `SmartMerger`, `FileAnalysis`, `LineNode`, `WordNode`, `Section`
+- **RSpec**: Shared examples for testing `*-merge` implementations
+
 ## 💡 Info you can shake a stick at
 
 | Tokens to Remember      | [![Gem name][⛳️name-img]][⛳️gem-name] [![Gem namespace][⛳️namespace-img]][⛳️gem-namespace]                                                                                                                                                                                                                                                                          |
@@ -410,8 +430,8 @@ merger = SomeFormat::Merge::SmartMerger.new(
   destination,
   # When conflicts occur, prefer template or destination values
   preference: :template,            # or :destination (default), or a Hash for per-node-type
-  # Add nodes that only exist in template
-  add_template_only_nodes: true,    # default: false
+  # Add nodes that only exist in template (Boolean or callable filter)
+  add_template_only_nodes: true,    # default: false, or ->(node, entry) { ... }
   # Custom node type handling
   node_typing: {},                # optional, for per-node-type preference
 )
@@ -429,8 +449,41 @@ Control which source wins when both files have the same structural element:
 
 Control whether to add nodes that only exist in the template:
 
-- **`true`** - Add new nodes from template
+- **`true`** - Add all template-only nodes
 - **`false`** (default) - Skip template-only nodes
+- **Callable** - Filter which template-only nodes to add
+
+#### Callable Filter
+
+When you need fine-grained control over which template-only nodes are added, pass a callable (Proc/Lambda) that receives `(node, entry)` and returns truthy to add or falsey to skip:
+
+```ruby
+# Only add nodes with gem_family signatures
+merger = SomeFormat::Merge::SmartMerger.new(
+  template,
+  destination,
+  add_template_only_nodes: ->(node, entry) {
+    sig = entry[:signature]
+    sig.is_a?(Array) && sig.first == :gem_family
+  }
+)
+
+# Only add link definitions that match a pattern
+merger = Markly::Merge::SmartMerger.new(
+  template,
+  destination,
+  add_template_only_nodes: ->(node, entry) {
+    entry[:template_node].type == :link_definition &&
+      entry[:signature]&.last&.include?("gem")
+  }
+)
+```
+
+The `entry` hash contains:
+- `:template_node` - The node being considered for addition
+- `:signature` - The node's signature (Array or other value)
+- `:template_index` - Index in the template statements
+- `:dest_index` - Always `nil` for template-only nodes
 
 ## 🔧 Basic Usage
 
@@ -976,3 +1029,6 @@ Thanks for RTFM. ☺️
 [💎appraisal2]: https://github.com/appraisal-rb/appraisal2
 [💎appraisal2-img]: https://img.shields.io/badge/appraised_by-appraisal2-34495e.svg?plastic&logo=ruby&logoColor=white
 [💎d-in-dvcs]: https://railsbling.com/posts/dvcs/put_the_d_in_dvcs/
+
+[ts-jsonc]: https://gitlab.com/WhyNotHugo/tree-sitter-jsonc
+[dotenv]: https://github.com/bkeepers/dotenv

@@ -105,7 +105,7 @@ module Ast
     # @abstract Subclass and implement {#analysis_class} and {#perform_merge}
     # @api public
     class SmartMergerBase
-      include RegionMergeable
+      include Detector::Mergeable
 
       # @return [String] Template source content
       attr_reader :template_content

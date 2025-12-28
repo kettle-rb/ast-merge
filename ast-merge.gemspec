@@ -79,7 +79,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
   spec.bindir = "exe"
   # Listed files are the relative paths from bindir above.
-  spec.executables = []
+  spec.executables = ["ast-merge-recipe"]
 
   # Utilities
   spec.add_dependency("version_gem", "~> 1.1", ">= 1.1.9")              # ruby >= 2.2.0

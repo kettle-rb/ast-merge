@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::Region do
+RSpec.describe Ast::Merge::Detector::Region do
   describe "#initialize" do
     subject(:region) do
       described_class.new(
@@ -332,3 +332,4 @@ RSpec.describe Ast::Merge::Region do
     end
   end
 end
+

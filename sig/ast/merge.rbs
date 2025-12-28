@@ -167,13 +167,13 @@ module Ast
 
       attr_reader signature_match_preference: Symbol | Hash[Symbol, Symbol]
       attr_reader node_splitter: Hash[Symbol, untyped]?
-      attr_reader add_template_only_nodes: bool
+      attr_reader add_template_only_nodes: add_template_only_nodes_type
       attr_reader freeze_token: String?
       attr_reader signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?
 
       def initialize: (
         ?signature_match_preference: (Symbol | Hash[Symbol, Symbol]),
-        ?add_template_only_nodes: bool,
+        ?add_template_only_nodes: add_template_only_nodes_type,
         ?freeze_token: String?,
         ?signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?,
         ?node_splitter: Hash[Symbol, untyped]?
@@ -197,9 +197,15 @@ module Ast
     type node_typing_hash = Hash[Symbol | String, node_typing_callable]
     type preference_type = Symbol | Hash[Symbol, Symbol]
 
+    # Type alias for add_template_only_nodes filter
+    # Can be: Boolean, or callable that receives (node, entry) and returns truthy/falsey
+    # Entry hash contains: { template_node:, signature:, template_index:, dest_index: nil }
+    type add_template_only_filter = ^(untyped node, Hash[Symbol, untyped] entry) -> boolish
+    type add_template_only_nodes_type = bool | add_template_only_filter
+
     # Abstract base class for SmartMerger implementations
     class SmartMergerBase
-      include RegionMergeable
+      include Detector::Mergeable
 
       attr_reader template_content: String
       attr_reader dest_content: String
@@ -208,7 +214,7 @@ module Ast
       attr_reader resolver: untyped
       attr_reader result: untyped
       attr_reader preference: preference_type
-      attr_reader add_template_only_nodes: bool
+      attr_reader add_template_only_nodes: add_template_only_nodes_type
       attr_reader freeze_token: String
       attr_reader signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?
       attr_reader match_refiner: untyped?
@@ -219,7 +225,7 @@ module Ast
         String dest_content,
         ?signature_generator: (^(untyped) -> (Array[untyped] | untyped | nil))?,
         ?preference: preference_type,
-        ?add_template_only_nodes: bool,
+        ?add_template_only_nodes: add_template_only_nodes_type,
         ?freeze_token: String?,
         ?match_refiner: untyped?,
         ?regions: Array[Hash[Symbol, untyped]]?,
@@ -386,13 +392,166 @@ module Ast
       def to_h: () -> Hash[Symbol, untyped]
     end
 
-    # Module for region-based merging support
-    module RegionMergeable
-      def regions_configured?: () -> bool
-      def setup_regions: (regions: Array[Hash[Symbol, untyped]], region_placeholder: String?) -> void
-      def extract_template_regions: (String content) -> String
-      def extract_dest_regions: (String content) -> String
-      def substitute_merged_regions: (String content) -> String
+    # Detector namespace for region detection and merging
+    module Detector
+      # Represents a detected region within a document
+      class Region < Struct[untyped]
+        attr_accessor type: Symbol
+        attr_accessor content: String
+        attr_accessor start_line: Integer
+        attr_accessor end_line: Integer
+        attr_accessor delimiters: Array[String]?
+        attr_accessor metadata: Hash[Symbol, untyped]?
+
+        def line_range: () -> Range[Integer]
+        def line_count: () -> Integer
+        def full_text: () -> String
+        def contains_line?: (Integer line) -> bool
+        def overlaps?: (Region other) -> bool
+        def to_s: () -> String
+        def inspect: () -> String
+      end
+
+      # Abstract base class for region detectors
+      class Base
+        def region_type: () -> Symbol
+        def detect_all: (String source) -> Array[Region]
+        def strip_delimiters?: () -> bool
+        def name: () -> String
+        def inspect: () -> String
+
+        private
+        def build_region: (
+          type: Symbol,
+          content: String,
+          start_line: Integer,
+          end_line: Integer,
+          ?delimiters: Array[String]?,
+          ?metadata: Hash[Symbol, untyped]?
+        ) -> Region
+      end
+
+      # Detects fenced code blocks
+      class FencedCodeBlock < Base
+        attr_reader language: String
+        attr_reader aliases: Array[String]
+
+        def initialize: (String language, ?aliases: Array[String]) -> void
+        def self.ruby: () -> FencedCodeBlock
+        def self.yaml: () -> FencedCodeBlock
+        def self.json: () -> FencedCodeBlock
+        def self.bash: () -> FencedCodeBlock
+      end
+
+      # Detects YAML frontmatter
+      class YamlFrontmatter < Base
+        FRONTMATTER_PATTERN: Regexp
+      end
+
+      # Detects TOML frontmatter
+      class TomlFrontmatter < Base
+        FRONTMATTER_PATTERN: Regexp
+      end
+
+      # Mixin for region-aware merging
+      module Mergeable
+        DEFAULT_PLACEHOLDER_PREFIX: String
+        DEFAULT_PLACEHOLDER_SUFFIX: String
+
+        # Configuration for a region type
+        class Config < Struct[untyped]
+          attr_accessor detector: Base
+          attr_accessor merger_class: Class?
+          attr_accessor merger_options: Hash[Symbol, untyped]
+          attr_accessor regions: Array[Hash[Symbol, untyped]]
+        end
+
+        # Extracted region with placeholder
+        class ExtractedRegion < Struct[untyped]
+          attr_accessor region: Region
+          attr_accessor config: Config
+          attr_accessor placeholder: String
+          attr_accessor merged_content: String?
+        end
+
+        def regions_configured?: () -> bool
+        def setup_regions: (regions: Array[Hash[Symbol, untyped]], ?region_placeholder: String?) -> void
+        def extract_template_regions: (String content) -> String
+        def extract_dest_regions: (String content) -> String
+        def substitute_merged_regions: (String content) -> String
+      end
+    end
+
+    # Recipe namespace for YAML-based merge recipes
+    module Recipe
+      # Recipe configuration loaded from YAML
+      class Config
+        attr_reader name: String
+        attr_reader description: String?
+        attr_reader template_path: String
+        attr_reader targets: Array[String]
+        attr_reader injection: Hash[String, untyped]
+        attr_reader merge_options: Hash[String, untyped]
+        attr_reader when_missing: Symbol
+        attr_reader recipe_path: String?
+
+        def self.load: (String path) -> Config
+        def initialize: (Hash[String, untyped] config, ?recipe_path: String?) -> void
+        def anchor_config: () -> Hash[String, untyped]
+        def boundary_config: () -> Hash[String, untyped]?
+        def position: () -> Symbol
+        def preference: () -> Symbol
+        def add_missing?: () -> bool
+        def replace_mode?: () -> bool
+      end
+
+      # Executes recipes against target files
+      class Runner
+        # Result of processing a single file
+        class Result < Struct[untyped]
+          attr_accessor path: String
+          attr_accessor relative_path: String
+          attr_accessor status: Symbol
+          attr_accessor changed: bool
+          attr_accessor has_anchor: bool
+          attr_accessor message: String?
+          attr_accessor stats: Hash[Symbol, untyped]?
+          attr_accessor error: String?
+        end
+
+        attr_reader recipe: Config
+        attr_reader dry_run: bool
+        attr_reader verbose: bool
+        attr_reader parser: Symbol
+        attr_reader base_dir: String
+        attr_reader results: Array[Result]
+
+        def initialize: (
+          Config recipe,
+          ?dry_run: bool,
+          ?verbose: bool,
+          ?parser: Symbol,
+          ?base_dir: String
+        ) -> void
+
+        def run: () ?{ (Result) -> void } -> Array[Result]
+        def summary: () -> Hash[Symbol, Integer]
+        def summary_table: () -> Array[Hash[Symbol, untyped]]
+      end
+
+      # Loads Ruby scripts referenced by recipes
+      class ScriptLoader
+        attr_reader base_dir: String?
+        attr_reader cache: Hash[String, untyped]
+
+        def initialize: (?recipe_path: String?, ?base_dir: String?) -> void
+        def load_callable: (String script_ref) -> (^(*untyped) -> untyped)?
+        def resolve_path: (String script_ref) -> String?
+
+        private
+        def load_from_file: (String path) -> untyped
+        def parse_inline_lambda: (String code) -> (^(*untyped) -> untyped)?
+      end
     end
 
     # Module for node typing support

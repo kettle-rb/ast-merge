@@ -77,8 +77,9 @@ RSpec.shared_examples("a reproducible merge") do |scenario, options = {}|
     result = merger.merge
 
     # Normalize trailing newlines for comparison
-    expected = fixture[:expected]
-    actual = result.to_s
+    # Different backends may or may not add a trailing newline
+    expected = fixture[:expected].chomp
+    actual = result.to_s.chomp
 
     expect(actual).to(
       eq(expected),

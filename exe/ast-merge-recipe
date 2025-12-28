@@ -1,0 +1,356 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# AST Merge Recipe Runner
+#
+# Run YAML-based merge recipes against target files.
+# This is a shipped executable that can be used after installing the ast-merge gem.
+#
+# Usage:
+#   ast-merge-recipe RECIPE_FILE [options]
+#
+# Examples:
+#   ast-merge-recipe .merge-recipes/gem_family_section.yml --dry-run
+#   ast-merge-recipe .merge-recipes/gem_family_section.yml --verbose --parser=commonmarker
+
+require "bundler/inline"
+require "optparse"
+require "yaml"
+
+# Parse options first to get merge_gems before bundler/inline
+options = {
+  dry_run: false,
+  verbose: false,
+  parser: :markly,
+  base_dir: Dir.pwd,
+  recipe_file: nil,
+  merge_gems: [],
+  dev_mode: ENV.fetch("KETTLE_RB_DEV", "false").casecmp?("true"),
+  dev_root: nil,
+}
+
+# Pre-parse to extract recipe file and check for merge_gems in recipe
+# We need to do this before bundler/inline to know which gems to load
+ARGV.each do |arg|
+  case arg
+  when /^--dev-root=(.+)$/
+    options[:dev_root] = File.expand_path($1)
+  when /^-/
+    # Skip options for now
+  else
+    options[:recipe_file] ||= arg
+  end
+end
+
+# If recipe file specified, try to load merge_gems from it
+recipe_merge_gems = []
+if options[:recipe_file] && File.exist?(options[:recipe_file])
+  begin
+    recipe_config = YAML.safe_load(File.read(options[:recipe_file]), permitted_classes: [Symbol])
+    if recipe_config.is_a?(Hash) && recipe_config["merge_gems"]
+      recipe_merge_gems = Array(recipe_config["merge_gems"])
+    end
+  rescue => e
+    # Ignore errors here, we'll catch them later
+  end
+end
+
+# Determine dev root for local gems
+dev_root = options[:dev_root] || ENV["AST_MERGE_DEV_ROOT"]
+if options[:dev_mode] && dev_root.nil?
+  # Try to find dev root by looking for ast-merge directory
+  possible_roots = [
+    File.expand_path("../..", __FILE__),
+    File.expand_path("../../..", __FILE__),
+    Dir.pwd,
+  ]
+  dev_root = possible_roots.find { |p| File.exist?(File.join(p, "ast-merge.gemspec")) }
+end
+
+# Load dependencies via bundler/inline
+gemfile do
+  source "https://gem.coop"
+
+  if options[:dev_mode] && dev_root
+    # Development mode - use local gems
+    gem "ast-merge", path: dev_root
+    gem "tree_haver", path: File.join(dev_root, "vendor/tree_haver")
+    gem "markdown-merge", path: File.join(dev_root, "vendor/markdown-merge")
+    gem "markly-merge", path: File.join(dev_root, "vendor/markly-merge")
+    gem "commonmarker-merge", path: File.join(dev_root, "vendor/commonmarker-merge")
+    gem "prism-merge", path: File.join(dev_root, "vendor/prism-merge")
+    gem "psych-merge", path: File.join(dev_root, "vendor/psych-merge")
+  else
+    # Production mode - use released gems
+    # gem.coop gems need a source block
+    gem "ast-merge"
+    gem "tree_haver"
+    gem "markdown-merge"
+    gem "markly-merge"
+  end
+
+  # Load additional merge gems specified in recipe
+  recipe_merge_gems.each do |gem_spec|
+    case gem_spec
+    when String
+      gem gem_spec
+    when Hash
+      name = gem_spec["name"] || gem_spec[:name]
+      gem_opts = {}
+      gem_opts[:version] = gem_spec["version"] || gem_spec[:version] if gem_spec["version"] || gem_spec[:version]
+      gem_opts[:path] = gem_spec["path"] || gem_spec[:path] if gem_spec["path"] || gem_spec[:path]
+      gem_opts[:git] = gem_spec["git"] || gem_spec[:git] if gem_spec["git"] || gem_spec[:git]
+      gem_opts[:branch] = gem_spec["branch"] || gem_spec[:branch] if gem_spec["branch"] || gem_spec[:branch]
+      gem_opts[:require] = gem_spec["require"] || gem_spec[:require] if gem_spec.key?("require") || gem_spec.key?(:require)
+
+      if gem_opts.empty?
+        gem name
+      else
+        gem name, **gem_opts
+      end
+    end
+  end
+
+  # Try to load table_tennis for nice output
+  gem "table_tennis", require: false
+end
+
+# Now load the actual libraries
+require "ast-merge"
+
+# Try to load table_tennis
+begin
+  require "table_tennis"
+  HAS_TABLE_TENNIS = true
+rescue LoadError
+  HAS_TABLE_TENNIS = false
+end
+
+# ANSI color helpers
+module Colors
+  class << self
+    def green(str) = "\e[32m#{str}\e[0m"
+    def red(str) = "\e[31m#{str}\e[0m"
+    def yellow(str) = "\e[33m#{str}\e[0m"
+    def cyan(str) = "\e[36m#{str}\e[0m"
+    def bold(str) = "\e[1m#{str}\e[0m"
+    def dim(str) = "\e[2m#{str}\e[0m"
+  end
+end
+
+# Main runner class
+class AstMergeRecipeCLI
+  VERSION = Ast::Merge::VERSION
+
+  def initialize
+    @options = {
+      dry_run: false,
+      verbose: false,
+      parser: :markly,
+      base_dir: Dir.pwd,
+      recipe_file: nil,
+    }
+  end
+
+  def run(argv = ARGV)
+    parse_options(argv)
+    validate_options!
+    execute_recipe
+  rescue OptionParser::InvalidOption, OptionParser::MissingArgument => e
+    $stderr.puts Colors.red("ERROR: #{e.message}")
+    $stderr.puts
+    $stderr.puts @option_parser
+    exit 1
+  rescue => e
+    $stderr.puts Colors.red("ERROR: #{e.message}")
+    $stderr.puts e.backtrace.first(5).join("\n") if @options[:verbose]
+    exit 1
+  end
+
+  private
+
+  def parse_options(argv)
+    @option_parser = OptionParser.new do |opts|
+      opts.banner = "Usage: #{File.basename($0)} RECIPE_FILE [options]"
+      opts.separator ""
+      opts.separator "Run a YAML-based merge recipe against target files."
+      opts.separator ""
+      opts.separator "Options:"
+
+      opts.on("-n", "--dry-run", "Show what would change without modifying files") do
+        @options[:dry_run] = true
+      end
+
+      opts.on("-v", "--verbose", "Show detailed output") do
+        @options[:verbose] = true
+      end
+
+      opts.on("-p", "--parser=PARSER", String,
+        "Parser to use (markly, commonmarker, prism, psych)",
+        "Default: markly") do |parser|
+        @options[:parser] = parser.to_sym
+      end
+
+      opts.on("-d", "--base-dir=DIR", String,
+        "Base directory for path resolution",
+        "Default: current directory") do |dir|
+        @options[:base_dir] = File.expand_path(dir)
+      end
+
+      opts.on("--dev-root=DIR", String,
+        "Root directory for development gems (implies dev mode)") do |dir|
+        # Already handled in pre-parse
+      end
+
+      opts.on("-V", "--version", "Show version") do
+        puts "ast-merge-recipe #{VERSION}"
+        exit 0
+      end
+
+      opts.on("-h", "--help", "Show this help message") do
+        puts opts
+        puts
+        puts "Examples:"
+        puts "  #{File.basename($0)} .merge-recipes/gem_family_section.yml --dry-run"
+        puts "  #{File.basename($0)} recipe.yml --verbose --parser=commonmarker"
+        puts
+        puts "Recipe YAML format:"
+        puts "  See lib/ast/merge/recipe/README.md for full documentation"
+        exit 0
+      end
+    end
+
+    # Parse options, leaving non-option arguments
+    remaining = @option_parser.parse(argv)
+
+    # First non-option argument is the recipe file
+    @options[:recipe_file] = remaining.shift
+
+    # Warn about extra arguments
+    if remaining.any?
+      $stderr.puts Colors.yellow("WARNING: Ignoring extra arguments: #{remaining.join(", ")}")
+    end
+  end
+
+  def validate_options!
+    unless @options[:recipe_file]
+      $stderr.puts Colors.red("ERROR: No recipe file specified")
+      $stderr.puts
+      $stderr.puts @option_parser
+      exit 1
+    end
+
+    recipe_path = File.expand_path(@options[:recipe_file])
+    unless File.exist?(recipe_path)
+      $stderr.puts Colors.red("ERROR: Recipe file not found: #{recipe_path}")
+      exit 1
+    end
+
+    @options[:recipe_file] = recipe_path
+  end
+
+  def execute_recipe
+    print_header
+
+    # Load recipe
+    recipe = Ast::Merge::Recipe::Config.load(@options[:recipe_file])
+    print_recipe_info(recipe)
+
+    # Create runner
+    runner = Ast::Merge::Recipe::Runner.new(
+      recipe,
+      dry_run: @options[:dry_run],
+      base_dir: @options[:base_dir],
+      parser: @options[:parser],
+      verbose: @options[:verbose]
+    )
+
+    # Run and display results
+    puts Colors.cyan("Processing files...")
+    puts
+
+    runner.run do |result|
+      print_result(result)
+    end
+
+    print_summary(runner)
+
+    # Exit with error if there were failures
+    exit 1 if runner.summary[:errors] > 0
+  end
+
+  def print_header
+    puts Colors.bold("=" * 70)
+    puts Colors.bold("AST Merge Recipe Runner")
+    puts Colors.bold("=" * 70)
+    puts
+  end
+
+  def print_recipe_info(recipe)
+    puts Colors.cyan("Recipe: #{recipe.name}")
+    puts Colors.dim("  #{recipe.description}") if recipe.description
+    puts
+    puts Colors.yellow("Mode: #{@options[:dry_run] ? "DRY RUN" : "LIVE"}")
+    puts Colors.dim("Parser: #{@options[:parser]}")
+    puts
+  end
+
+  def print_result(result)
+    symbol = status_symbol(result.status)
+    puts "  #{symbol} #{result.relative_path}"
+
+    if @options[:verbose] || result.status == :error
+      puts Colors.dim("      #{result.message}") if result.message
+    end
+
+    if @options[:verbose] && result.stats
+      puts Colors.dim("      Stats: #{result.stats.inspect}")
+    end
+
+    if result.error && @options[:verbose]
+      puts Colors.red("      #{result.error.class}: #{result.error.message}")
+      puts Colors.dim("      #{result.error.backtrace&.first(3)&.join("\n      ")}")
+    end
+  end
+
+  def print_summary(runner)
+    puts
+    puts Colors.bold("=" * 70)
+    puts Colors.bold("Summary")
+    puts Colors.bold("=" * 70)
+    puts
+
+    summary = runner.summary
+
+    if HAS_TABLE_TENNIS
+      puts TableTennis.new(runner.summary_table)
+    else
+      puts "  Total files:        #{summary[:total]}"
+      if @options[:dry_run]
+        puts "  Would update:       #{summary[:would_update]}"
+      else
+        puts "  Updated:            #{summary[:updated]}"
+      end
+      puts "  Unchanged:          #{summary[:unchanged]}"
+      puts "  Skipped (no anchor):#{summary[:skipped]}"
+      puts "  Errors:             #{summary[:errors]}" if summary[:errors] > 0
+    end
+
+    puts
+  end
+
+  def status_symbol(status)
+    case status
+    when :updated then Colors.green("✓")
+    when :would_update then Colors.yellow("~")
+    when :unchanged then Colors.dim("○")
+    when :skipped then Colors.dim("-")
+    when :error then Colors.red("✗")
+    else "?"
+    end
+  end
+end
+
+# Run the CLI
+AstMergeRecipeCLI.new.run
+

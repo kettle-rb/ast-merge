@@ -136,28 +136,31 @@ module Ast
       end
     end
 
+    # Core classes
     autoload :AstNode, "ast/merge/ast_node"
     autoload :Comment, "ast/merge/comment"
     autoload :ConflictResolverBase, "ast/merge/conflict_resolver_base"
     autoload :ContentMatchRefiner, "ast/merge/content_match_refiner"
     autoload :DebugLogger, "ast/merge/debug_logger"
-    autoload :FencedCodeBlockDetector, "ast/merge/fenced_code_block_detector"
     autoload :FileAnalyzable, "ast/merge/file_analyzable"
     autoload :Freezable, "ast/merge/freezable"
     autoload :FreezeNodeBase, "ast/merge/freeze_node_base"
+    autoload :InjectionPoint, "ast/merge/navigable_statement"
+    autoload :InjectionPointFinder, "ast/merge/navigable_statement"
     autoload :MatchRefinerBase, "ast/merge/match_refiner_base"
     autoload :MatchScoreBase, "ast/merge/match_score_base"
     autoload :MergeResultBase, "ast/merge/merge_result_base"
     autoload :MergerConfig, "ast/merge/merger_config"
+    autoload :NavigableStatement, "ast/merge/navigable_statement"
     autoload :NodeTyping, "ast/merge/node_typing"
-    autoload :Region, "ast/merge/region"
-    autoload :RegionDetectorBase, "ast/merge/region_detector_base"
-    autoload :RegionMergeable, "ast/merge/region_mergeable"
+    autoload :PartialTemplateMerger, "ast/merge/partial_template_merger"
     autoload :SectionTyping, "ast/merge/section_typing"
     autoload :SmartMergerBase, "ast/merge/smart_merger_base"
     autoload :Text, "ast/merge/text"
-    autoload :TomlFrontmatterDetector, "ast/merge/toml_frontmatter_detector"
-    autoload :YamlFrontmatterDetector, "ast/merge/yaml_frontmatter_detector"
+
+    # Namespaces
+    autoload :Detector, "ast/merge/detector/base"  # Detector::Region, Detector::Base, Detector::Mergeable, etc.
+    autoload :Recipe, "ast/merge/recipe"
   end
 end
 

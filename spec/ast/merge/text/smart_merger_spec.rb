@@ -82,7 +82,7 @@ RSpec.describe Ast::Merge::Text::SmartMerger do
   end
 
   describe "with regions" do
-    let(:yaml_detector) { Ast::Merge::YamlFrontmatterDetector.new }
+    let(:yaml_detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 
     let(:template) do
       <<~MD

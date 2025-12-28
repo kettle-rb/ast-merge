@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::RegionDetectorBase do
+RSpec.describe Ast::Merge::Detector::Base do
   # Create a concrete implementation for testing
   let(:test_detector_class) do
     Class.new(described_class) do
@@ -14,7 +14,7 @@ RSpec.describe Ast::Merge::RegionDetectorBase do
         source.lines.each_with_index do |line, idx|
           next unless line.start_with?(">>>")
 
-          regions << Ast::Merge::Region.new(
+          regions << Ast::Merge::Detector::Region.new(
             type: region_type,
             content: line.strip,
             start_line: idx + 1,
@@ -58,7 +58,7 @@ RSpec.describe Ast::Merge::RegionDetectorBase do
 
     it "returns an array of Region objects" do
       regions = detector.detect_all(source)
-      expect(regions).to all(be_a(Ast::Merge::Region))
+      expect(regions).to all(be_a(Ast::Merge::Detector::Region))
     end
 
     it "detects all matching regions" do

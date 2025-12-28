@@ -1,0 +1,63 @@
+# Gem Family Section Update Recipe
+#
+# This recipe updates the "*-merge Gem Family" section in all README files
+# that already contain it. It uses the GEM_FAMILY_SECTION.md template.
+#
+# Usage:
+#   bin/ast-merge-recipe .merge-recipes/gem_family_section.yml --dry-run
+#   bin/ast-merge-recipe .merge-recipes/gem_family_section.yml
+
+name: gem_family_section
+description: Update gem family section in README files
+
+# Template file containing the section content
+template: ../GEM_FAMILY_SECTION.md
+
+# Target files to process (globs relative to recipe location)
+targets:
+  - "../README.md"
+  - "../vendor/*/README.md"
+
+# How to find the injection point in destination files
+injection:
+  # The anchor identifies where the section starts
+  anchor:
+    type: heading
+    text: "/Gem Family/"
+
+  # Position: replace means we replace from anchor to boundary
+  position: replace
+
+  # Boundary defines where the section ends
+  # same_or_shallower: true means "stop at next node at same or higher tree level"
+  # This is language-agnostic - works for any hierarchical structure
+  boundary:
+    type: heading
+    same_or_shallower: true
+
+# Merge behavior
+merge:
+  # For matched nodes, prefer template content
+  preference: template
+
+  # Add nodes from template that aren't in destination
+  # Uses a filter script that only adds gem_family nodes
+  add_missing: add_missing_filter.rb
+
+  # Custom signature generator for better node matching
+  signature_generator: signature_generator.rb
+
+  # Node typing configuration - scripts by node type
+  # These tag nodes with merge types for per-type preference handling
+  node_typing:
+    heading: typing/heading.rb
+    table: typing/table.rb
+    paragraph: typing/paragraph.rb
+    link_definition: typing/link_definition.rb
+
+# What to do when a target file doesn't have the anchor
+# skip = don't modify files without the section
+# add = add the section (not implemented yet)
+# error = fail the recipe
+when_missing: skip
+

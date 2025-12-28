@@ -46,6 +46,7 @@ The `*-merge` gem family provides intelligent, AST-based merging for various fil
 [ts-jsonc]: https://gitlab.com/WhyNotHugo/tree-sitter-jsonc
 [ts-bash]: https://github.com/tree-sitter/tree-sitter-bash
 [ts-toml]: https://github.com/tree-sitter-grammars/tree-sitter-toml
+[dotenv]: https://github.com/bkeepers/dotenv
 [rbs]: https://github.com/ruby/rbs
 [toml-rb]: https://github.com/emancu/toml-rb
 [markly]: https://github.com/ioquatix/markly
