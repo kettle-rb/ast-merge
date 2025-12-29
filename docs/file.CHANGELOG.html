@@ -83,7 +83,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 <h3 id="security">Security</h3>
 
 <h2 id="200---2025-12-28">
-<a href="https://github.com/kettle-rb/ast-merge/compare/v1.0.0...v2.0.0">2.0.0</a> - 2025-12-28</h2>
+<a href="https://github.com/kettle-rb/ast-merge/compare/v1.1.0...v2.0.0">2.0.0</a> - 2025-12-28</h2>
 
 <ul>
   <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.0">v2.0.0</a>
@@ -312,45 +312,6 @@ Please file a bug if you notice a violation of semantic versioning.</p>
       <li>Base Classes Reference table</li>
     </ul>
   </li>
-  <li>
-<strong>tree_haver Integration</strong>: Major architectural enhancement
-    <ul>
-      <li>Added <code>tree_haver</code> (~&gt; 3.1) as a runtime dependency</li>
-      <li>
-<code>Ast::Merge::AstNode</code> now implements the TreeHaver::Node protocol for compatibility with tree_haver-based merge operations
-        <ul>
-          <li>Adds: <code>type</code>, <code>kind</code>, <code>text</code>, <code>start_byte</code>, <code>end_byte</code>, <code>start_point</code>, <code>end_point</code>, <code>children</code>, <code>child_count</code>, <code>child(index)</code>, <code>each</code>, <code>named?</code>, <code>structural?</code>, <code>has_error?</code>, <code>missing?</code>, <code>inner_node</code>
-</li>
-          <li>Adds <code>Point</code> struct compatible with <code>TreeHaver::Point</code>
-</li>
-          <li>Adds <code>SyntheticNode</code> alias for clarity (synthetic = not backed by a real parser)</li>
-        </ul>
-      </li>
-      <li>
-<code>Comment::Line</code>, <code>Comment::Block</code>, <code>Comment::Empty</code> now have explicit <code>type</code> methods</li>
-      <li>
-<code>Text::LineNode</code> and <code>Text::WordNode</code> now inherit from <code>AstNode</code>, gaining TreeHaver::Node protocol compliance</li>
-      <li>This enables <code>*-merge</code> gems to leverage tree_haver’s cross-Ruby parsing capabilities (MRI, JRuby, TruffleRuby)</li>
-    </ul>
-  </li>
-  <li>
-<strong>Documentation</strong>: Comprehensive updates across the gem family
-    <ul>
-      <li>Updated all vendor gem READMEs with standardized gem family tables</li>
-      <li>Added <code>tree_haver</code> as the foundation layer in architecture documentation</li>
-      <li>Clarified the two-layer architecture: tree_haver (parsing) → ast-merge (merge infrastructure)</li>
-      <li>Added detailed documentation to <code>FencedCodeBlockDetector</code> explaining when to use native AST nodes vs text-based detection</li>
-      <li>Updated markdown-merge documentation to highlight inner code block merging capabilities</li>
-    </ul>
-  </li>
-  <li>
-<strong>Example Scripts</strong>: Added comprehensive examples demonstrating inner-merge capabilities
-    <ul>
-      <li>
-<code>examples/markdown_code_merge.rb</code> - Shows how markdown-merge delegates to language-specific parsers for semantic merging</li>
-      <li>Documentation proving that language-specific parsers create full ASTs of embedded code blocks</li>
-    </ul>
-  </li>
 </ul>
 
 <h3 id="changed-1">Changed</h3>
@@ -393,6 +354,66 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 </li>
     </ul>
   </li>
+</ul>
+
+<h2 id="110---2025-12-18">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v1.0.0...v1.1.0">1.1.0</a> - 2025-12-18</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v1.1.0">v1.1.0</a>
+</li>
+  <li>COVERAGE: 95.16% – 2338/2457 lines in 44 files</li>
+  <li>BRANCH COVERAGE: 82.59% – 517/626 branches in 44 files</li>
+  <li>98.45% documented</li>
+</ul>
+
+<h3 id="added-2">Added</h3>
+
+<ul>
+  <li>
+<strong>tree_haver Integration</strong>: Major architectural enhancement
+    <ul>
+      <li>Added <code>tree_haver</code> (~&gt; 3.1) as a runtime dependency</li>
+      <li>
+<code>Ast::Merge::AstNode</code> now implements the TreeHaver::Node protocol for compatibility with tree_haver-based merge operations
+        <ul>
+          <li>Adds: <code>type</code>, <code>kind</code>, <code>text</code>, <code>start_byte</code>, <code>end_byte</code>, <code>start_point</code>, <code>end_point</code>, <code>children</code>, <code>child_count</code>, <code>child(index)</code>, <code>each</code>, <code>named?</code>, <code>structural?</code>, <code>has_error?</code>, <code>missing?</code>, <code>inner_node</code>
+</li>
+          <li>Adds <code>Point</code> struct compatible with <code>TreeHaver::Point</code>
+</li>
+          <li>Adds <code>SyntheticNode</code> alias for clarity (synthetic = not backed by a real parser)</li>
+        </ul>
+      </li>
+      <li>
+<code>Comment::Line</code>, <code>Comment::Block</code>, <code>Comment::Empty</code> now have explicit <code>type</code> methods</li>
+      <li>
+<code>Text::LineNode</code> and <code>Text::WordNode</code> now inherit from <code>AstNode</code>, gaining TreeHaver::Node protocol compliance</li>
+      <li>This enables <code>*-merge</code> gems to leverage tree_haver’s cross-Ruby parsing capabilities (MRI, JRuby, TruffleRuby)</li>
+    </ul>
+  </li>
+  <li>
+<strong>Documentation</strong>: Comprehensive updates across the gem family
+    <ul>
+      <li>Updated all vendor gem READMEs with standardized gem family tables</li>
+      <li>Added <code>tree_haver</code> as the foundation layer in architecture documentation</li>
+      <li>Clarified the two-layer architecture: tree_haver (parsing) → ast-merge (merge infrastructure)</li>
+      <li>Added detailed documentation to <code>FencedCodeBlockDetector</code> explaining when to use native AST nodes vs text-based detection</li>
+      <li>Updated markdown-merge documentation to highlight inner code block merging capabilities</li>
+    </ul>
+  </li>
+  <li>
+<strong>Example Scripts</strong>: Added comprehensive examples demonstrating inner-merge capabilities
+    <ul>
+      <li>
+<code>examples/markdown_code_merge.rb</code> - Shows how markdown-merge delegates to language-specific parsers for semantic merging</li>
+      <li>Documentation proving that language-specific parsers create full ASTs of embedded code blocks</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="changed-2">Changed</h3>
+
+<ul>
   <li>
 <strong>Architecture</strong>: Refactored to use tree_haver as the parsing foundation
     <ul>
@@ -445,7 +466,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>99.29% documented</li>
 </ul>
 
-<h3 id="added-2">Added</h3>
+<h3 id="added-3">Added</h3>
 
 <ul>
   <li>Initial release</li>
@@ -454,7 +475,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Sun Dec 28 16:56:12 2025 by
+  Generated on Sun Dec 28 18:06:57 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

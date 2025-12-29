@@ -169,6 +169,30 @@ Please file a bug if you notice a violation of semantic versioning.
   - Complete "Creating a New Merge Gem" example with all base classes
   - Base Classes Reference table
 
+### Changed
+
+- **BREAKING - Namespace Reorganization**: Major restructuring for better organization
+  - `Ast::Merge::Region` → `Ast::Merge::Detector::Region` (Struct moved into Detector namespace)
+  - `Ast::Merge::RegionDetectorBase` → `Ast::Merge::Detector::Base`
+  - `Ast::Merge::RegionMergeable` → `Ast::Merge::Detector::Mergeable`
+  - `Ast::Merge::FencedCodeBlockDetector` → `Ast::Merge::Detector::FencedCodeBlock`
+  - `Ast::Merge::YamlFrontmatterDetector` → `Ast::Merge::Detector::YamlFrontmatter`
+  - `Ast::Merge::TomlFrontmatterDetector` → `Ast::Merge::Detector::TomlFrontmatter`
+  - `Ast::Merge::Recipe` class → `Ast::Merge::Recipe::Config`
+  - `Ast::Merge::RecipeRunner` → `Ast::Merge::Recipe::Runner`
+  - `Ast::Merge::RecipeScriptLoader` → `Ast::Merge::Recipe::ScriptLoader`
+  - `Ast::Merge::RegionMergeable::RegionConfig` → `Ast::Merge::Detector::Mergeable::Config`
+  - `Ast::Merge::RegionMergeable::ExtractedRegion` → `Ast::Merge::Detector::Mergeable::ExtractedRegion`
+
+## [1.1.0] - 2025-12-18
+
+- TAG: [v1.1.0][1.1.0t]
+- COVERAGE: 95.16% -- 2338/2457 lines in 44 files
+- BRANCH COVERAGE: 82.59% -- 517/626 branches in 44 files
+- 98.45% documented
+
+### Added
+
 - **tree_haver Integration**: Major architectural enhancement
   - Added `tree_haver` (~> 3.1) as a runtime dependency
   - `Ast::Merge::AstNode` now implements the TreeHaver::Node protocol for compatibility with tree_haver-based merge operations
@@ -189,19 +213,6 @@ Please file a bug if you notice a violation of semantic versioning.
   - Documentation proving that language-specific parsers create full ASTs of embedded code blocks
 
 ### Changed
-
-- **BREAKING - Namespace Reorganization**: Major restructuring for better organization
-  - `Ast::Merge::Region` → `Ast::Merge::Detector::Region` (Struct moved into Detector namespace)
-  - `Ast::Merge::RegionDetectorBase` → `Ast::Merge::Detector::Base`
-  - `Ast::Merge::RegionMergeable` → `Ast::Merge::Detector::Mergeable`
-  - `Ast::Merge::FencedCodeBlockDetector` → `Ast::Merge::Detector::FencedCodeBlock`
-  - `Ast::Merge::YamlFrontmatterDetector` → `Ast::Merge::Detector::YamlFrontmatter`
-  - `Ast::Merge::TomlFrontmatterDetector` → `Ast::Merge::Detector::TomlFrontmatter`
-  - `Ast::Merge::Recipe` class → `Ast::Merge::Recipe::Config`
-  - `Ast::Merge::RecipeRunner` → `Ast::Merge::Recipe::Runner`
-  - `Ast::Merge::RecipeScriptLoader` → `Ast::Merge::Recipe::ScriptLoader`
-  - `Ast::Merge::RegionMergeable::RegionConfig` → `Ast::Merge::Detector::Mergeable::Config`
-  - `Ast::Merge::RegionMergeable::ExtractedRegion` → `Ast::Merge::Detector::Mergeable::ExtractedRegion`
 
 - **Architecture**: Refactored to use tree_haver as the parsing foundation
   - All tree-sitter-based gems (bash-merge, json-merge, jsonc-merge, toml-merge) now use tree_haver
@@ -233,7 +244,9 @@ Please file a bug if you notice a violation of semantic versioning.
 - Initial release
 
 [Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/kettle-rb/ast-merge/compare/v1.0.0...v2.0.0
+[2.0.0]: https://github.com/kettle-rb/ast-merge/compare/v1.1.0...v2.0.0
 [2.0.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.0
+[1.1.0]: https://github.com/kettle-rb/ast-merge/compare/v1.0.0...v1.1.0
+[1.1.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v1.1.0
 [1.0.0]: https://github.com/kettle-rb/ast-merge/compare/a63a4858cb229530c1706925bb209546695e8b3a...v1.0.0
 [1.0.0t]: https://github.com/kettle-rb/ast-merge/tags/v1.0.0
