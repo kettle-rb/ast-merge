@@ -30,6 +30,24 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Security
 
+## [2.0.1] - 2025-12-29
+
+- TAG: [v2.0.1][2.0.1t]
+- COVERAGE: 88.47% -- 2894/3271 lines in 53 files
+- BRANCH COVERAGE: 67.83% -- 698/1029 branches in 53 files
+- 98.82% documented
+
+### Changed
+
+- Upgraded dependencies
+  - yard-fence v0.8.1
+  - tree_haver v3.1.2
+  - kettle-test v1.0.7
+
+### Fixed
+
+- Documentation cleanup (via yard-fence)
+
 ## [2.0.0] - 2025-12-28
 
 - TAG: [v2.0.0][2.0.0t]
@@ -243,7 +261,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/kettle-rb/ast-merge/compare/v2.0.0...v2.0.1
+[2.0.1t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.1
 [2.0.0]: https://github.com/kettle-rb/ast-merge/compare/v1.1.0...v2.0.0
 [2.0.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.0
 [1.1.0]: https://github.com/kettle-rb/ast-merge/compare/v1.0.0...v1.1.0
