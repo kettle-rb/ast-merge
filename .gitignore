@@ -2,14 +2,7 @@
 /pkg/
 /tmp/
 *.gem
-/vendor/*merge
-/vendor/*dev
-/vendor/*gem
-/vendor/*jem
-/vendor/*tree*
-/vendor/*test
-/vendor/*cover
-/vendor/markly
+/vendor/
 
 # Bundler
 /vendor/bundle/

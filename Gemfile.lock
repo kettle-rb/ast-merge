@@ -21,7 +21,7 @@ PATH
   remote: .
   specs:
     ast-merge (2.0.0)
-      tree_haver (~> 3.1, >= 3.1.1)
+      tree_haver (~> 3.1, >= 3.1.2)
       version_gem (~> 1.1, >= 1.1.9)
 
 GEM
@@ -309,7 +309,7 @@ GEM
     toml-rb (4.1.0)
       citrus (~> 3.0, > 3.0)
       racc (~> 1.7)
-    tree_haver (3.1.1)
+    tree_haver (3.1.2)
       version_gem (~> 1.1, >= 1.1.9)
     tsort (0.2.0)
     ttfunk (1.8.0)
@@ -328,7 +328,7 @@ GEM
       prawn (>= 2.5, < 3)
       version_gem (~> 1.1, >= 1.1.9)
     yard (0.9.38)
-    yard-fence (0.8.0)
+    yard-fence (0.8.1)
       rdoc (~> 6.11)
       version_gem (~> 1.1, >= 1.1.9)
       yard (~> 0.9, >= 0.9.37)
@@ -358,7 +358,7 @@ DEPENDENCIES
   irb (~> 1.16)
   kettle-dev (~> 1.1)
   kettle-soup-cover (~> 1.1, ~> 1.0, >= 1.1.1, >= 1.0.10)
-  kettle-test (~> 1.0, >= 1.0.6)
+  kettle-test (~> 1.0, >= 1.0.7)
   kramdown (~> 2.5, >= 2.5.1)
   kramdown-parser-gfm (~> 1.1)
   mutex_m (~> 0.2)
@@ -382,7 +382,7 @@ DEPENDENCIES
   unparser (~> 0.8, >= 0.8.1)
   yaml-converter (~> 0.1)
   yard (~> 0.9, >= 0.9.37)
-  yard-fence (~> 0.8)
+  yard-fence (~> 0.8, >= 0.8.1)
   yard-junk (~> 0.0, >= 0.0.10)!
   yard-relative_markdown_links (~> 0.6)
   yard-yaml (~> 0.1)
@@ -499,7 +499,7 @@ CHECKSUMS
   timecop (0.9.10) sha256=12ba45ce57cdcf6b1043cb6cdffa6381fd89ce10d369c28a7f6f04dc1b0cd8eb
   timecop-rspec (1.0.3) sha256=005f14841bb606dcaefb060e321b5388e2e59537742bee8b3a9a9a40e598fab9
   toml-rb (4.1.0) sha256=14456ec4549e4703881bf04b83a56f3264ef99884880092d83c98a2058d95846
-  tree_haver (3.1.1) sha256=74c437fb795f1d8271f112ac7b413ec452346555c6f7140a34148eadfc5a5045
+  tree_haver (3.1.2) sha256=b6256e1f3ca90b927834790ff5975ceb0cae07f8055a14f7b7c308c5620442a7
   tree_stump (0.1.0)
   tsort (0.2.0) sha256=9650a793f6859a43b6641671278f79cfead60ac714148aabe4e3f0060480089f
   ttfunk (1.8.0) sha256=a7cbc7e489cc46e979dde04d34b5b9e4f5c8f1ee5fc6b1a7be39b829919d20ca
@@ -509,7 +509,7 @@ CHECKSUMS
   version_gem (1.1.9) sha256=0c1a0962ae543c84a00889bb018d9f14d8f8af6029d26b295d98774e3d2eb9a4
   yaml-converter (0.1.0) sha256=3a8a6ce675eec8adc7ee67697ee0567e2153cad974b601c062c3a25f545ecc77
   yard (0.9.38) sha256=721fb82afb10532aa49860655f6cc2eaa7130889df291b052e1e6b268283010f
-  yard-fence (0.8.0) sha256=98483d5a49411ec46b59bb4b4bf1a89e85de49767bff3fa7fb04ae5bcd5f5eaf
+  yard-fence (0.8.1) sha256=01370573a608fefa5da1d619e93bf67fbe61b2b894ef814f41585ce7c7132b80
   yard-junk (0.0.10)
   yard-relative_markdown_links (0.6.0) sha256=3e5ffa85cbad9bac70bee5421774b190fb25d3bdf489323a5b3534f647d1a70e
   yard-yaml (0.1.0) sha256=8bf7b1a69183429c07e8c521d17fbbd56598387f15e13b2c27f31c4ba821a7a7
