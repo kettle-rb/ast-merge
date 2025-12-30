@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Module: Ast::Merge
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Ast::Merge";
+  relpath = '../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../_index.html">Index (M)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../Ast.html" title="Ast (module)">Ast</a></span></span>
+     &raquo; 
+    <span class="title">Merge</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Module: Ast::Merge
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/ast/merge.rb<span class="defines">,<br />
+  lib/ast/merge/text.rb,<br /> lib/ast/merge/recipe.rb,<br /> lib/ast/merge/comment.rb,<br /> lib/ast/merge/version.rb,<br /> lib/ast/merge/ast_node.rb,<br /> lib/ast/merge/freezable.rb,<br /> lib/ast/merge/node_typing.rb,<br /> lib/ast/merge/comment/line.rb,<br /> lib/ast/merge/debug_logger.rb,<br /> lib/ast/merge/text/section.rb,<br /> lib/ast/merge/comment/block.rb,<br /> lib/ast/merge/comment/empty.rb,<br /> lib/ast/merge/comment/style.rb,<br /> lib/ast/merge/detector/base.rb,<br /> lib/ast/merge/merger_config.rb,<br /> lib/ast/merge/recipe/config.rb,<br /> lib/ast/merge/recipe/preset.rb,<br /> lib/ast/merge/recipe/runner.rb,<br /> lib/ast/merge/comment/parser.rb,<br /> lib/ast/merge/section_typing.rb,<br /> lib/ast/merge/text/line_node.rb,<br /> lib/ast/merge/text/word_node.rb,<br /> lib/ast/merge/file_analyzable.rb,<br /> lib/ast/merge/freeze_node_base.rb,<br /> lib/ast/merge/match_score_base.rb,<br /> lib/ast/merge/merge_result_base.rb,<br /> lib/ast/merge/smart_merger_base.rb,<br /> lib/ast/merge/text/merge_result.rb,<br /> lib/ast/merge/text/smart_merger.rb,<br /> lib/ast/merge/detector/mergeable.rb,<br /> lib/ast/merge/match_refiner_base.rb,<br /> lib/ast/merge/text/file_analysis.rb,<br /> lib/ast/merge/navigable_statement.rb,<br /> lib/ast/merge/recipe/script_loader.rb,<br /> lib/ast/merge/content_match_refiner.rb,<br /> lib/ast/merge/rspec/dependency_tags.rb,<br /> lib/ast/merge/text/section_splitter.rb,<br /> lib/ast/merge/conflict_resolver_base.rb,<br /> lib/ast/merge/text/conflict_resolver.rb,<br /> lib/ast/merge/partial_template_merger.rb,<br /> lib/ast/merge/detector/toml_frontmatter.rb,<br /> lib/ast/merge/detector/yaml_frontmatter.rb,<br /> lib/ast/merge/detector/fenced_code_block.rb</span>
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Defined Under Namespace</h2>
+<p class="children">
+  
+    
+      <strong class="modules">Modules:</strong> <span class='object_link'><a href="Merge/Comment.html" title="Ast::Merge::Comment (module)">Comment</a></span>, <span class='object_link'><a href="Merge/DebugLogger.html" title="Ast::Merge::DebugLogger (module)">DebugLogger</a></span>, <span class='object_link'><a href="Merge/Detector.html" title="Ast::Merge::Detector (module)">Detector</a></span>, <span class='object_link'><a href="Merge/FileAnalyzable.html" title="Ast::Merge::FileAnalyzable (module)">FileAnalyzable</a></span>, <span class='object_link'><a href="Merge/Freezable.html" title="Ast::Merge::Freezable (module)">Freezable</a></span>, <span class='object_link'><a href="Merge/NodeTyping.html" title="Ast::Merge::NodeTyping (module)">NodeTyping</a></span>, <span class='object_link'><a href="Merge/RSpec.html" title="Ast::Merge::RSpec (module)">RSpec</a></span>, <span class='object_link'><a href="Merge/Recipe.html" title="Ast::Merge::Recipe (module)">Recipe</a></span>, <span class='object_link'><a href="Merge/SectionTyping.html" title="Ast::Merge::SectionTyping (module)">SectionTyping</a></span>, <span class='object_link'><a href="Merge/Text.html" title="Ast::Merge::Text (module)">Text</a></span>, <span class='object_link'><a href="Merge/Version.html" title="Ast::Merge::Version (module)">Version</a></span>
+    
+  
+    
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Merge/AstNode.html" title="Ast::Merge::AstNode (class)">AstNode</a></span>, <span class='object_link'><a href="Merge/ConflictResolverBase.html" title="Ast::Merge::ConflictResolverBase (class)">ConflictResolverBase</a></span>, <span class='object_link'><a href="Merge/ContentMatchRefiner.html" title="Ast::Merge::ContentMatchRefiner (class)">ContentMatchRefiner</a></span>, <span class='object_link'><a href="Merge/DestinationParseError.html" title="Ast::Merge::DestinationParseError (class)">DestinationParseError</a></span>, <span class='object_link'><a href="Merge/Error.html" title="Ast::Merge::Error (class)">Error</a></span>, <span class='object_link'><a href="Merge/FreezeNodeBase.html" title="Ast::Merge::FreezeNodeBase (class)">FreezeNodeBase</a></span>, <span class='object_link'><a href="Merge/InjectionPoint.html" title="Ast::Merge::InjectionPoint (class)">InjectionPoint</a></span>, <span class='object_link'><a href="Merge/InjectionPointFinder.html" title="Ast::Merge::InjectionPointFinder (class)">InjectionPointFinder</a></span>, <span class='object_link'><a href="Merge/MatchRefinerBase.html" title="Ast::Merge::MatchRefinerBase (class)">MatchRefinerBase</a></span>, <span class='object_link'><a href="Merge/MatchScoreBase.html" title="Ast::Merge::MatchScoreBase (class)">MatchScoreBase</a></span>, <span class='object_link'><a href="Merge/MergeResultBase.html" title="Ast::Merge::MergeResultBase (class)">MergeResultBase</a></span>, <span class='object_link'><a href="Merge/MergerConfig.html" title="Ast::Merge::MergerConfig (class)">MergerConfig</a></span>, <span class='object_link'><a href="Merge/NavigableStatement.html" title="Ast::Merge::NavigableStatement (class)">NavigableStatement</a></span>, <span class='object_link'><a href="Merge/ParseError.html" title="Ast::Merge::ParseError (class)">ParseError</a></span>, <span class='object_link'><a href="Merge/PartialTemplateMerger.html" title="Ast::Merge::PartialTemplateMerger (class)">PartialTemplateMerger</a></span>, <span class='object_link'><a href="Merge/PlaceholderCollisionError.html" title="Ast::Merge::PlaceholderCollisionError (class)">PlaceholderCollisionError</a></span>, <span class='object_link'><a href="Merge/SmartMergerBase.html" title="Ast::Merge::SmartMergerBase (class)">SmartMergerBase</a></span>, <span class='object_link'><a href="Merge/TemplateParseError.html" title="Ast::Merge::TemplateParseError (class)">TemplateParseError</a></span>
+    
+  
+</p>
+
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="VERSION-constant" class="">VERSION =
+          <div class="docstring">
+  <div class="discussion">
+    <p>traditional location</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='const'><span class='object_link'><a href="Merge/Version.html" title="Ast::Merge::Version (module)">Version</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Merge/Version.html#VERSION-constant" title="Ast::Merge::Version::VERSION (constant)">VERSION</a></span></span></pre></dd>
+      
+        <dt id="SyntheticNode-constant" class="">SyntheticNode =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Alias for clarity - SyntheticNode clearly indicates “not backed by a real parser”<br />
+Use this alias when the distinction between synthetic and parser-backed nodes matters.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><span class='object_link'><a href="Merge/AstNode.html" title="Ast::Merge::AstNode (class)">AstNode</a></span></li>
+    
+  </ul>
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='const'><span class='object_link'><a href="Merge/AstNode.html" title="Ast::Merge::AstNode (class)">AstNode</a></span></span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+
+
+</div>
+
+      <div id="footer">
+  Generated on Tue Dec 30 16:23:43 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-4.0.0).
+</div>
+
+    </div>
+  </body>
+</html>

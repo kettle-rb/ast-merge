@@ -1,7 +1,4 @@
 {
-  "README.md:1463162974": [
-    [654, 3, 1, "Lint/Syntax: unexpected token tCOLON\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 177567]
-  ],
   "examples/readme_section_merge/README.md:2140207292": [
     [16, 38, 1, "Lint/Syntax: trailing `_' in number\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 177658],
     [16, 39, 19, "Lint/Syntax: unexpected token tIDENTIFIER\n(Using Ruby 3.2 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)", 275888237]

@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: merge
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "merge";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: merge</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'><p>module Ast<br>
+  module Merge<br>
+    VERSION: String</p>
+
+<pre class="code ruby"><code class="ruby"># Base error class for all merge operations
+class Error &lt; StandardError
+end
+
+# Raised when parsing fails (template or destination)
+class ParseError &lt; Error
+  attr_reader errors: untyped
+  attr_reader content: String?
+
+  def initialize: (?String? message, ?errors: untyped, ?content: String?) -&gt; void
+end
+
+# Raised when parsing the template (source) content fails
+class TemplateParseError &lt; ParseError
+  def initialize: (?String? message, ?errors: untyped, ?content: String?) -&gt; void
+end
+
+# Raised when parsing the destination content fails
+class DestinationParseError &lt; ParseError
+  def initialize: (?String? message, ?errors: untyped, ?content: String?) -&gt; void
+end
+
+# Base class for freeze block nodes in AST merge libraries.
+class FreezeNode
+  # Pattern configuration for freeze block markers
+  MARKER_PATTERNS: Hash[Symbol, Hash[Symbol, Regexp]]
+
+  # Default pattern when none specified
+  DEFAULT_PATTERN: Symbol
+
+  # Error raised when a freeze block has invalid structure
+  class InvalidStructureError &lt; StandardError
+    attr_reader start_line: Integer?
+    attr_reader end_line: Integer?
+    attr_reader unclosed_nodes: Array[untyped]
+
+    def initialize: (
+      String message,
+      ?start_line: Integer?,
+      ?end_line: Integer?,
+      ?unclosed_nodes: Array[untyped]
+    ) -&gt; void
+  end
+
+  # Simple location struct for compatibility with AST nodes
+  class Location &lt; Struct[Integer]
+    attr_accessor start_line: Integer
+    attr_accessor end_line: Integer
+
+    def cover?: (Integer line) -&gt; bool
+  end
+
+  # Class methods
+  def self.register_pattern: (Symbol name, start: Regexp, end_pattern: Regexp) -&gt; Hash[Symbol, Regexp]
+  def self.start_pattern: (?Symbol pattern_type) -&gt; Regexp
+  def self.end_pattern: (?Symbol pattern_type) -&gt; Regexp
+  def self.freeze_start?: (String? line, ?Symbol pattern_type) -&gt; bool
+  def self.freeze_end?: (String? line, ?Symbol pattern_type) -&gt; bool
+  def self.pattern_types: () -&gt; Array[Symbol]
+
+  # Instance attributes
+  attr_reader start_line: Integer
+  attr_reader end_line: Integer
+  attr_reader content: String?
+  attr_reader start_marker: String?
+  attr_reader end_marker: String?
+  attr_reader pattern_type: Symbol
+
+  def initialize: (
+    start_line: Integer,
+    end_line: Integer,
+    ?start_marker: String?,
+    ?end_marker: String?,
+    ?pattern_type: Symbol
+  ) -&gt; void
+
+  def location: () -&gt; Location
+  def slice: () -&gt; String?
+  def freeze_node?: () -&gt; bool
+  def signature: () -&gt; Array[untyped]
+  def inspect: () -&gt; String
+  def to_s: () -&gt; String
+
+  private
+
+  def validate_line_order!: () -&gt; void
+end
+
+# Debug logging module
+module DebugLogger
+  def self.env_var_name: () -&gt; String
+  def self.env_var_name=: (String name) -&gt; String
+  def self.log_prefix: () -&gt; String
+  def self.log_prefix=: (String prefix) -&gt; String
+  def self.enabled?: () -&gt; bool
+  def self.debug: (*untyped args) -&gt; void
+  def self.info: (*untyped args) -&gt; void
+  def self.warning: (*untyped args) -&gt; void
+  def self.time: (String label) { () -&gt; untyped } -&gt; untyped
+  def self.log_node: (untyped node, ?label: String) -&gt; void
+  def self.extract_lines: (untyped node) -&gt; String
+  def self.safe_type_name: (untyped node) -&gt; String
+end
+
+# Base module for file analysis classes
+module FileAnalysisBase
+  # Required instance attributes (must be defined by including class)
+  attr_reader statements: Array[untyped]
+  attr_reader lines: Array[String]
+  attr_reader signature_generator: (^(untyped) -&gt; (Array[untyped] | untyped | nil))?
+
+  # Get all freeze blocks from statements
+  def freeze_blocks: () -&gt; Array[FreezeNode]
+
+  # Check if a line is within a freeze block
+  def in_freeze_block?: (Integer line_num) -&gt; bool
+
+  # Get the freeze block containing the given line
+  def freeze_block_at: (Integer line_num) -&gt; FreezeNode?
+
+  # Get structural signature for a statement at given index
+  def signature_at: (Integer index) -&gt; Array[untyped]?
+
+  # Get a specific line (1-indexed)
+  def line_at: (Integer line_num) -&gt; String?
+
+  # Get a normalized line (whitespace-trimmed)
+  def normalized_line: (Integer line_num) -&gt; String?
+
+  # Generate signature for a node
+  def generate_signature: (untyped node) -&gt; Array[untyped]?
+
+  # Check if a value represents a fallthrough node
+  def fallthrough_node?: (untyped value) -&gt; bool
+
+  # Compute default signature for a node (abstract - must be implemented)
+  def compute_node_signature: (untyped node) -&gt; Array[untyped]?
+end
+
+# Base merge result tracking
+class MergeResult
+  DECISION_KEPT_TEMPLATE: Symbol
+  DECISION_KEPT_DEST: Symbol
+  DECISION_MERGED: Symbol
+  DECISION_ADDED: Symbol
+  DECISION_FREEZE_BLOCK: Symbol
+  DECISION_REPLACED: Symbol
+  DECISION_APPENDED: Symbol
+
+  attr_reader decisions: Array[Hash[Symbol, untyped]]
+
+  def initialize: () -&gt; void
+  def track_decision: (
+    untyped node,
+    Symbol decision,
+    ?reason: String?
+  ) -&gt; void
+end
+
+# Configuration object for SmartMerger options
+class MergerConfig
+  VALID_PREFERENCES: Array[Symbol]
+
+  attr_reader signature_match_preference: Symbol | Hash[Symbol, Symbol]
+  attr_reader node_splitter: Hash[Symbol, untyped]?
+  attr_reader add_template_only_nodes: add_template_only_nodes_type
+  attr_reader freeze_token: String?
+  attr_reader signature_generator: (^(untyped) -&gt; (Array[untyped] | untyped | nil))?
+
+  def initialize: (
+    ?signature_match_preference: (Symbol | Hash[Symbol, Symbol]),
+    ?add_template_only_nodes: add_template_only_nodes_type,
+    ?freeze_token: String?,
+    ?signature_generator: (^(untyped) -&gt; (Array[untyped] | untyped | nil))?,
+    ?node_splitter: Hash[Symbol, untyped]?
+  ) -&gt; void
+
+  def prefer_destination?: () -&gt; bool
+  def prefer_template?: () -&gt; bool
+  def to_h: (?default_freeze_token: String?) -&gt; Hash[Symbol, untyped]
+  def with: (**untyped options) -&gt; MergerConfig
+
+  def self.destination_wins: (?freeze_token: String?, ?signature_generator: (^(untyped) -&gt; (Array[untyped] | untyped | nil))?, ?node_splitter: Hash[Symbol, untyped]?) -&gt; MergerConfig
+  def self.template_wins: (?freeze_token: String?, ?signature_generator: (^(untyped) -&gt; (Array[untyped] | untyped | nil))?, ?node_splitter: Hash[Symbol, untyped]?) -&gt; MergerConfig
+
+  private
+
+  def validate_preference!: (Symbol preference) -&gt; void
+end
+
+# Type alias for node typing callables
+type node_typing_callable = ^(untyped) -&gt; untyped?
+type node_typing_hash = Hash[Symbol | String, node_typing_callable]
+type preference_type = Symbol | Hash[Symbol, Symbol]
+
+# Type alias for add_template_only_nodes filter
+# Can be: Boolean, or callable that receives (node, entry) and returns truthy/falsey
+# Entry hash contains: { template_node:, signature:, template_index:, dest_index: nil }
+type add_template_only_filter = ^(untyped node, Hash[Symbol, untyped] entry) -&gt; boolish
+type add_template_only_nodes_type = bool | add_template_only_filter
+
+# Abstract base class for SmartMerger implementations
+class SmartMergerBase
+  include Detector::Mergeable
+
+  attr_reader template_content: String
+  attr_reader dest_content: String
+  attr_reader template_analysis: untyped
+  attr_reader dest_analysis: untyped
+  attr_reader resolver: untyped
+  attr_reader result: untyped
+  attr_reader preference: preference_type
+  attr_reader add_template_only_nodes: add_template_only_nodes_type
+  attr_reader freeze_token: String
+  attr_reader signature_generator: (^(untyped) -&gt; (Array[untyped] | untyped | nil))?
+  attr_reader match_refiner: untyped?
+  attr_reader node_typing: node_typing_hash?
+
+  def initialize: (
+    String template_content,
+    String dest_content,
+    ?signature_generator: (^(untyped) -&gt; (Array[untyped] | untyped | nil))?,
+    ?preference: preference_type,
+    ?add_template_only_nodes: add_template_only_nodes_type,
+    ?freeze_token: String?,
+    ?match_refiner: untyped?,
+    ?regions: Array[Hash[Symbol, untyped]]?,
+    ?region_placeholder: String?,
+    ?node_typing: node_typing_hash?,
+    **untyped format_options
+  ) -&gt; void
+
+  def merge: () -&gt; String
+  def merge_result: () -&gt; untyped
+
+  # Class method for convenient merging
+  def self.merge: (
+    String template_content,
+    String dest_content,
+    **untyped options
+  ) -&gt; String
+
+  private
+
+  # Abstract methods that subclasses must implement
+  def analysis_class: () -&gt; Class
+  def perform_merge: () -&gt; untyped
+
+  # Optional hooks for subclasses
+  def default_freeze_token: () -&gt; String
+  def resolver_class: () -&gt; Class?
+  def result_class: () -&gt; Class?
+  def aligner_class: () -&gt; Class?
+  def build_analysis_options: () -&gt; Hash[Symbol, untyped]
+  def build_resolver_options: () -&gt; Hash[Symbol, untyped]
+  def build_full_analysis_options: (Symbol source) -&gt; Hash[Symbol, untyped]
+  def update_result_content: (untyped result, String content) -&gt; void
+  def template_parse_error_class: () -&gt; Class
+  def destination_parse_error_class: () -&gt; Class
+end
+
+# Abstract base class for ConflictResolver implementations
+class ConflictResolverBase
+  # Decision constants
+  DECISION_KEPT_TEMPLATE: Symbol
+  DECISION_KEPT_DEST: Symbol
+  DECISION_MERGED: Symbol
+  DECISION_ADDED: Symbol
+  DECISION_FREEZE_BLOCK: Symbol
+  DECISION_APPENDED: Symbol
+  DECISION_REPLACED: Symbol
+
+  attr_reader strategy: Symbol
+  attr_reader preference: preference_type
+  attr_reader template_analysis: untyped
+  attr_reader dest_analysis: untyped
+  attr_reader add_template_only_nodes: bool
+  attr_reader match_refiner: untyped?
+
+  def initialize: (
+    strategy: Symbol,
+    preference: preference_type,
+    template_analysis: untyped,
+    dest_analysis: untyped,
+    ?add_template_only_nodes: bool,
+    ?match_refiner: untyped?,
+    **untyped options
+  ) -&gt; void
+
+  def resolve: (*untyped args, **untyped kwargs) -&gt; untyped
+
+  # Get preference for a specific node (supports Hash preference)
+  def preference_for: (untyped node) -&gt; Symbol
+
+  private
+
+  def validate_preference!: (preference_type preference) -&gt; void
+  def resolve_node_pair: (untyped template_node, untyped dest_node, **untyped kwargs) -&gt; untyped
+  def resolve_batch: (*untyped args) -&gt; untyped
+  def resolve_boundary: (*untyped args) -&gt; untyped
+end
+
+# Abstract base class for MergeResult implementations
+class MergeResultBase
+  # Decision constants
+  DECISION_KEPT_TEMPLATE: Symbol
+  DECISION_KEPT_DEST: Symbol
+  DECISION_MERGED: Symbol
+  DECISION_ADDED: Symbol
+  DECISION_FREEZE_BLOCK: Symbol
+  DECISION_APPENDED: Symbol
+  DECISION_REPLACED: Symbol
+
+  attr_reader template_analysis: untyped?
+  attr_reader dest_analysis: untyped?
+  attr_reader lines: Array[String]
+  attr_reader decisions: Array[Hash[Symbol, untyped]]
+  attr_reader conflicts: Array[Hash[Symbol, untyped]]
+  attr_reader frozen_blocks: Array[untyped]
+  attr_reader stats: Hash[Symbol, untyped]
+
+  def initialize: (
+    ?template_analysis: untyped?,
+    ?dest_analysis: untyped?,
+    ?conflicts: Array[Hash[Symbol, untyped]],
+    ?frozen_blocks: Array[untyped],
+    ?stats: Hash[Symbol, untyped],
+    **untyped options
+  ) -&gt; void
+
+  def content: () -&gt; Array[String]
+  def content?: () -&gt; bool
+  def content_string: () -&gt; String
+  def to_s: () -&gt; String
+  def success?: () -&gt; bool
+  def conflicts?: () -&gt; bool
+  def track_decision: (Symbol decision, Symbol source, **untyped metadata) -&gt; void
+end
+
+# Abstract base class for MatchRefiner implementations
+class MatchRefinerBase
+  # Default similarity threshold
+  DEFAULT_THRESHOLD: Float
+
+  attr_reader threshold: Float
+  attr_reader node_types: Array[Symbol]?
+
+  def initialize: (
+    ?threshold: Float,
+    ?node_types: Array[Symbol]?,
+    **untyped options
+  ) -&gt; void
+
+  # Find matches between unmatched nodes
+  def call: (
+    Array[untyped] template_nodes,
+    Array[untyped] dest_nodes,
+    ?Hash[Symbol, untyped] context
+  ) -&gt; Array[MatchResult]
+
+  # Compute similarity score between two nodes
+  def similarity: (untyped template_node, untyped dest_node) -&gt; Float
+
+  # Check if a node matches the configured types
+  def matches_type?: (untyped node) -&gt; bool
+
+  private
+
+  # Levenshtein distance for string similarity
+  def levenshtein_distance: (String s1, String s2) -&gt; Integer
+  def string_similarity: (String s1, String s2) -&gt; Float
+end
+
+# Result of a match refinement operation
+class MatchResult
+  attr_reader template_node: untyped
+  attr_reader dest_node: untyped
+  attr_reader score: Float
+  attr_reader metadata: Hash[Symbol, untyped]
+
+  def initialize: (
+    template_node: untyped,
+    dest_node: untyped,
+    score: Float,
+    ?metadata: Hash[Symbol, untyped]
+  ) -&gt; void
+
+  def to_h: () -&gt; Hash[Symbol, untyped]
+end
+
+# Detector namespace for region detection and merging
+module Detector
+  # Represents a detected region within a document
+  class Region &lt; Struct[untyped]
+    attr_accessor type: Symbol
+    attr_accessor content: String
+    attr_accessor start_line: Integer
+    attr_accessor end_line: Integer
+    attr_accessor delimiters: Array[String]?
+    attr_accessor metadata: Hash[Symbol, untyped]?
+
+    def line_range: () -&gt; Range[Integer]
+    def line_count: () -&gt; Integer
+    def full_text: () -&gt; String
+    def contains_line?: (Integer line) -&gt; bool
+    def overlaps?: (Region other) -&gt; bool
+    def to_s: () -&gt; String
+    def inspect: () -&gt; String
+  end
+
+  # Abstract base class for region detectors
+  class Base
+    def region_type: () -&gt; Symbol
+    def detect_all: (String source) -&gt; Array[Region]
+    def strip_delimiters?: () -&gt; bool
+    def name: () -&gt; String
+    def inspect: () -&gt; String
+
+    private
+
+    def build_region: (
+      type: Symbol,
+      content: String,
+      start_line: Integer,
+      end_line: Integer,
+      ?delimiters: Array[String]?,
+      ?metadata: Hash[Symbol, untyped]?
+    ) -&gt; Region
+  end
+
+  # Detects fenced code blocks
+  class FencedCodeBlock &lt; Base
+    attr_reader language: String
+    attr_reader aliases: Array[String]
+
+    def initialize: (String language, ?aliases: Array[String]) -&gt; void
+    def self.ruby: () -&gt; FencedCodeBlock
+    def self.yaml: () -&gt; FencedCodeBlock
+    def self.json: () -&gt; FencedCodeBlock
+    def self.bash: () -&gt; FencedCodeBlock
+  end
+
+  # Detects YAML frontmatter
+  class YamlFrontmatter &lt; Base
+    FRONTMATTER_PATTERN: Regexp
+  end
+
+  # Detects TOML frontmatter
+  class TomlFrontmatter &lt; Base
+    FRONTMATTER_PATTERN: Regexp
+  end
+
+  # Mixin for region-aware merging
+  module Mergeable
+    DEFAULT_PLACEHOLDER_PREFIX: String
+    DEFAULT_PLACEHOLDER_SUFFIX: String
+
+    # Configuration for a region type
+    class Config &lt; Struct[untyped]
+      attr_accessor detector: Base
+      attr_accessor merger_class: Class?
+      attr_accessor merger_options: Hash[Symbol, untyped]
+      attr_accessor regions: Array[Hash[Symbol, untyped]]
+    end
+
+    # Extracted region with placeholder
+    class ExtractedRegion &lt; Struct[untyped]
+      attr_accessor region: Region
+      attr_accessor config: Config
+      attr_accessor placeholder: String
+      attr_accessor merged_content: String?
+    end
+
+    def regions_configured?: () -&gt; bool
+    def setup_regions: (regions: Array[Hash[Symbol, untyped]], ?region_placeholder: String?) -&gt; void
+    def extract_template_regions: (String content) -&gt; String
+    def extract_dest_regions: (String content) -&gt; String
+    def substitute_merged_regions: (String content) -&gt; String
+  end
+end
+
+# Recipe namespace for YAML-based merge recipes
+module Recipe
+  # Recipe configuration loaded from YAML
+  class Config
+    attr_reader name: String
+    attr_reader description: String?
+    attr_reader template_path: String
+    attr_reader targets: Array[String]
+    attr_reader injection: Hash[String, untyped]
+    attr_reader merge_options: Hash[String, untyped]
+    attr_reader when_missing: Symbol
+    attr_reader recipe_path: String?
+
+    def self.load: (String path) -&gt; Config
+    def initialize: (Hash[String, untyped] config, ?recipe_path: String?) -&gt; void
+    def anchor_config: () -&gt; Hash[String, untyped]
+    def boundary_config: () -&gt; Hash[String, untyped]?
+    def position: () -&gt; Symbol
+    def preference: () -&gt; Symbol
+    def add_missing?: () -&gt; bool
+    def replace_mode?: () -&gt; bool
+  end
+
+  # Executes recipes against target files
+  class Runner
+    # Result of processing a single file
+    class Result &lt; Struct[untyped]
+      attr_accessor path: String
+      attr_accessor relative_path: String
+      attr_accessor status: Symbol
+      attr_accessor changed: bool
+      attr_accessor has_anchor: bool
+      attr_accessor message: String?
+      attr_accessor stats: Hash[Symbol, untyped]?
+      attr_accessor error: String?
+    end
+
+    attr_reader recipe: Config
+    attr_reader dry_run: bool
+    attr_reader verbose: bool
+    attr_reader parser: Symbol
+    attr_reader base_dir: String
+    attr_reader results: Array[Result]
+
+    def initialize: (
+      Config recipe,
+      ?dry_run: bool,
+      ?verbose: bool,
+      ?parser: Symbol,
+      ?base_dir: String
+    ) -&gt; void
+
+    def run: () ?{ (Result) -&gt; void } -&gt; Array[Result]
+    def summary: () -&gt; Hash[Symbol, Integer]
+    def summary_table: () -&gt; Array[Hash[Symbol, untyped]]
+  end
+
+  # Loads Ruby scripts referenced by recipes
+  class ScriptLoader
+    attr_reader base_dir: String?
+    attr_reader cache: Hash[String, untyped]
+
+    def initialize: (?recipe_path: String?, ?base_dir: String?) -&gt; void
+    def load_callable: (String script_ref) -&gt; (^(*untyped) -&gt; untyped)?
+    def resolve_path: (String script_ref) -&gt; String?
+
+    private
+
+    def load_from_file: (String path) -&gt; untyped
+    def parse_inline_lambda: (String code) -&gt; (^(*untyped) -&gt; untyped)?
+  end
+end
+
+# Module for node typing support
+module NodeTyping
+  # Wrapper class for typed nodes
+  class Wrapper
+    attr_reader node: untyped
+    attr_reader merge_type: Symbol
+
+    def initialize: (untyped node, Symbol merge_type) -&gt; void
+    def method_missing: (Symbol method, *untyped args) ?{ (*untyped) -&gt; untyped } -&gt; untyped
+    def respond_to_missing?: (Symbol method, ?bool include_private) -&gt; bool
+    def typed_node?: () -&gt; bool
+    def unwrap: () -&gt; untyped
+    def ==: (untyped other) -&gt; bool
+    def hash: () -&gt; Integer
+    def eql?: (untyped other) -&gt; bool
+    def inspect: () -&gt; String
+  end
+
+  def self.with_merge_type: (untyped node, Symbol merge_type) -&gt; Wrapper
+  def self.validate!: (node_typing_hash? node_typing) -&gt; void
+  def self.apply: (untyped node, node_typing_hash? node_typing) -&gt; untyped
+end   end end
+</code></pre>
+</div></div>
+
+      <div id="footer">
+  Generated on Tue Dec 30 16:23:43 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-4.0.0).
+</div>
+
+    </div>
+  </body>
+</html>

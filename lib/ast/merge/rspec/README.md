@@ -14,7 +14,7 @@ require "ast/merge/rspec"
 ```
 
 This single require loads:
-- **TreeHaver dependency tags** - Parser backend availability (`:markly`, `:prism_backend`, `:ffi`, etc.)
+- **TreeHaver dependency tags** - Parser backend availability (`:markly_backend`, `:prism_backend`, `:ffi_backend`, etc.)
 - **Ast::Merge dependency tags** - Merge gem availability (`:markly_merge`, `:prism_merge`, etc.)
 - **Ast::Merge shared examples** - For validating `*-merge` implementations
 
@@ -233,19 +233,55 @@ These tags check that the specified merge gem is available AND functional:
 
 #### Parser Backend Tags (from tree_haver)
 
-These tags are provided by [tree_haver](https://github.com/kettle-rb/tree_haver) and check parser availability:
+These tags are provided by [tree_haver](https://github.com/kettle-rb/tree_haver) and check parser/backend availability.
+All tags follow consistent naming conventions with descriptive suffixes.
+
+##### Backend Tags (`*_backend`)
 
 | Tag | Description |
 |-----|-------------|
-| `:markly` | Requires markly gem (parser) |
-| `:commonmarker` | Requires commonmarker gem (parser) |
-| `:prism_backend` | Requires Prism parser |
-| `:psych_backend` | Requires Psych parser |
-| `:ffi` | Requires FFI backend |
-| `:mri_backend` | Requires ruby_tree_sitter gem |
-| `:rust_backend` | Requires tree_stump gem |
+| `:mri_backend` | Requires ruby_tree_sitter gem (MRI only) |
+| `:rust_backend` | Requires tree_stump gem (MRI only) |
+| `:ffi_backend` | Requires FFI backend with libtree-sitter (MRI, JRuby) |
+| `:java_backend` | Requires jtreesitter (JRuby only) |
+| `:prism_backend` | Requires Prism parser (all platforms) |
+| `:psych_backend` | Requires Psych parser (all platforms) |
+| `:commonmarker_backend` | Requires commonmarker gem (all platforms) |
+| `:markly_backend` | Requires markly gem (all platforms) |
+| `:citrus_backend` | Requires citrus gem (all platforms) |
 
-See the [TreeHaver RSpec documentation](https://github.com/kettle-rb/tree_haver/blob/main/lib/tree_haver/rspec/README.md) for the complete list of parser backend tags.
+##### Engine Tags (`*_engine`)
+
+| Tag | Description |
+|-----|-------------|
+| `:mri_engine` | Runs only on MRI Ruby |
+| `:jruby_engine` | Runs only on JRuby |
+| `:truffleruby_engine` | Runs only on TruffleRuby |
+
+##### Grammar Tags (`*_grammar`)
+
+| Tag | Description |
+|-----|-------------|
+| `:libtree_sitter` | Requires libtree-sitter runtime library |
+| `:bash_grammar` | Requires tree-sitter-bash grammar |
+| `:toml_grammar` | Requires tree-sitter-toml grammar |
+| `:json_grammar` | Requires tree-sitter-json grammar |
+| `:jsonc_grammar` | Requires tree-sitter-jsonc grammar |
+
+##### Parsing Capability Tags (`*_parsing`)
+
+| Tag | Description |
+|-----|-------------|
+| `:toml_parsing` | Requires any TOML parsing capability (tree-sitter or toml-rb) |
+| `:markdown_parsing` | Requires any Markdown parsing capability (markly or commonmarker) |
+
+##### Specific Library Tags
+
+| Tag | Description |
+|-----|-------------|
+| `:toml_rb` | Requires toml-rb gem (Citrus-based TOML parser) |
+
+See the [TreeHaver RSpec documentation](https://github.com/kettle-rb/tree_haver/blob/main/lib/tree_haver/rspec/README.md) for the complete list and detailed documentation.
 
 #### Negated Tags
 
@@ -255,7 +291,9 @@ All positive tags have negated versions prefixed with `not_`:
 |-----|-------------|
 | `:not_markly_merge` | Runs only when markly-merge is NOT available |
 | `:not_prism_merge` | Runs only when prism-merge is NOT available |
-| `:not_markly` | Runs only when markly parser is NOT available |
+| `:not_markly_backend` | Runs only when markly backend is NOT available |
+| `:not_mri_engine` | Runs only when NOT on MRI Ruby |
+| `:not_toml_grammar` | Runs only when tree-sitter-toml is NOT available |
 | ... | (and so on for all other tags) |
 
 ### Debugging
@@ -316,12 +354,29 @@ Ast::Merge::RSpec::DependencyTags.reset!
 
 ```ruby
 # Check parser backend availability
-TreeHaver::RSpec::DependencyTags.markly_available?        # => true/false
-TreeHaver::RSpec::DependencyTags.prism_available?         # => true/false
+TreeHaver::RSpec::DependencyTags.markly_available?           # => true/false
+TreeHaver::RSpec::DependencyTags.commonmarker_available?     # => true/false
+TreeHaver::RSpec::DependencyTags.prism_available?            # => true/false
+TreeHaver::RSpec::DependencyTags.mri_backend_available?      # => true/false
+TreeHaver::RSpec::DependencyTags.rust_backend_available?     # => true/false
+TreeHaver::RSpec::DependencyTags.ffi_available?              # => true/false
+
+# Check engine
+TreeHaver::RSpec::DependencyTags.mri?                        # => true/false
+TreeHaver::RSpec::DependencyTags.jruby?                      # => true/false
+TreeHaver::RSpec::DependencyTags.truffleruby?                # => true/false
+
+# Check grammar availability
+TreeHaver::RSpec::DependencyTags.tree_sitter_bash_available? # => true/false
+TreeHaver::RSpec::DependencyTags.tree_sitter_toml_available? # => true/false
+
+# Check parsing capability
+TreeHaver::RSpec::DependencyTags.any_toml_backend_available?     # => true/false
+TreeHaver::RSpec::DependencyTags.any_markdown_backend_available? # => true/false
 
 # Get summary of all parser dependencies
 TreeHaver::RSpec::DependencyTags.summary
-# => { markly: true, prism: true, ffi: false, ... }
+# => { mri_backend: true, prism_backend: true, ffi_backend: false, ... }
 ```
 
 ## See Also

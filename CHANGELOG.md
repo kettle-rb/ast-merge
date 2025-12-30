@@ -20,7 +20,19 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- Backend Platform Compatibility section to README and GEM_FAMILY_SECTION.md
+  - Documents which tree_haver backends work on MRI, JRuby, and TruffleRuby
+  - Explains why JRuby and TruffleRuby have limited tree-sitter backend support
+
 ### Changed
+
+- Updated RSpec README documentation for tree_haver dependency tag changes
+  - All tags now follow consistent naming conventions with suffixes
+  - Backend tags use `*_backend` suffix
+  - Engine tags use `*_engine` suffix
+  - Grammar tags use `*_grammar` suffix
+  - Parsing capability tags use `*_parsing` suffix
+  - See [lib/ast/merge/rspec/README.md](lib/ast/merge/rspec/README.md) for complete tag reference
 
 ### Deprecated
 
