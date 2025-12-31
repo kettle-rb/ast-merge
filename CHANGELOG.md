@@ -20,8 +20,6 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
-- Many more tests
-
 ### Changed
 
 ### Deprecated
@@ -30,13 +28,26 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+### Security
+
+## [2.0.4] - 2025-12-31
+
+- TAG: [v2.0.4][2.0.4t]
+- COVERAGE: 88.61% -- 2903/3276 lines in 53 files
+- BRANCH COVERAGE: 67.90% -- 700/1031 branches in 53 files
+- 98.82% documented
+
+### Added
+
+- Many more tests
+
+### Fixed
+
 - RSpec shared examples for `Ast::Merge::DebugLogger` now handle Ruby 4.0+ where benchmark is a bundled gem
   - The `#time logs start and completion with timing` test now checks `BENCHMARK_AVAILABLE` constant
   - When benchmark is available: expects full timing output with "Starting:", "Completed:", and `real_ms`
   - When benchmark is unavailable: expects warning message about benchmark gem not being available
   - Fixes CI failures on Ruby 4.0.0 for downstream gems (e.g., bash-merge) using the shared examples
-
-### Security
 
 ## [2.0.3] - 2025-12-30
 
@@ -306,7 +317,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.3...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.4...HEAD
+[2.0.4]: https://github.com/kettle-rb/ast-merge/compare/v2.0.3...v2.0.4
+[2.0.4t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.4
 [2.0.3]: https://github.com/kettle-rb/ast-merge/compare/v2.0.2...v2.0.3
 [2.0.3t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.3
 [2.0.2]: https://github.com/kettle-rb/ast-merge/compare/v2.0.1...v2.0.2
