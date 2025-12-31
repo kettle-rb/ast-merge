@@ -116,12 +116,43 @@ RSpec.describe Ast::Merge::DebugLogger do
   end
 
   context "when Benchmark is not available" do
-    it "falls back to simple timing with warning" do
+    # Regression test for Ruby 4.0+ where benchmark is a bundled gem (not default).
+    # See: https://github.com/kettle-rb/bash-merge/issues/XX
+    # When BENCHMARK_AVAILABLE is false, #time must NOT call Benchmark.measure,
+    # otherwise LoadError will be raised at runtime.
+
+    before do
       stub_env("TEST_DEBUG" => "1")
       stub_const("Ast::Merge::DebugLogger::BENCHMARK_AVAILABLE", false)
+    end
 
+    it "falls back to simple timing with warning" do
       result = test_class.time("operation") { 42 }
       expect(result).to eq(42)
+    end
+
+    it "outputs a warning about benchmark being unavailable" do
+      expect { test_class.time("my_operation") { 42 } }
+        .to output(/WARNING.*Benchmark gem not available.*my_operation/).to_stderr
+    end
+
+    it "does not call Benchmark.measure (regression test for Ruby 4.0+)" do
+      # This test ensures that when BENCHMARK_AVAILABLE is false,
+      # the code path that calls Benchmark.measure is never reached.
+      # If Benchmark.measure were called, it would raise LoadError on Ruby 4.0+
+      # where benchmark is not in the Gemfile.
+      expect(Benchmark).not_to receive(:measure)
+      test_class.time("operation") { 42 }
+    end
+
+    it "still executes the block and returns its result" do
+      side_effect = []
+      result = test_class.time("operation") do
+        side_effect << :executed
+        "block result"
+      end
+      expect(result).to eq("block result")
+      expect(side_effect).to eq([:executed])
     end
   end
 
