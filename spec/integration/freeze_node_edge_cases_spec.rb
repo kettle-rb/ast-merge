@@ -102,7 +102,9 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         node = double("Node", location: location)
         test_class = Class.new do
           class << self
-            def name = "TestNode"
+            def name
+              "TestNode"
+            end
           end
         end
         allow(node).to receive(:class).and_return(test_class)
@@ -122,7 +124,9 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         allow(node).to receive(:respond_to?).with(:location).and_return(true)
         test_class = Class.new do
           class << self
-            def name = "TestNode"
+            def name
+              "TestNode"
+            end
           end
         end
         allow(node).to receive(:class).and_return(test_class)
@@ -141,7 +145,9 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         allow(node).to receive(:respond_to?).with(:end_line).and_return(true)
         test_class = Class.new do
           class << self
-            def name = "TestNode"
+            def name
+              "TestNode"
+            end
           end
         end
         allow(node).to receive(:class).and_return(test_class)
@@ -158,7 +164,9 @@ RSpec.describe "Ast::Merge Branch Coverage" do
         allow(node).to receive(:respond_to?).with(:end_line).and_return(false)
         test_class = Class.new do
           class << self
-            def name = "TestNode"
+            def name
+              "TestNode"
+            end
           end
         end
         allow(node).to receive(:class).and_return(test_class)
