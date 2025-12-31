@@ -28,12 +28,21 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+### Security
+
+## [2.0.3] - 2025-12-30
+
+- TAG: [v2.0.3][2.0.3t]
+- COVERAGE: 88.45% -- 2894/3272 lines in 53 files
+- BRANCH COVERAGE: 67.83% -- 698/1029 branches in 53 files
+- 98.82% documented
+
+### Fixed
+
 - `Ast::Merge::DebugLogger::BENCHMARK_AVAILABLE` now correctly detects when benchmark gem is unavailable
   - Previous implementation used `autoload` which never raises `LoadError` (it only registers for lazy loading)
   - Now uses `require "benchmark"` which properly catches `LoadError` on Ruby 4.0+ where benchmark is a bundled gem
   - The `#time` method now correctly falls back to non-timed execution when benchmark is unavailable
-
-### Security
 
 ## [2.0.2] - 2025-12-30
 
@@ -289,7 +298,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.2...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.3...HEAD
+[2.0.3]: https://github.com/kettle-rb/ast-merge/compare/v2.0.2...v2.0.3
+[2.0.3t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.3
 [2.0.2]: https://github.com/kettle-rb/ast-merge/compare/v2.0.1...v2.0.2
 [2.0.2t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.2
 [2.0.1]: https://github.com/kettle-rb/ast-merge/compare/v2.0.0...v2.0.1
