@@ -108,9 +108,15 @@ RSpec.shared_examples("Ast::Merge::DebugLogger") do
 
     it "#time logs start and completion with timing" do
       output = capture(:stderr) { described_logger.time("test operation") { 42 } }
-      expect(output).to(include("Starting: test operation"))
-      expect(output).to(include("Completed: test operation"))
-      expect(output).to(match(/real_ms/))
+      if Ast::Merge::DebugLogger::BENCHMARK_AVAILABLE
+        expect(output).to(include("Starting: test operation"))
+        expect(output).to(include("Completed: test operation"))
+        expect(output).to(match(/real_ms/))
+      else
+        expect(output).to(include("WARNING"))
+        expect(output).to(include("Benchmark gem not available"))
+        expect(output).to(include("test operation"))
+      end
     end
 
     it "#time returns the block result" do
