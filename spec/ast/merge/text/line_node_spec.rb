@@ -41,6 +41,29 @@ RSpec.describe Ast::Merge::Text::LineNode do
     end
   end
 
+  describe "#type" do
+    it "returns 'line_node'" do
+      line = described_class.new("Hello", line_number: 1)
+
+      expect(line.type).to eq("line_node")
+    end
+  end
+
+  describe "#children" do
+    it "returns the words array" do
+      line = described_class.new("Hello world", line_number: 1)
+
+      expect(line.children).to eq(line.words)
+      expect(line.children.size).to eq(2)
+    end
+
+    it "returns empty array for blank line" do
+      line = described_class.new("", line_number: 1)
+
+      expect(line.children).to eq([])
+    end
+  end
+
   describe "#blank?" do
     it "returns true for empty content" do
       line = described_class.new("", line_number: 1)

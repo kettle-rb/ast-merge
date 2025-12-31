@@ -33,6 +33,11 @@ RSpec.describe Ast::Merge::Freezable do
       expect(instance.freeze_signature).to eq([:FreezeNode, "some content"])
     end
 
+    it "handles nil slice in freeze_signature" do
+      instance = freezable_class.new(nil)
+      expect(instance.freeze_signature).to eq([:FreezeNode, nil])
+    end
+
     it "requires implementing classes to define slice" do
       incomplete_class = Class.new do
         include Ast::Merge::Freezable

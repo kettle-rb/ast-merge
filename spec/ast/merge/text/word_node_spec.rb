@@ -15,6 +15,22 @@ RSpec.describe Ast::Merge::Text::WordNode do
     end
   end
 
+  describe "#type" do
+    it "returns 'word_node'" do
+      word = described_class.new("hello", line_number: 1, word_index: 0, start_col: 0, end_col: 5)
+
+      expect(word.type).to eq("word_node")
+    end
+  end
+
+  describe "#normalized_content" do
+    it "returns the content unchanged" do
+      word = described_class.new("hello", line_number: 1, word_index: 0, start_col: 0, end_col: 5)
+
+      expect(word.normalized_content).to eq("hello")
+    end
+  end
+
   describe "#signature" do
     it "returns signature array with content" do
       word = described_class.new("hello", line_number: 1, word_index: 0, start_col: 0, end_col: 5)

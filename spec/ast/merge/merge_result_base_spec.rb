@@ -130,6 +130,35 @@ RSpec.describe Ast::Merge::MergeResultBase do
     end
   end
 
+  describe "#content=" do
+    subject(:result) { described_class.new }
+
+    it "sets content from a string" do
+      result.content = "line1\nline2\nline3"
+      expect(result.lines).to eq(%w[line1 line2 line3])
+    end
+
+    it "handles empty string" do
+      result.content = ""
+      expect(result.lines).to eq([])
+    end
+
+    it "handles nil by converting to empty string" do
+      result.content = nil
+      expect(result.lines).to eq([])
+    end
+
+    it "preserves trailing empty lines" do
+      result.content = "line1\nline2\n"
+      expect(result.lines).to eq(["line1", "line2", ""])
+    end
+
+    it "preserves multiple trailing newlines" do
+      result.content = "line1\n\n\n"
+      expect(result.lines).to eq(["line1", "", "", ""])
+    end
+  end
+
   describe "#to_s" do
     subject(:result) { described_class.new }
 
