@@ -20,6 +20,8 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- Many more tests
+
 ### Changed
 
 ### Deprecated

@@ -84,4 +84,3 @@ RSpec.describe Ast::Merge::Comment::Empty do
     end
   end
 end
-
