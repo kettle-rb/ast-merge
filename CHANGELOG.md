@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [2.0.2] - 2025-12-30
+
+- TAG: [v2.0.2][2.0.2t]
+- COVERAGE: 88.47% -- 2894/3271 lines in 53 files
+- BRANCH COVERAGE: 67.83% -- 698/1029 branches in 53 files
+- 98.82% documented
+
+### Added
+
 - Backend Platform Compatibility section to README and GEM_FAMILY_SECTION.md
   - Documents which tree_haver backends work on MRI, JRuby, and TruffleRuby
   - Explains why JRuby and TruffleRuby have limited tree-sitter backend support
@@ -33,14 +52,6 @@ Please file a bug if you notice a violation of semantic versioning.
   - Grammar tags use `*_grammar` suffix
   - Parsing capability tags use `*_parsing` suffix
   - See [lib/ast/merge/rspec/README.md](lib/ast/merge/rspec/README.md) for complete tag reference
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [2.0.1] - 2025-12-29
 
@@ -273,7 +284,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.2...HEAD
+[2.0.2]: https://github.com/kettle-rb/ast-merge/compare/v2.0.1...v2.0.2
+[2.0.2t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.2
 [2.0.1]: https://github.com/kettle-rb/ast-merge/compare/v2.0.0...v2.0.1
 [2.0.1t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.1
 [2.0.0]: https://github.com/kettle-rb/ast-merge/compare/v1.1.0...v2.0.0
