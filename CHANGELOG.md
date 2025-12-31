@@ -28,6 +28,11 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+- `Ast::Merge::DebugLogger::BENCHMARK_AVAILABLE` now correctly detects when benchmark gem is unavailable
+  - Previous implementation used `autoload` which never raises `LoadError` (it only registers for lazy loading)
+  - Now uses `require "benchmark"` which properly catches `LoadError` on Ruby 4.0+ where benchmark is a bundled gem
+  - The `#time` method now correctly falls back to non-timed execution when benchmark is unavailable
+
 ### Security
 
 ## [2.0.2] - 2025-12-30

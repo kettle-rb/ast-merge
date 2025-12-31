@@ -70,16 +70,15 @@ module Ast
     #
     # @note Shared examples require +silent_stream+ and +rspec-stubbed_env+ gems.
     module DebugLogger
-      # Benchmark is optional - gracefully degrade if not available
-      # Use autoload to defer loading until actually needed
+      # Benchmark is optional - gracefully degrade if not available.
+      # As of Ruby 4.0, benchmark is a bundled gem (not default), so it may not be available.
+      # We attempt to require it at load time and set a flag for later use.
       BENCHMARK_AVAILABLE = begin
-        autoload(:Benchmark, "benchmark")
+        require "benchmark"
         true
       rescue LoadError
-        # :nocov:
-        # Platform-specific: benchmark is part of Ruby stdlib, LoadError only on unusual Ruby builds
+        # benchmark gem not available (Ruby 4.0+ without explicit dependency, or unusual Ruby builds)
         false
-        # :nocov:
       end
 
       class << self
