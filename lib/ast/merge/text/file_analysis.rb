@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "line_node"
-require_relative "word_node"
 
 module Ast
   module Merge

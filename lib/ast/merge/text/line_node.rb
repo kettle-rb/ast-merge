@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../ast_node"
 
 module Ast
   module Merge

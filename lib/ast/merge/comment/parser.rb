@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "style"
-require_relative "line"
-require_relative "empty"
-require_relative "block"
 
 module Ast
   module Merge

@@ -22,6 +22,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Changed
 
+- tree_haver v3.2.1
+- Internal files now use autoload instead of `require_relative` for consistency
+
 ### Deprecated
 
 ### Removed
