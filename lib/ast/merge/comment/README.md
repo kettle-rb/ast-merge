@@ -42,7 +42,7 @@ Represents a single-line comment.
 comment = Ast::Merge::Comment::Line.new(
   content: "frozen_string_literal: true",
   line_number: 1,
-  style: :hash_comment
+  style: :hash_comment,
 )
 
 comment.to_source  # => "# frozen_string_literal: true"
@@ -58,7 +58,7 @@ comment = Ast::Merge::Comment::Block.new(
   content: "This is a\nmulti-line comment",
   start_line: 1,
   end_line: 3,
-  style: :c_style_block
+  style: :c_style_block,
 )
 
 comment.to_source  # => "/* This is a\nmulti-line comment */"
@@ -108,12 +108,20 @@ comment.children    # Child nodes (usually empty)
 
 Comments are also used for freeze markers that prevent merging of specific sections:
 
+### Ruby example
+
 ```ruby
 # In Ruby:
 # ast-merge:freeze Reason for freezing
 # ... frozen content ...
+# the unfreeze statement below is optional
+# In Ruby the entire node the freeze is part of will always be frozen
 # ast-merge:unfreeze
+```
 
+### Markdown example
+
+```markdown
 # In Markdown:
 <!-- ast-merge:freeze Reason for freezing -->
 ... frozen content ...

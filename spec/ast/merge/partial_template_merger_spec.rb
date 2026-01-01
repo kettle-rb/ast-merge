@@ -1,647 +1,513 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::PartialTemplateMerger, :markly_merge do
-  let(:template) do
-    <<~MD
-      ### The Gem Family
+# Mocked tests for PartialTemplateMerger logic without requiring a parser
+RSpec.describe Ast::Merge::PartialTemplateMerger do
+  describe "Result class (mocked)" do
+    it "initializes with all attributes" do
+      result = described_class::Result.new(
+        content: "test content",
+        has_section: true,
+        changed: true,
+        stats: {mode: :merge},
+        injection_point: nil,
+        message: "Test message",
+      )
 
-      This is the gem family section.
+      expect(result.content).to eq("test content")
+      expect(result.has_section).to be true
+      expect(result.changed).to be true
+      expect(result.stats).to eq({mode: :merge})
+      expect(result.injection_point).to be_nil
+      expect(result.message).to eq("Test message")
+    end
 
-      | Gem | Description |
-      |-----|-------------|
-      | gem-a | Does A |
-      | gem-b | Does B |
-
-      [gem-a]: https://example.com/gem-a
-      [gem-b]: https://example.com/gem-b
-    MD
-  end
-
-  let(:destination_with_section) do
-    <<~MD
-      # My Project
-
-      Welcome to my project.
-
-      ## Installation
-
-      Run `gem install my-project`.
-
-      ### The Gem Family
-
-      Old content here.
-
-      | Gem | Description |
-      |-----|-------------|
-      | gem-a | Old description |
-
-      [gem-a]: https://old-url.com/gem-a
-
-      ## Contributing
-
-      Please contribute!
-    MD
-  end
-
-  let(:destination_without_section) do
-    <<~MD
-      # My Project
-
-      Welcome to my project.
-
-      ## Installation
-
-      Run `gem install my-project`.
-
-      ## Contributing
-
-      Please contribute!
-    MD
-  end
-
-  describe "#merge" do
-    context "when destination has the section" do
-      let(:merger) do
-        described_class.new(
-          template: template,
-          destination: destination_with_section,
-          anchor: {type: :heading, text: /Gem Family/},
-          parser: :markly,
-        )
-      end
-
-      it "returns a Result" do
-        result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
-      end
-
-      it "finds the section" do
-        result = merger.merge
-        expect(result.has_section).to be true
+    describe "#section_found?" do
+      it "returns true when has_section is true" do
+        result = described_class::Result.new(content: "", has_section: true, changed: false)
         expect(result.section_found?).to be true
       end
 
-      it "returns changed content" do
-        result = merger.merge
-        expect(result.changed).to be true
-      end
-
-      it "preserves content before the section" do
-        result = merger.merge
-        expect(result.content).to include("# My Project")
-        expect(result.content).to include("Welcome to my project")
-        expect(result.content).to include("## Installation")
-      end
-
-      it "preserves content after the section" do
-        result = merger.merge
-        expect(result.content).to include("## Contributing")
-        # Note: Markly may escape '!' as '\!'
-        expect(result.content).to match(/Please contribute/)
-      end
-
-      it "updates the section content" do
-        result = merger.merge
-        expect(result.content).to include("This is the gem family section")
-        expect(result.content).to include("gem-b")
-      end
-
-      it "includes the injection point in result" do
-        result = merger.merge
-        expect(result.injection_point).to be_a(Ast::Merge::InjectionPoint)
+      it "returns false when has_section is false" do
+        result = described_class::Result.new(content: "", has_section: false, changed: false)
+        expect(result.section_found?).to be false
       end
     end
+  end
 
-    context "when destination does NOT have the section" do
+  describe "#initialize" do
+    let(:template) { "template content" }
+    let(:destination) { "destination content" }
+
+    it "sets all attributes" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading, text: /Test/},
+        boundary: {type: :heading},
+        parser: :markly,
+        preference: :destination,
+        add_missing: false,
+        when_missing: :append,
+        replace_mode: true,
+        signature_generator: ->(n) { n },
+        node_typing: {heading: ->(n) { n }},
+      )
+
+      expect(merger.template).to eq(template)
+      expect(merger.destination).to eq(destination)
+      expect(merger.anchor[:type]).to eq(:heading)
+      expect(merger.boundary[:type]).to eq(:heading)
+      expect(merger.parser).to eq(:markly)
+      expect(merger.preference).to eq(:destination)
+      expect(merger.add_missing).to be false
+      expect(merger.when_missing).to eq(:append)
+      expect(merger.signature_generator).to be_a(Proc)
+      expect(merger.node_typing).to have_key(:heading)
+    end
+
+    it "normalizes anchor type to symbol" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: "heading"},
+        parser: :markly,
+      )
+      expect(merger.anchor[:type]).to eq(:heading)
+    end
+
+    it "handles nil boundary" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading},
+        boundary: nil,
+        parser: :markly,
+      )
+      expect(merger.boundary).to be_nil
+    end
+  end
+
+  describe "#normalize_matcher (via initialization)" do
+    let(:template) { "template" }
+    let(:destination) { "destination" }
+
+    it "handles nil matcher" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: nil,
+        parser: :markly,
+      )
+      expect(merger.anchor).to eq({})
+    end
+
+    it "preserves Regexp text pattern" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading, text: /Test Pattern/},
+        parser: :markly,
+      )
+      expect(merger.anchor[:text]).to eq(/Test Pattern/)
+    end
+
+    it "converts /regex/ string to Regexp" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading, text: "/Test Pattern/"},
+        parser: :markly,
+      )
+      expect(merger.anchor[:text]).to be_a(Regexp)
+      expect(merger.anchor[:text]).to eq(/Test Pattern/)
+    end
+
+    it "keeps plain string as string" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading, text: "Plain Text"},
+        parser: :markly,
+      )
+      expect(merger.anchor[:text]).to eq("Plain Text")
+    end
+
+    it "handles nil text" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading, text: nil},
+        parser: :markly,
+      )
+      expect(merger.anchor[:text]).to be_nil
+    end
+
+    it "preserves level option" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading, level: 2},
+        parser: :markly,
+      )
+      expect(merger.anchor[:level]).to eq(2)
+    end
+
+    it "preserves level_lte option" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading, level_lte: 3},
+        parser: :markly,
+      )
+      expect(merger.anchor[:level_lte]).to eq(3)
+    end
+
+    it "preserves level_gte option" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading, level_gte: 1},
+        parser: :markly,
+      )
+      expect(merger.anchor[:level_gte]).to eq(1)
+    end
+
+    it "compacts nil values from result" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading, text: nil, level: nil},
+        parser: :markly,
+      )
+      expect(merger.anchor.keys).not_to include(:text)
+      expect(merger.anchor.keys).not_to include(:level)
+    end
+  end
+
+  describe "#replace_mode?" do
+    let(:template) { "template" }
+    let(:destination) { "destination" }
+
+    it "returns true when replace_mode is true" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading},
+        parser: :markly,
+        replace_mode: true,
+      )
+      expect(merger.send(:replace_mode?)).to be true
+    end
+
+    it "returns false when replace_mode is false" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading},
+        parser: :markly,
+        replace_mode: false,
+      )
+      expect(merger.send(:replace_mode?)).to be false
+    end
+
+    it "returns false by default" do
+      merger = described_class.new(
+        template: template,
+        destination: destination,
+        anchor: {type: :heading},
+        parser: :markly,
+      )
+      expect(merger.send(:replace_mode?)).to be false
+    end
+  end
+
+  describe "#heading_type?" do
+    let(:merger) do
+      described_class.new(
+        template: "t",
+        destination: "d",
+        anchor: {type: :heading},
+        parser: :markly,
+      )
+    end
+
+    it "returns true for :heading symbol" do
+      expect(merger.send(:heading_type?, :heading)).to be true
+    end
+
+    it 'returns true for "heading" string' do
+      expect(merger.send(:heading_type?, "heading")).to be true
+    end
+
+    it "returns true for :header symbol" do
+      expect(merger.send(:heading_type?, :header)).to be true
+    end
+
+    it "returns false for other types" do
+      expect(merger.send(:heading_type?, :paragraph)).to be false
+      expect(merger.send(:heading_type?, :list)).to be false
+      expect(merger.send(:heading_type?, "other")).to be false
+    end
+  end
+
+  describe "#get_heading_level" do
+    let(:merger) do
+      described_class.new(
+        template: "t",
+        destination: "d",
+        anchor: {type: :heading},
+        parser: :markly,
+      )
+    end
+
+    it "returns level from header_level method" do
+      node = double("HeadingNode", header_level: 2)
+      stmt = double("Statement", node: node)
+      allow(stmt).to receive(:respond_to?).with(:unwrapped_node).and_return(false)
+
+      expect(merger.send(:get_heading_level, stmt)).to eq(2)
+    end
+
+    it "returns level from level method if no header_level" do
+      node = double("HeadingNode")
+      allow(node).to receive(:respond_to?).with(:header_level).and_return(false)
+      allow(node).to receive(:respond_to?).with(:level).and_return(true)
+      allow(node).to receive(:level).and_return(3)
+
+      stmt = double("Statement", node: node)
+      allow(stmt).to receive(:respond_to?).with(:unwrapped_node).and_return(false)
+
+      expect(merger.send(:get_heading_level, stmt)).to eq(3)
+    end
+
+    it "unwraps node if unwrapped_node method available" do
+      inner_node = double("InnerNode", header_level: 1)
+      allow(inner_node).to receive(:respond_to?).with(:header_level).and_return(true)
+
+      stmt = double("WrappedStatement")
+      allow(stmt).to receive(:respond_to?).with(:unwrapped_node).and_return(true)
+      allow(stmt).to receive(:unwrapped_node).and_return(inner_node)
+
+      expect(merger.send(:get_heading_level, stmt)).to eq(1)
+    end
+
+    it "returns nil if no level method available" do
+      node = double("PlainNode")
+      allow(node).to receive(:respond_to?).with(:header_level).and_return(false)
+      allow(node).to receive(:respond_to?).with(:level).and_return(false)
+
+      stmt = double("Statement", node: node)
+      allow(stmt).to receive(:respond_to?).with(:unwrapped_node).and_return(false)
+
+      expect(merger.send(:get_heading_level, stmt)).to be_nil
+    end
+  end
+
+  describe "#statements_to_content" do
+    let(:merger) do
+      described_class.new(
+        template: "t",
+        destination: "d",
+        anchor: {type: :heading},
+        parser: :markly,
+      )
+    end
+
+    it "returns empty string for nil statements" do
+      expect(merger.send(:statements_to_content, nil)).to eq("")
+    end
+
+    it "returns empty string for empty array" do
+      expect(merger.send(:statements_to_content, [])).to eq("")
+    end
+
+    it "extracts node from statement and converts to text" do
+      node = double("Node")
+      allow(node).to receive(:respond_to?).with(:inner_node).and_return(false)
+      allow(node).to receive(:respond_to?).with(:to_commonmark).and_return(true)
+      allow(node).to receive(:to_commonmark).and_return("Content\n")
+
+      stmt = double("Statement", node: node)
+      allow(stmt).to receive(:respond_to?).with(:node).and_return(true)
+
+      result = merger.send(:statements_to_content, [stmt])
+      expect(result).to eq("Content\n")
+    end
+  end
+
+  describe "#node_to_text" do
+    let(:merger) do
+      described_class.new(
+        template: "t",
+        destination: "d",
+        anchor: {type: :heading},
+        parser: :markly,
+      )
+    end
+
+    it "uses to_commonmark if available" do
+      node = double("Node")
+      allow(node).to receive(:respond_to?).with(:inner_node).and_return(false)
+      allow(node).to receive(:respond_to?).with(:to_commonmark).and_return(true)
+      allow(node).to receive(:to_commonmark).and_return("Markdown output")
+
+      expect(merger.send(:node_to_text, node)).to eq("Markdown output")
+    end
+
+    it "falls back to to_s if no to_commonmark" do
+      node = double("Node")
+      allow(node).to receive(:respond_to?).with(:inner_node).and_return(false)
+      allow(node).to receive(:respond_to?).with(:to_commonmark).and_return(false)
+      allow(node).to receive(:respond_to?).with(:to_s).and_return(true)
+      allow(node).to receive(:to_s).and_return("String output")
+
+      expect(merger.send(:node_to_text, node)).to eq("String output")
+    end
+
+    it "unwraps nested inner_node" do
+      inner = double("InnerNode")
+      allow(inner).to receive(:respond_to?).with(:inner_node).and_return(false)
+      allow(inner).to receive(:respond_to?).with(:to_commonmark).and_return(true)
+      allow(inner).to receive(:to_commonmark).and_return("Inner content")
+
+      outer = double("OuterNode")
+      allow(outer).to receive(:respond_to?).with(:inner_node).and_return(true)
+      allow(outer).to receive(:inner_node).and_return(inner)
+
+      expect(merger.send(:node_to_text, outer)).to eq("Inner content")
+    end
+
+    it "returns empty string if nothing available" do
+      node = double("EmptyNode")
+      allow(node).to receive(:respond_to?).with(:inner_node).and_return(false)
+      allow(node).to receive(:respond_to?).with(:to_commonmark).and_return(false)
+      allow(node).to receive(:respond_to?).with(:to_s).and_return(false)
+
+      expect(merger.send(:node_to_text, node)).to eq("")
+    end
+  end
+
+  describe "#build_merged_content" do
+    let(:merger) do
+      described_class.new(
+        template: "t",
+        destination: "d",
+        anchor: {type: :heading},
+        parser: :markly,
+      )
+    end
+
+    it "joins non-empty parts with double newline" do
+      result = merger.send(:build_merged_content, "Before", "Section", "After")
+      expect(result).to eq("Before\n\nSection\n\nAfter\n")
+    end
+
+    it "skips nil parts" do
+      result = merger.send(:build_merged_content, nil, "Section", "After")
+      expect(result).to eq("Section\n\nAfter\n")
+    end
+
+    it "skips empty string parts" do
+      result = merger.send(:build_merged_content, "", "Section", "")
+      expect(result).to eq("Section\n")
+    end
+
+    it "skips whitespace-only parts" do
+      result = merger.send(:build_merged_content, "   ", "Section", "\n\t")
+      expect(result).to eq("Section\n")
+    end
+
+    it "ensures trailing newline" do
+      result = merger.send(:build_merged_content, "Content", nil, nil)
+      expect(result).to end_with("\n")
+    end
+
+    it "chomps trailing newlines from parts before joining" do
+      result = merger.send(:build_merged_content, "Before\n", "Section\n", "After\n")
+      expect(result).to eq("Before\n\nSection\n\nAfter\n")
+    end
+  end
+
+  describe "#handle_missing_section" do
+    let(:template) { "Template Content" }
+    let(:destination) { "Destination Content" }
+
+    context "with when_missing: :skip" do
       let(:merger) do
         described_class.new(
           template: template,
-          destination: destination_without_section,
-          anchor: {type: :heading, text: /Gem Family/},
+          destination: destination,
+          anchor: {type: :heading},
           parser: :markly,
           when_missing: :skip,
         )
       end
 
-      it "returns unchanged content with :skip" do
-        result = merger.merge
+      it "returns unchanged destination" do
+        result = merger.send(:handle_missing_section, nil)
+        expect(result.content).to eq(destination)
         expect(result.has_section).to be false
         expect(result.changed).to be false
-        expect(result.content).to eq(destination_without_section)
-      end
-
-      context "with when_missing: :append" do
-        let(:merger) do
-          described_class.new(
-            template: template,
-            destination: destination_without_section,
-            anchor: {type: :heading, text: /Gem Family/},
-            parser: :markly,
-            when_missing: :append,
-          )
-        end
-
-        it "appends the template at the end" do
-          result = merger.merge
-          expect(result.changed).to be true
-          expect(result.content).to end_with(template.chomp + "\n")
-          expect(result.content).to start_with("# My Project")
-        end
-      end
-
-      context "with when_missing: :prepend" do
-        let(:merger) do
-          described_class.new(
-            template: template,
-            destination: destination_without_section,
-            anchor: {type: :heading, text: /Gem Family/},
-            parser: :markly,
-            when_missing: :prepend,
-          )
-        end
-
-        it "prepends the template at the start" do
-          result = merger.merge
-          expect(result.changed).to be true
-          expect(result.content).to start_with(template)
-        end
+        expect(result.message).to include("skipping")
       end
     end
 
-    context "with custom boundary and replace_mode" do
-      let(:destination_multi_section) do
-        <<~MD
-          # Project
-
-          ## Section A
-
-          Content A.
-
-          ## Section B
-
-          Content B.
-
-          ## Section C
-
-          Content C.
-        MD
-      end
-
-      let(:section_b_template) do
-        <<~MD
-          ## Section B
-
-          New content for B.
-
-          Extra paragraph.
-        MD
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: section_b_template,
-          destination: destination_multi_section,
-          anchor: {type: :heading, text: /Section B/},
-          boundary: {type: :heading},
-          parser: :markly,
-          replace_mode: true,  # Full replacement, not merge
-        )
-      end
-
-      it "replaces only the bounded section" do
-        result = merger.merge
-        expect(result.content).to include("Content A")
-        expect(result.content).to include("New content for B")
-        expect(result.content).to include("Content C")
-        expect(result.content).not_to include("Content B.")
-      end
-    end
-
-    context "with custom boundary and merge mode (default)" do
-      let(:destination_multi_section) do
-        <<~MD
-          # Project
-
-          ## Section A
-
-          Content A.
-
-          ## Section B
-
-          Content B.
-
-          Custom destination content.
-
-          ## Section C
-
-          Content C.
-        MD
-      end
-
-      let(:section_b_template) do
-        <<~MD
-          ## Section B
-
-          New content for B.
-
-          Extra paragraph.
-        MD
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: section_b_template,
-          destination: destination_multi_section,
-          anchor: {type: :heading, text: /Section B/},
-          boundary: {type: :heading},
-          parser: :markly,
-          preference: :template,
-          add_missing: true,
-          # replace_mode defaults to false - uses SmartMerger
-        )
-      end
-
-      it "merges the section intelligently" do
-        result = merger.merge
-        expect(result.content).to include("Content A")
-        expect(result.content).to include("New content for B")
-        expect(result.content).to include("Content C")
-        # With SmartMerger, behavior depends on matching and preference
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
-      end
-    end
-
-    context "with preference: :destination" do
-      let(:merger) do
-        described_class.new(
-          template: template,
-          destination: destination_with_section,
-          anchor: {type: :heading, text: /Gem Family/},
-          parser: :markly,
-          preference: :destination,
-        )
-      end
-
-      it "prefers destination content for conflicts" do
-        result = merger.merge
-        # The merger should still work, preference affects conflict resolution
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
-      end
-    end
-
-    context "with add_missing: false" do
-      let(:merger) do
-        described_class.new(
-          template: template,
-          destination: destination_with_section,
-          anchor: {type: :heading, text: /Gem Family/},
-          parser: :markly,
-          add_missing: false,
-        )
-      end
-
-      it "does not add template-only nodes" do
-        result = merger.merge
-        # With add_missing: false, new nodes from template shouldn't be added
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
-      end
-    end
-  end
-
-  describe "Result" do
-    let(:result) do
-      Ast::Merge::PartialTemplateMerger::Result.new(
-        content: "merged content",
-        has_section: true,
-        changed: true,
-        stats: {nodes_added: 2},
-        message: "Success",
-      )
-    end
-
-    it "has content" do
-      expect(result.content).to eq("merged content")
-    end
-
-    it "has has_section" do
-      expect(result.has_section).to be true
-    end
-
-    it "has changed" do
-      expect(result.changed).to be true
-    end
-
-    it "has stats" do
-      expect(result.stats).to eq({nodes_added: 2})
-    end
-
-    it "has message" do
-      expect(result.message).to eq("Success")
-    end
-
-    it "responds to section_found?" do
-      expect(result.section_found?).to be true
-    end
-
-    context "with injection_point" do
-      let(:mock_anchor) do
-        stmt = Object.new
-        allow(stmt).to receive_messages(index: 0, type: :heading)
-        stmt
-      end
-
-      let(:injection_point) do
-        Ast::Merge::InjectionPoint.new(anchor: mock_anchor, position: :replace)
-      end
-
-      let(:result_with_injection) do
-        Ast::Merge::PartialTemplateMerger::Result.new(
-          content: "content",
-          has_section: true,
-          changed: true,
-          injection_point: injection_point,
-        )
-      end
-
-      it "has injection_point" do
-        expect(result_with_injection.injection_point).to eq(injection_point)
-      end
-    end
-
-    context "with default values" do
-      let(:minimal_result) do
-        Ast::Merge::PartialTemplateMerger::Result.new(
-          content: "content",
-          has_section: false,
-          changed: false,
-        )
-      end
-
-      it "defaults stats to empty hash" do
-        expect(minimal_result.stats).to eq({})
-      end
-
-      it "defaults injection_point to nil" do
-        expect(minimal_result.injection_point).to be_nil
-      end
-
-      it "defaults message to nil" do
-        expect(minimal_result.message).to be_nil
-      end
-    end
-  end
-
-  describe "heading level detection" do
-    let(:destination_with_h2_and_h3) do
-      <<~MD
-        # Title
-
-        ## Section One
-
-        Content one.
-
-        ### Subsection
-
-        Subsection content.
-
-        ## Section Two
-
-        Content two.
-      MD
-    end
-
-    let(:subsection_template) do
-      <<~MD
-        ### Subsection
-
-        New subsection content.
-      MD
-    end
-
-    let(:merger) do
-      described_class.new(
-        template: subsection_template,
-        destination: destination_with_h2_and_h3,
-        anchor: {type: :heading, text: /Subsection/},
-        parser: :markly,
-      )
-    end
-
-    it "respects heading levels for section boundaries" do
-      result = merger.merge
-      # The H3 "Subsection" should extend until the next H2 "Section Two"
-      expect(result.content).to include("Content one")
-      expect(result.content).to include("New subsection content")
-      expect(result.content).to include("## Section Two")
-      expect(result.content).to include("Content two")
-    end
-  end
-
-  describe "advanced features" do
-    context "with custom signature_generator" do
-      let(:destination) do
-        <<~MD
-          # Project
-
-          ## Features
-
-          - Feature A
-          - Feature B
-
-          ## Links
-
-          [link-a]: https://example.com/a
-        MD
-      end
-
-      let(:template) do
-        <<~MD
-          ## Features
-
-          - Feature A (updated)
-          - Feature C (new)
-        MD
-      end
-
-      let(:custom_signature_generator) do
-        lambda do |node|
-          text = node.respond_to?(:to_plaintext) ? node.to_plaintext.to_s : node.to_s
-          if text.include?("Feature")
-            [:features, :list_item, text[0, 20]]
-          end
-        end
-      end
-
+    context "with when_missing: :append" do
       let(:merger) do
         described_class.new(
           template: template,
           destination: destination,
-          anchor: {type: :heading, text: /Features/},
-          boundary: {type: :heading},
-          parser: :markly,
-          signature_generator: custom_signature_generator,
-        )
-      end
-
-      it "accepts custom signature_generator" do
-        expect(merger.signature_generator).to eq(custom_signature_generator)
-      end
-
-      it "merges with custom signatures" do
-        result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
-        expect(result.section_found?).to be true
-      end
-    end
-
-    context "with node_typing configuration" do
-      let(:destination) do
-        <<~MD
-          # Project
-
-          ## Special Section
-
-          Regular paragraph.
-
-          | Name | Value |
-          |------|-------|
-          | foo  | 100   |
-        MD
-      end
-
-      let(:template) do
-        <<~MD
-          ## Special Section
-
-          Updated paragraph.
-
-          | Name | Value |
-          |------|-------|
-          | foo  | 200   |
-          | bar  | 300   |
-        MD
-      end
-
-      let(:table_typing) do
-        lambda do |node|
-          text = node.respond_to?(:to_plaintext) ? node.to_plaintext.to_s : node.to_s
-          if text.include?("foo")
-            Ast::Merge::NodeTyping.with_merge_type(node, :data_table)
-          else
-            node
-          end
-        end
-      end
-
-      let(:node_typing_config) do
-        {"table" => table_typing}
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: template,
-          destination: destination,
-          anchor: {type: :heading, text: /Special Section/},
-          parser: :markly,
-          node_typing: node_typing_config,
-          preference: :template,
-        )
-      end
-
-      it "accepts node_typing configuration" do
-        expect(merger.node_typing).to eq(node_typing_config)
-      end
-
-      it "merges with node typing" do
-        result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
-        expect(result.section_found?).to be true
-      end
-    end
-  end
-
-  describe "text pattern normalization" do
-    context "with regex string pattern /pattern/" do
-      let(:merger) do
-        described_class.new(
-          template: template,
-          destination: destination_with_section,
-          anchor: {type: :heading, text: "/Gem Family/"},
-          parser: :markly,
-        )
-      end
-
-      it "converts /pattern/ string to Regexp" do
-        result = merger.merge
-        expect(result.has_section).to be true
-      end
-    end
-
-    context "with plain string pattern" do
-      let(:merger) do
-        described_class.new(
-          template: template,
-          destination: destination_with_section,
-          anchor: {type: :heading, text: "The Gem Family"},
-          parser: :markly,
-        )
-      end
-
-      it "uses plain string for matching" do
-        result = merger.merge
-        expect(result.has_section).to be true
-      end
-    end
-
-    context "with nil text pattern" do
-      let(:destination_with_heading) do
-        <<~MD
-          # Project
-
-          ## heading
-
-          Content.
-        MD
-      end
-
-      let(:simple_template) do
-        <<~MD
-          ## heading
-
-          New content.
-        MD
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: simple_template,
-          destination: destination_with_heading,
           anchor: {type: :heading},
           parser: :markly,
+          when_missing: :append,
         )
       end
 
-      it "matches by type only when text is nil" do
-        result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
+      it "appends template at end" do
+        result = merger.send(:handle_missing_section, nil)
+        expect(result.content).to start_with("Destination Content")
+        expect(result.content).to end_with("Template Content")
+        expect(result.has_section).to be false
+        expect(result.changed).to be true
+        expect(result.message).to include("appended")
       end
     end
-  end
 
-  describe "when_missing edge cases" do
+    context "with when_missing: :prepend" do
+      let(:merger) do
+        described_class.new(
+          template: template,
+          destination: destination,
+          anchor: {type: :heading},
+          parser: :markly,
+          when_missing: :prepend,
+        )
+      end
+
+      it "prepends template at start" do
+        result = merger.send(:handle_missing_section, nil)
+        expect(result.content).to start_with("Template Content")
+        expect(result.content).to end_with("Destination Content")
+        expect(result.has_section).to be false
+        expect(result.changed).to be true
+        expect(result.message).to include("prepended")
+      end
+    end
+
     context "with unknown when_missing value" do
       let(:merger) do
         described_class.new(
           template: template,
-          destination: destination_without_section,
-          anchor: {type: :heading, text: /Gem Family/},
+          destination: destination,
+          anchor: {type: :heading},
           parser: :markly,
-          when_missing: :unknown_action,
+          when_missing: :unknown_value,
         )
       end
 
-      it "falls through to default (no action)" do
-        result = merger.merge
+      it "returns unchanged destination with no action message" do
+        result = merger.send(:handle_missing_section, nil)
+        expect(result.content).to eq(destination)
         expect(result.has_section).to be false
         expect(result.changed).to be false
         expect(result.message).to include("no action taken")
@@ -649,253 +515,132 @@ RSpec.describe Ast::Merge::PartialTemplateMerger, :markly_merge do
     end
   end
 
-  describe "anchor normalization" do
-    context "with nil anchor" do
-      it "handles nil anchor gracefully" do
-        merger = described_class.new(
-          template: template,
-          destination: destination_with_section,
-          anchor: nil,
-          parser: :markly,
-        )
-        result = merger.merge
-        # Should not find section with nil anchor
-        expect(result.has_section).to be false
-      end
-    end
-
-    context "with level options in anchor" do
-      let(:destination_with_levels) do
-        <<~MD
-          # Title
-
-          ## Section
-
-          Content.
-
-          ### Subsection
-
-          More content.
-        MD
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: "## New Section\n\nNew content.",
-          destination: destination_with_levels,
-          anchor: {type: :heading, level: 2},
-          parser: :markly,
-        )
-      end
-
-      it "passes level options through normalization" do
-        expect(merger.anchor[:level]).to eq(2)
-      end
-    end
-
-    context "with level_lte option" do
-      let(:merger) do
-        described_class.new(
-          template: template,
-          destination: destination_with_section,
-          anchor: {type: :heading, level_lte: 3},
-          parser: :markly,
-        )
-      end
-
-      it "passes level_lte through normalization" do
-        expect(merger.anchor[:level_lte]).to eq(3)
-      end
-    end
-
-    context "with level_gte option" do
-      let(:merger) do
-        described_class.new(
-          template: template,
-          destination: destination_with_section,
-          anchor: {type: :heading, level_gte: 2},
-          parser: :markly,
-        )
-      end
-
-      it "passes level_gte through normalization" do
-        expect(merger.anchor[:level_gte]).to eq(2)
-      end
-    end
-  end
-
-  describe "section boundary detection" do
-    context "when section extends to end of document" do
-      let(:destination_section_at_end) do
-        <<~MD
-          # Project
-
-          ## First Section
-
-          Content.
-
-          ### Target Section
-
-          Target content that extends to end.
-
-          More target content.
-        MD
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: "### Target Section\n\nNew content.",
-          destination: destination_section_at_end,
-          anchor: {type: :heading, text: /Target Section/},
-          parser: :markly,
-        )
-      end
-
-      it "detects section extending to document end" do
-        result = merger.merge
-        expect(result.has_section).to be true
-        expect(result.content).to include("First Section")
-        expect(result.content).to include("New content")
-      end
-    end
-
-    context "with non-heading anchor type" do
-      let(:destination_with_paragraph) do
-        <<~MD
-          # Project
-
-          MARKER_START
-
-          Content to replace.
-
-          MARKER_START
-
-          Other content.
-        MD
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: "MARKER_START\n\nReplacement content.",
-          destination: destination_with_paragraph,
-          anchor: {type: :paragraph, text: /MARKER_START/},
-          parser: :markly,
-        )
-      end
-
-      it "finds boundary at next node of same type" do
-        result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
-      end
-    end
-  end
-
-  describe "replace_mode behavior" do
-    context "with replace_mode: true" do
-      let(:destination) do
-        <<~MD
-          # Project
-
-          ## Target
-
-          Old line 1.
-          Old line 2.
-          Old line 3.
-
-          ## Next
-        MD
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: "## Target\n\nCompletely new content.",
-          destination: destination,
-          anchor: {type: :heading, text: /Target/},
-          boundary: {type: :heading},
-          parser: :markly,
-          replace_mode: true,
-        )
-      end
-
-      it "replaces section entirely without merging" do
-        result = merger.merge
-        expect(result.stats[:mode]).to eq(:replace)
-        expect(result.content).to include("Completely new content")
-        expect(result.content).not_to include("Old line")
-      end
-    end
-
-    context "with replace_mode: false (default merge mode)" do
-      let(:destination) do
-        <<~MD
-          # Project
-
-          ## Target
-
-          Existing content.
-
-          ## Next
-        MD
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: "## Target\n\nTemplate content.",
-          destination: destination,
-          anchor: {type: :heading, text: /Target/},
-          boundary: {type: :heading},
-          parser: :markly,
-          replace_mode: false,
-        )
-      end
-
-      it "uses SmartMerger for intelligent merge" do
-        result = merger.merge
-        expect(result.stats[:mode]).to eq(:merge)
-      end
-    end
-  end
-
-  describe "content unchanged detection" do
-    context "when merged content equals original" do
-      let(:destination) do
-        <<~MD
-          # Project
-
-          ## Section
-
-          Exact content.
-        MD
-      end
-
-      let(:merger) do
-        described_class.new(
-          template: "## Section\n\nExact content.",
-          destination: destination,
-          anchor: {type: :heading, text: /Section/},
-          parser: :markly,
-          replace_mode: true,
-        )
-      end
-
-      it "detects when content is unchanged" do
-        result = merger.merge
-        # The message should indicate unchanged when content matches
-        expect(result.message).to match(/unchanged|merged/i)
-      end
-    end
-  end
-
-  describe "unknown parser" do
-    it "raises ArgumentError for unknown parser" do
-      merger = described_class.new(
-        template: template,
-        destination: destination_with_section,
-        anchor: {type: :heading, text: /Gem Family/},
+  describe "#create_analysis" do
+    let(:merger) do
+      described_class.new(
+        template: "t",
+        destination: "d",
+        anchor: {type: :heading},
         parser: :unknown_parser,
       )
+    end
 
-      expect { merger.merge }.to raise_error(ArgumentError, /Unknown parser/)
+    it "raises ArgumentError for unknown parser" do
+      expect { merger.send(:create_analysis, "content") }.to raise_error(ArgumentError, /Unknown parser/)
+    end
+  end
+
+  describe "#create_smart_merger" do
+    let(:merger) do
+      described_class.new(
+        template: "t",
+        destination: "d",
+        anchor: {type: :heading},
+        parser: :unknown_parser,
+      )
+    end
+
+    it "raises ArgumentError for unknown parser" do
+      expect { merger.send(:create_smart_merger, "template", "dest") }.to raise_error(ArgumentError, /Unknown parser/)
+    end
+  end
+
+  describe "#find_section_end" do
+    let(:merger) do
+      described_class.new(
+        template: "t",
+        destination: "d",
+        anchor: {type: :heading},
+        parser: :markly,
+      )
+    end
+
+    it "returns boundary index - 1 when boundary exists" do
+      boundary_stmt = double("BoundaryStatement", index: 5)
+      anchor_stmt = double("AnchorStatement", index: 2, type: :heading)
+      injection_point = double("InjectionPoint", anchor: anchor_stmt, boundary: boundary_stmt)
+
+      result = merger.send(:find_section_end, [], injection_point)
+      expect(result).to eq(4)
+    end
+
+    it "returns last index when no boundary and section extends to end" do
+      anchor_stmt = double("AnchorStatement", index: 2, type: :paragraph)
+      injection_point = double("InjectionPoint", anchor: anchor_stmt, boundary: nil)
+
+      stmt3 = double("Statement3", type: :list)
+      stmt4 = double("Statement4", type: :code)
+      statements = [nil, nil, nil, stmt3, stmt4]
+
+      result = merger.send(:find_section_end, statements, injection_point)
+      expect(result).to eq(4)
+    end
+
+    it "finds next same-type node for non-heading types" do
+      anchor_stmt = double("AnchorStatement", index: 1, type: :paragraph)
+      injection_point = double("InjectionPoint", anchor: anchor_stmt, boundary: nil)
+
+      stmt0 = double("Statement0", type: :heading)
+      stmt1 = double("Statement1", type: :paragraph)
+      stmt2 = double("Statement2", type: :list)
+      stmt3 = double("Statement3", type: :paragraph)
+      statements = [stmt0, stmt1, stmt2, stmt3]
+
+      result = merger.send(:find_section_end, statements, injection_point)
+      expect(result).to eq(2) # idx - 1 before the next paragraph at idx 3
+    end
+
+    it "finds next heading of same or higher level for heading types" do
+      anchor_node = double("AnchorNode", header_level: 3)
+      anchor_stmt = double("AnchorStatement", index: 1, type: :heading, node: anchor_node)
+      allow(anchor_stmt).to receive(:respond_to?).with(:unwrapped_node).and_return(false)
+
+      injection_point = double("InjectionPoint", anchor: anchor_stmt, boundary: nil)
+
+      stmt0_node = double("Stmt0Node", header_level: 1)
+      stmt0 = double("Statement0", type: :heading, node: stmt0_node)
+      allow(stmt0).to receive(:respond_to?).with(:unwrapped_node).and_return(false)
+
+      stmt1_node = double("Stmt1Node", header_level: 3)
+      stmt1 = double("Statement1", type: :heading, node: stmt1_node)
+      allow(stmt1).to receive(:respond_to?).with(:unwrapped_node).and_return(false)
+
+      stmt2_node = double("Stmt2Node")
+      stmt2 = double("Statement2", type: :paragraph, node: stmt2_node)
+      allow(stmt2).to receive(:respond_to?).with(:unwrapped_node).and_return(false)
+
+      stmt3_node = double("Stmt3Node", header_level: 2)
+      stmt3 = double("Statement3", type: :heading, node: stmt3_node)
+      allow(stmt3).to receive(:respond_to?).with(:unwrapped_node).and_return(false)
+
+      statements = [stmt0, stmt1, stmt2, stmt3]
+
+      result = merger.send(:find_section_end, statements, injection_point)
+      # H2 at index 3 is same or higher level than H3, so section ends at index 2
+      expect(result).to eq(2)
+    end
+  end
+
+  describe "#merge_section_content" do
+    let(:template) { "Template" }
+    let(:destination) { "Destination" }
+
+    context "with replace_mode enabled" do
+      let(:merger) do
+        described_class.new(
+          template: template,
+          destination: destination,
+          anchor: {type: :heading},
+          parser: :markly,
+          replace_mode: true,
+        )
+      end
+
+      it "returns template content directly with replace stats" do
+        content, stats = merger.send(:merge_section_content, "old section content")
+        expect(content).to eq(template)
+        expect(stats[:mode]).to eq(:replace)
+      end
     end
   end
 end

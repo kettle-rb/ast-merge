@@ -12,7 +12,7 @@ These examples show how to update the "Gem Family" section across multiple READM
 
 Uses a custom `signature_generator` to identify gem family section content by giving related nodes common signature prefixes.
 
-```ruby
+```bash
 ruby examples/readme_section_merge/01_signature_generator.rb
 ```
 
@@ -22,7 +22,7 @@ ruby examples/readme_section_merge/01_signature_generator.rb
 
 Extends the signature approach to handle link reference deduplication by matching them by label rather than full content.
 
-```ruby
+```bash
 ruby examples/readme_section_merge/02_link_ref_deduplication.rb
 ```
 
@@ -32,7 +32,7 @@ ruby examples/readme_section_merge/02_link_ref_deduplication.rb
 
 Uses `node_typing` with Hash `preference` for precise per-node-type merge control.
 
-```ruby
+```bash
 ruby examples/readme_section_merge/03_node_typing.rb
 ```
 
@@ -47,12 +47,12 @@ node_typing = {
     else
       node
     end
-  }
+  },
 }
 
 preference = {
   default: :destination,           # Keep destination by default
-  gem_family_table: :template      # But use template for gem family tables
+  gem_family_table: :template,     # But use template for gem family tables
 }
 ```
 
@@ -60,7 +60,7 @@ preference = {
 
 Analyzes document structure to understand how markdown-merge sees nodes and signatures.
 
-```ruby
+```bash
 ruby examples/readme_section_merge/04_structure_analysis.rb
 ```
 
@@ -94,7 +94,7 @@ The `node_typing` option lets you assign custom `merge_type` symbols to nodes:
 node_typing = {
   "table" => ->(node) {
     Ast::Merge::NodeTyping.with_merge_type(node, :special_table)
-  }
+  },
 }
 ```
 
@@ -103,7 +103,7 @@ These types can then be used in a Hash `preference`:
 ```ruby
 preference = {
   default: :destination,
-  special_table: :template
+  special_table: :template,
 }
 ```
 
