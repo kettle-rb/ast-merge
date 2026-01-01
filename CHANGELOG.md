@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [2.0.6] - 2026-01-01
+
+- TAG: [v2.0.6][2.0.6t]
+- COVERAGE: 97.19% -- 2522/2595 lines in 44 files
+- BRANCH COVERAGE: 89.91% -- 864/961 branches in 44 files
+- 98.82% documented
+
+### Added
+
 - Comprehensive mocked tests for `Ast::Merge::Recipe::Runner` (47 new tests):
   - Tests for `#run` method with section found, changed, and unchanged scenarios
   - Tests for `#run` with section not found (skipped vs appended)
@@ -31,16 +50,6 @@ Please file a bug if you notice a violation of semantic versioning.
   - Tests for `#summary_table` in both dry_run and non-dry_run modes
   - Tests for `#make_relative` edge cases (base_dir, recipe base, unknown paths)
   - Tests for `#make_relative` without recipe_path
-
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [2.0.5] - 2025-12-31
 
@@ -371,7 +380,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.5...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.6...HEAD
+[2.0.6]: https://github.com/kettle-rb/ast-merge/compare/v2.0.5...v2.0.6
+[2.0.6t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.6
 [2.0.5]: https://github.com/kettle-rb/ast-merge/compare/v2.0.4...v2.0.5
 [2.0.5t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.5
 [2.0.4]: https://github.com/kettle-rb/ast-merge/compare/v2.0.3...v2.0.4
