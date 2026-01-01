@@ -20,6 +20,24 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- `Ast::Merge::NodeTyping::Normalizer` module for thread-safe backend type normalization
+  - Provides shared infrastructure for format-specific normalizers (toml-merge, markdown-merge)
+  - Thread-safe backend registration via mutex-protected operations
+  - `configure_normalizer` for initial backend mappings configuration
+  - `register_backend` for runtime registration of new backends
+  - `canonical_type` for mapping backend-specific types to canonical types
+  - `wrap` for wrapping nodes with canonical merge_type
+  - `registered_backends`, `backend_registered?`, `mappings_for`, `canonical_types` query methods
+- `Ast::Merge::NodeTyping::FrozenWrapper` class for frozen AST nodes
+  - Includes `Freezable` behavior for freeze marker support
+  - `frozen_node?`, `slice`, `signature` methods
+- Split `NodeTyping` module into separate files following autoload pattern:
+  - `ast/merge/node_typing/wrapper.rb`
+  - `ast/merge/node_typing/frozen_wrapper.rb`
+  - `ast/merge/node_typing/normalizer.rb`
+- Comprehensive specs for `NodeTyping::Normalizer` including thread-safety tests
+- RBS type signatures for `NodeTyping::Normalizer` and `NodeTyping::FrozenWrapper`
+
 ### Changed
 
 ### Deprecated

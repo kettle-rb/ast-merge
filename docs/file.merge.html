@@ -633,15 +633,65 @@ module NodeTyping
     def inspect: () -&gt; String
   end
 
+  # Wrapper for frozen AST nodes that includes Freezable behavior
+  class FrozenWrapper &lt; Wrapper
+    include Freezable
+
+    def initialize: (untyped node, ?Symbol merge_type) -&gt; void
+    def frozen_node?: () -&gt; bool
+    def slice: () -&gt; String
+    def signature: () -&gt; Array[untyped]
+    def inspect: () -&gt; String
+  end
+
+  # Thread-safe backend registration and type normalization module.
+  # Extended by format-specific normalizers (e.g., Toml::Merge::NodeTypeNormalizer).
+  module Normalizer
+    @normalizer_mutex: Mutex
+    @backend_mappings: Hash[Symbol, Hash[Symbol, Symbol]]
+
+    # Called when this module is extended into another module
+    def self.extended: (Module base) -&gt; void
+
+    # Configure initial backend mappings
+    def configure_normalizer: (**Hash[Symbol, Symbol] mappings) -&gt; void
+
+    # Register type mappings for a new backend (thread-safe)
+    def register_backend: (Symbol backend, Hash[Symbol, Symbol] mappings) -&gt; void
+
+    # Get the canonical type for a backend-specific type
+    def canonical_type: (Symbol | String | nil backend_type, ?Symbol? backend) -&gt; Symbol?
+
+    # Wrap a node with its canonical type as merge_type
+    def wrap: (untyped node, Symbol backend) -&gt; Wrapper
+
+    # Get all registered backends
+    def registered_backends: () -&gt; Array[Symbol]
+
+    # Check if a backend is registered
+    def backend_registered?: (Symbol | String backend) -&gt; bool
+
+    # Get the mappings for a specific backend
+    def mappings_for: (Symbol backend) -&gt; Hash[Symbol, Symbol]?
+
+    # Get all canonical types across all backends
+    def canonical_types: () -&gt; Array[Symbol]
+  end
+
   def self.with_merge_type: (untyped node, Symbol merge_type) -&gt; Wrapper
-  def self.validate!: (node_typing_hash? node_typing) -&gt; void
-  def self.apply: (untyped node, node_typing_hash? node_typing) -&gt; untyped
+  def self.frozen: (untyped node, ?Symbol merge_type) -&gt; FrozenWrapper
+  def self.frozen_node?: (untyped node) -&gt; bool
+  def self.typed_node?: (untyped node) -&gt; bool
+  def self.merge_type_for: (untyped node) -&gt; Symbol?
+  def self.unwrap: (untyped node) -&gt; untyped
+  def self.process: (untyped node, node_typing_hash? typing_config) -&gt; untyped?
+  def self.validate!: (node_typing_hash? typing_config) -&gt; void
 end   end end
 </code></pre>
 </div></div>
 
       <div id="footer">
-  Generated on Thu Jan  1 05:07:51 2026 by
+  Generated on Thu Jan  1 16:24:31 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

@@ -72,6 +72,44 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <h3 id="added">Added</h3>
 
+<ul>
+  <li>
+<code>Ast::Merge::NodeTyping::Normalizer</code> module for thread-safe backend type normalization
+    <ul>
+      <li>Provides shared infrastructure for format-specific normalizers (toml-merge, markdown-merge)</li>
+      <li>Thread-safe backend registration via mutex-protected operations</li>
+      <li>
+<code>configure_normalizer</code> for initial backend mappings configuration</li>
+      <li>
+<code>register_backend</code> for runtime registration of new backends</li>
+      <li>
+<code>canonical_type</code> for mapping backend-specific types to canonical types</li>
+      <li>
+<code>wrap</code> for wrapping nodes with canonical merge_type</li>
+      <li>
+<code>registered_backends</code>, <code>backend_registered?</code>, <code>mappings_for</code>, <code>canonical_types</code> query methods</li>
+    </ul>
+  </li>
+  <li>
+<code>Ast::Merge::NodeTyping::FrozenWrapper</code> class for frozen AST nodes
+    <ul>
+      <li>Includes <code>Freezable</code> behavior for freeze marker support</li>
+      <li>
+<code>frozen_node?</code>, <code>slice</code>, <code>signature</code> methods</li>
+    </ul>
+  </li>
+  <li>Split <code>NodeTyping</code> module into separate files following autoload pattern:
+    <ul>
+      <li><code>ast/merge/node_typing/wrapper.rb</code></li>
+      <li><code>ast/merge/node_typing/frozen_wrapper.rb</code></li>
+      <li><code>ast/merge/node_typing/normalizer.rb</code></li>
+    </ul>
+  </li>
+  <li>Comprehensive specs for <code>NodeTyping::Normalizer</code> including thread-safety tests</li>
+  <li>RBS type signatures for <code>NodeTyping::Normalizer</code> and <code>NodeTyping::FrozenWrapper</code>
+</li>
+</ul>
+
 <h3 id="changed">Changed</h3>
 
 <h3 id="deprecated">Deprecated</h3>
@@ -676,7 +714,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Thu Jan  1 05:07:51 2026 by
+  Generated on Thu Jan  1 16:24:31 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

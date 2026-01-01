@@ -101,7 +101,7 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>lib/ast/merge/node_typing.rb</dd>
+    <dd>lib/ast/merge/node_typing/frozen_wrapper.rb</dd>
   </dl>
   
 </div>
@@ -416,12 +416,12 @@ and would fall back to a generic signature, breaking matching.</p>
       <pre class="lines">
 
 
-177
-178
-179</pre>
+64
+65
+66</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing.rb', line 177</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing/frozen_wrapper.rb', line 64</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_node'>node</span><span class='comma'>,</span> <span class='id identifier rubyid_merge_type'>merge_type</span> <span class='op'>=</span> <span class='symbol'>:frozen</span><span class='rparen'>)</span>
   <span class='kw'>super</span><span class='lparen'>(</span><span class='id identifier rubyid_node'>node</span><span class='comma'>,</span> <span class='id identifier rubyid_merge_type'>merge_type</span><span class='rparen'>)</span>
@@ -491,12 +491,12 @@ Overrides both Wrapper#typed_node? context and provides freeze_node? from Freeza
       <pre class="lines">
 
 
-185
-186
-187</pre>
+72
+73
+74</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing.rb', line 185</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing/frozen_wrapper.rb', line 72</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_frozen_node?'>frozen_node?</span>
   <span class='kw'>true</span>
@@ -531,12 +531,12 @@ Overrides both Wrapper#typed_node? context and provides freeze_node? from Freeza
       <pre class="lines">
 
 
-206
-207
-208</pre>
+93
+94
+95</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing.rb', line 206</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing/frozen_wrapper.rb', line 93</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_inspect'>inspect</span>
   <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>#&lt;NodeTyping::FrozenWrapper merge_type=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@merge_type</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'> node=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@node</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>&gt;</span><span class='tstring_end'>&quot;</span></span>
@@ -589,12 +589,12 @@ Uses the freeze_signature from Freezable module.</p>
       <pre class="lines">
 
 
-201
-202
-203</pre>
+88
+89
+90</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing.rb', line 201</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing/frozen_wrapper.rb', line 88</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_signature'>signature</span>
   <span class='id identifier rubyid_freeze_signature'>freeze_signature</span>
@@ -647,12 +647,12 @@ Delegates to the wrapped node’s slice method.</p>
       <pre class="lines">
 
 
-193
-194
-195</pre>
+80
+81
+82</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing.rb', line 193</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing/frozen_wrapper.rb', line 80</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_slice'>slice</span>
   <span class='ivar'>@node</span><span class='period'>.</span><span class='id identifier rubyid_slice'>slice</span>
@@ -667,7 +667,7 @@ Delegates to the wrapped node’s slice method.</p>
 </div>
 
       <div id="footer">
-  Generated on Thu Jan  1 05:07:52 2026 by
+  Generated on Thu Jan  1 16:24:34 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

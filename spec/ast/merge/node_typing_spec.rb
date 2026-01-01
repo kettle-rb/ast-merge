@@ -1,127 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::NodeTyping do
-  describe Ast::Merge::NodeTyping::Wrapper do
-    let(:mock_node) do
-      node_class = Class.new do
-        class << self
-          def name
-            "TestNode"
-          end
-        end
-      end
-      double("MockNode", name: :test_method, class: node_class)
-    end
-
-    describe "#initialize" do
-      it "stores the node and merge_type" do
-        wrapper = described_class.new(mock_node, :custom_type)
-
-        expect(wrapper.node).to eq(mock_node)
-        expect(wrapper.merge_type).to eq(:custom_type)
-      end
-    end
-
-    describe "#method_missing" do
-      it "delegates to the wrapped node" do
-        wrapper = described_class.new(mock_node, :custom_type)
-
-        expect(wrapper.name).to eq(:test_method)
-      end
-    end
-
-    describe "#respond_to_missing?" do
-      it "returns true for methods the wrapped node responds to" do
-        wrapper = described_class.new(mock_node, :custom_type)
-
-        expect(wrapper.respond_to?(:name)).to be true
-        expect(wrapper.respond_to?(:nonexistent_method)).to be false
-      end
-    end
-
-    describe "#typed_node?" do
-      it "returns true" do
-        wrapper = described_class.new(mock_node, :custom_type)
-
-        expect(wrapper.typed_node?).to be true
-      end
-    end
-
-    describe "#unwrap" do
-      it "returns the original node" do
-        wrapper = described_class.new(mock_node, :custom_type)
-
-        expect(wrapper.unwrap).to eq(mock_node)
-      end
-    end
-
-    describe "#==" do
-      it "compares by node and merge_type when comparing to another wrapper" do
-        wrapper1 = described_class.new(mock_node, :custom_type)
-        wrapper2 = described_class.new(mock_node, :custom_type)
-        wrapper3 = described_class.new(mock_node, :different_type)
-
-        expect(wrapper1).to eq(wrapper2)
-        expect(wrapper1).not_to eq(wrapper3)
-      end
-
-      it "compares to the wrapped node when comparing to a non-wrapper" do
-        wrapper = described_class.new(mock_node, :custom_type)
-
-        expect(wrapper == mock_node).to be true
-      end
-    end
-
-    describe "#inspect" do
-      it "includes merge_type and node info" do
-        wrapper = described_class.new(mock_node, :custom_type)
-
-        expect(wrapper.inspect).to include("Wrapper")
-        expect(wrapper.inspect).to include("custom_type")
-      end
-    end
-
-    describe "#hash" do
-      it "returns consistent hash for same node and merge_type" do
-        wrapper1 = described_class.new(mock_node, :custom_type)
-        wrapper2 = described_class.new(mock_node, :custom_type)
-
-        expect(wrapper1.hash).to eq(wrapper2.hash)
-      end
-
-      it "returns different hash for different merge_types" do
-        wrapper1 = described_class.new(mock_node, :type_a)
-        wrapper2 = described_class.new(mock_node, :type_b)
-
-        expect(wrapper1.hash).not_to eq(wrapper2.hash)
-      end
-    end
-
-    describe "#eql?" do
-      it "returns true for equal wrappers" do
-        wrapper1 = described_class.new(mock_node, :custom_type)
-        wrapper2 = described_class.new(mock_node, :custom_type)
-
-        expect(wrapper1.eql?(wrapper2)).to be true
-      end
-
-      it "returns false for different merge_types" do
-        wrapper1 = described_class.new(mock_node, :type_a)
-        wrapper2 = described_class.new(mock_node, :type_b)
-
-        expect(wrapper1.eql?(wrapper2)).to be false
-      end
-    end
-
-    describe "#method_missing error handling" do
-      it "raises NoMethodError when wrapped node does not respond to method" do
-        wrapper = described_class.new(mock_node, :custom_type)
-
-        expect { wrapper.nonexistent_method_xyz }.to raise_error(NoMethodError)
-      end
-    end
-  end
-
   describe ".with_merge_type" do
     let(:mock_node) { double("MockNode") }
 
@@ -134,10 +13,68 @@ RSpec.describe Ast::Merge::NodeTyping do
     end
   end
 
-  describe ".typed_node?" do
-    it "returns true for TypedNodeWrapper" do
+  describe ".frozen" do
+    let(:mock_node) { double("MockNode", slice: "content") }
+
+    it "creates a FrozenWrapper with default merge_type" do
+      result = described_class.frozen(mock_node)
+
+      expect(result).to be_a(Ast::Merge::NodeTyping::FrozenWrapper)
+      expect(result.merge_type).to eq(:frozen)
+      expect(result.node).to eq(mock_node)
+    end
+
+    it "creates a FrozenWrapper with custom merge_type" do
+      result = described_class.frozen(mock_node, :custom_frozen)
+
+      expect(result.merge_type).to eq(:custom_frozen)
+    end
+  end
+
+  describe ".frozen_node?" do
+    it "returns true for FrozenWrapper" do
+      mock_node = double("MockNode", slice: "content")
+      wrapper = described_class.frozen(mock_node)
+
+      expect(described_class.frozen_node?(wrapper)).to be true
+    end
+
+    it "returns true for objects including Freezable" do
+      freezable_obj = Class.new do
+        include Ast::Merge::Freezable
+
+        def slice
+          "content"
+        end
+      end.new
+
+      expect(described_class.frozen_node?(freezable_obj)).to be true
+    end
+
+    it "returns false for regular Wrapper" do
       mock_node = double("MockNode")
       wrapper = described_class.with_merge_type(mock_node, :type)
+
+      expect(described_class.frozen_node?(wrapper)).to be false
+    end
+
+    it "returns false for regular objects" do
+      expect(described_class.frozen_node?("string")).to be false
+      expect(described_class.frozen_node?(nil)).to be false
+    end
+  end
+
+  describe ".typed_node?" do
+    it "returns true for Wrapper" do
+      mock_node = double("MockNode")
+      wrapper = described_class.with_merge_type(mock_node, :type)
+
+      expect(described_class.typed_node?(wrapper)).to be true
+    end
+
+    it "returns true for FrozenWrapper" do
+      mock_node = double("MockNode", slice: "content")
+      wrapper = described_class.frozen(mock_node)
 
       expect(described_class.typed_node?(wrapper)).to be true
     end
@@ -150,11 +87,18 @@ RSpec.describe Ast::Merge::NodeTyping do
   end
 
   describe ".merge_type_for" do
-    it "returns merge_type for TypedNodeWrapper" do
+    it "returns merge_type for Wrapper" do
       mock_node = double("MockNode")
       wrapper = described_class.with_merge_type(mock_node, :special_type)
 
       expect(described_class.merge_type_for(wrapper)).to eq(:special_type)
+    end
+
+    it "returns merge_type for FrozenWrapper" do
+      mock_node = double("MockNode", slice: "content")
+      wrapper = described_class.frozen(mock_node, :frozen_type)
+
+      expect(described_class.merge_type_for(wrapper)).to eq(:frozen_type)
     end
 
     it "returns nil for non-wrapped nodes" do
@@ -164,9 +108,16 @@ RSpec.describe Ast::Merge::NodeTyping do
   end
 
   describe ".unwrap" do
-    it "unwraps TypedNodeWrapper" do
+    it "unwraps Wrapper" do
       mock_node = double("MockNode")
       wrapper = described_class.with_merge_type(mock_node, :type)
+
+      expect(described_class.unwrap(wrapper)).to eq(mock_node)
+    end
+
+    it "unwraps FrozenWrapper" do
+      mock_node = double("MockNode", slice: "content")
+      wrapper = described_class.frozen(mock_node)
 
       expect(described_class.unwrap(wrapper)).to eq(mock_node)
     end
@@ -190,19 +141,19 @@ RSpec.describe Ast::Merge::NodeTyping do
       double("MockNode", class: node_class, name: :gem)
     end
 
-    it "returns node unchanged when splitter_config is nil" do
+    it "returns node unchanged when typing_config is nil" do
       result = described_class.process(mock_node, nil)
 
       expect(result).to eq(mock_node)
     end
 
-    it "returns node unchanged when splitter_config is empty" do
+    it "returns node unchanged when typing_config is empty" do
       result = described_class.process(mock_node, {})
 
       expect(result).to eq(mock_node)
     end
 
-    it "returns node unchanged when no matching splitter is found" do
+    it "returns node unchanged when no matching callable is found" do
       config = {
         DefNode: ->(node) { described_class.with_merge_type(node, :method) },
       }
@@ -212,7 +163,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       expect(result).to eq(mock_node)
     end
 
-    it "processes node through matching splitter by symbol key" do
+    it "processes node through matching callable by symbol key" do
       config = {
         CallNode: ->(node) { described_class.with_merge_type(node, :call_type) },
       }
@@ -223,7 +174,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       expect(result.merge_type).to eq(:call_type)
     end
 
-    it "processes node through matching splitter by string key" do
+    it "processes node through matching callable by string key" do
       config = {
         "CallNode" => ->(node) { described_class.with_merge_type(node, :string_key_type) },
       }
@@ -233,7 +184,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       expect(result.merge_type).to eq(:string_key_type)
     end
 
-    it "allows splitter to return node unchanged" do
+    it "allows callable to return node unchanged" do
       config = {
         CallNode: ->(node) { node },
       }
@@ -244,7 +195,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       expect(described_class.typed_node?(result)).to be false
     end
 
-    it "allows splitter to return nil" do
+    it "allows callable to return nil" do
       config = {
         CallNode: ->(_node) { nil },
       }
@@ -266,7 +217,7 @@ RSpec.describe Ast::Merge::NodeTyping do
         double("NamespacedNode", class: node_class, name: :test)
       end
 
-      it "finds splitter by fully-qualified symbol key" do
+      it "finds callable by fully-qualified symbol key" do
         config = {
           "Prism::CallNode": ->(node) { described_class.with_merge_type(node, :fq_type) },
         }
@@ -276,7 +227,7 @@ RSpec.describe Ast::Merge::NodeTyping do
         expect(result.merge_type).to eq(:fq_type)
       end
 
-      it "finds splitter by fully-qualified string key" do
+      it "finds callable by fully-qualified string key" do
         config = {
           "Prism::CallNode" => ->(node) { described_class.with_merge_type(node, :fq_string_type) },
         }
@@ -286,7 +237,7 @@ RSpec.describe Ast::Merge::NodeTyping do
         expect(result.merge_type).to eq(:fq_string_type)
       end
 
-      it "finds splitter by underscored naming convention" do
+      it "finds callable by underscored naming convention" do
         config = {
           prism_call_node: ->(node) { described_class.with_merge_type(node, :underscored_type) },
         }
@@ -298,7 +249,7 @@ RSpec.describe Ast::Merge::NodeTyping do
     end
 
     context "with already-typed node" do
-      it "processes TypedNodeWrapper through matching splitter" do
+      it "processes Wrapper through matching callable" do
         wrapped = described_class.with_merge_type(mock_node, :original_type)
         config = {
           CallNode: ->(node) { described_class.with_merge_type(node, :rewrapped_type) },
@@ -365,14 +316,12 @@ RSpec.describe Ast::Merge::NodeTyping do
       end
 
       it "falls back to class.to_s for type key" do
-        # The config should not match since we use class.to_s which is something like "#<Class:0x...>"
         config = {
           SomeOtherNode: ->(node) { described_class.with_merge_type(node, :other_type) },
         }
 
         result = described_class.process(anonymous_node, config)
 
-        # Should return unchanged since no match
         expect(result).to eq(anonymous_node)
       end
 
@@ -400,13 +349,11 @@ RSpec.describe Ast::Merge::NodeTyping do
 
       it "skips fully-qualified and underscored lookups when full_name is nil" do
         config = {
-          # Use string key that won't match the anonymous class's to_s
           "SomeNode" => ->(node) { described_class.with_merge_type(node, :some_type) },
         }
 
         result = described_class.process(anonymous_node, config)
 
-        # Should return unchanged since no match and full_name is nil
         expect(result).to eq(anonymous_node)
       end
     end
@@ -425,7 +372,6 @@ RSpec.describe Ast::Merge::NodeTyping do
 
       it "returns nil from find_typing_callable when no strategy matches" do
         config = {
-          # None of these will match MyModule::MyNode
           :OtherNode => ->(node) { described_class.with_merge_type(node, :other) },
           "Different::Path" => ->(node) { described_class.with_merge_type(node, :different) },
           :some_other_node => ->(node) { described_class.with_merge_type(node, :some_other) },
@@ -452,7 +398,6 @@ RSpec.describe Ast::Merge::NodeTyping do
 
       it "matches config with string type_key" do
         config = {
-          # Use string key matching the type_key derived from class
           "StringKeyNode" => ->(node) { described_class.with_merge_type(node, :string_match) },
         }
 
@@ -463,7 +408,7 @@ RSpec.describe Ast::Merge::NodeTyping do
       end
     end
 
-    context "with TypedNodeWrapper passed to process" do
+    context "with Wrapper passed to process" do
       let(:inner_node) do
         node_class = Class.new do
           class << self
@@ -475,7 +420,7 @@ RSpec.describe Ast::Merge::NodeTyping do
         double("InnerNode", class: node_class)
       end
 
-      it "unwraps TypedNodeWrapper to find matching splitter" do
+      it "unwraps Wrapper to find matching callable" do
         wrapped = described_class.with_merge_type(inner_node, :original_type)
         config = {
           InnerNode: ->(node) { described_class.with_merge_type(node, :new_type) },
