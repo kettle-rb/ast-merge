@@ -349,4 +349,441 @@ RSpec.describe Ast::Merge::Recipe::Runner do
       expect(runner).to be_a(described_class)
     end
   end
+
+  describe "mocked run behavior" do
+    # These tests mock PartialTemplateMerger to test Runner logic without requiring a real parser
+    let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :markly) }
+
+    let(:mock_merge_result_with_section) do
+      instance_double(
+        Ast::Merge::PartialTemplateMerger::Result,
+        section_found?: true,
+        has_section: true,
+        changed: true,
+        content: "merged content",
+        message: "Section merged successfully",
+        stats: {mode: :merge},
+      )
+    end
+
+    let(:mock_merge_result_unchanged) do
+      instance_double(
+        Ast::Merge::PartialTemplateMerger::Result,
+        section_found?: true,
+        has_section: true,
+        changed: false,
+        content: destination_with_anchor,
+        message: "Section unchanged",
+        stats: {},
+      )
+    end
+
+    let(:mock_merge_result_no_section) do
+      instance_double(
+        Ast::Merge::PartialTemplateMerger::Result,
+        section_found?: false,
+        has_section: false,
+        changed: false,
+        content: destination_without_anchor,
+        message: "Section not found, skipping",
+        stats: {},
+      )
+    end
+
+    let(:mock_merge_result_appended) do
+      instance_double(
+        Ast::Merge::PartialTemplateMerger::Result,
+        section_found?: false,
+        has_section: false,
+        changed: true,
+        content: "#{destination_without_anchor}\n\n#{template_content}",
+        message: "Section not found, appended template",
+        stats: {},
+      )
+    end
+
+    before do
+      # Stub recipe.expand_targets to return predictable files
+      allow(recipe).to receive(:expand_targets).and_return([
+        File.join(base_dir, "recipes", "with_anchor.md"),
+      ])
+    end
+
+    describe "#run with section found and changed" do
+      before do
+        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        allow(mock_merger).to receive(:merge).and_return(mock_merge_result_with_section)
+        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+      end
+
+      it "returns results array" do
+        results = runner.run
+        expect(results).to be_an(Array)
+        expect(results.size).to eq(1)
+      end
+
+      it "yields results when block given" do
+        yielded_results = []
+        runner.run { |r| yielded_results << r }
+        expect(yielded_results.size).to eq(1)
+      end
+
+      it "sets status to :would_update in dry_run mode" do
+        runner.run
+        expect(runner.results.first.status).to eq(:would_update)
+      end
+
+      it "sets changed to true" do
+        runner.run
+        expect(runner.results.first.changed).to be true
+      end
+
+      it "sets has_anchor to true" do
+        runner.run
+        expect(runner.results.first.has_anchor).to be true
+      end
+
+      it "includes stats from merge result" do
+        runner.run
+        expect(runner.results.first.stats).to eq({mode: :merge})
+      end
+    end
+
+    describe "#run with section found but unchanged" do
+      before do
+        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        allow(mock_merger).to receive(:merge).and_return(mock_merge_result_unchanged)
+        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+      end
+
+      it "sets status to :unchanged" do
+        runner.run
+        expect(runner.results.first.status).to eq(:unchanged)
+      end
+
+      it "sets changed to false" do
+        runner.run
+        expect(runner.results.first.changed).to be false
+      end
+
+      it "sets message to 'No changes needed'" do
+        runner.run
+        expect(runner.results.first.message).to eq("No changes needed")
+      end
+    end
+
+    describe "#run with section not found (skipped)" do
+      before do
+        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        allow(mock_merger).to receive(:merge).and_return(mock_merge_result_no_section)
+        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+      end
+
+      it "sets status to :skipped" do
+        runner.run
+        expect(runner.results.first.status).to eq(:skipped)
+      end
+
+      it "sets has_anchor to false" do
+        runner.run
+        expect(runner.results.first.has_anchor).to be false
+      end
+    end
+
+    describe "#run with section not found but appended" do
+      before do
+        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        allow(mock_merger).to receive(:merge).and_return(mock_merge_result_appended)
+        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+      end
+
+      it "sets status to :would_update in dry_run mode" do
+        runner.run
+        expect(runner.results.first.status).to eq(:would_update)
+      end
+
+      it "sets changed to true" do
+        runner.run
+        expect(runner.results.first.changed).to be true
+      end
+
+      it "sets has_anchor to false" do
+        runner.run
+        expect(runner.results.first.has_anchor).to be false
+      end
+    end
+
+    describe "#run with actual file write (not dry_run)" do
+      let(:runner) { described_class.new(recipe, dry_run: false, base_dir: base_dir, parser: :markly) }
+
+      before do
+        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        allow(mock_merger).to receive(:merge).and_return(mock_merge_result_with_section)
+        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+      end
+
+      it "writes file to disk" do
+        runner.run
+        content = File.read(File.join(base_dir, "recipes", "with_anchor.md"))
+        expect(content).to eq("merged content")
+      end
+
+      it "sets status to :updated" do
+        runner.run
+        expect(runner.results.first.status).to eq(:updated)
+      end
+
+      it "sets message to 'Updated'" do
+        runner.run
+        expect(runner.results.first.message).to eq("Updated")
+      end
+    end
+
+    describe "#run with file write for appended content (not dry_run)" do
+      let(:runner) { described_class.new(recipe, dry_run: false, base_dir: base_dir, parser: :markly) }
+
+      before do
+        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        allow(mock_merger).to receive(:merge).and_return(mock_merge_result_appended)
+        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+      end
+
+      it "writes appended content to disk" do
+        runner.run
+        content = File.read(File.join(base_dir, "recipes", "with_anchor.md"))
+        expect(content).to include("Template content")
+      end
+
+      it "sets status to :updated" do
+        runner.run
+        expect(runner.results.first.status).to eq(:updated)
+      end
+    end
+
+    describe "#run with exception" do
+      before do
+        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_raise(StandardError.new("Parse failed"))
+      end
+
+      it "catches exceptions and returns error result" do
+        runner.run
+        expect(runner.results.first.status).to eq(:error)
+      end
+
+      it "stores the exception in error attribute" do
+        runner.run
+        expect(runner.results.first.error).to be_a(StandardError)
+        expect(runner.results.first.error.message).to eq("Parse failed")
+      end
+
+      it "sets changed to false" do
+        runner.run
+        expect(runner.results.first.changed).to be false
+      end
+
+      it "sets has_anchor to false" do
+        runner.run
+        expect(runner.results.first.has_anchor).to be false
+      end
+
+      it "stores error message in message attribute" do
+        runner.run
+        expect(runner.results.first.message).to eq("Parse failed")
+      end
+    end
+  end
+
+  describe "#summary with mocked results" do
+    let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir) }
+
+    before do
+      # Directly set results to test summary logic without running actual merges
+      runner.instance_variable_set(:@results, [
+        described_class::Result.new(path: "a", relative_path: "a", status: :updated, changed: true, has_anchor: true, message: ""),
+        described_class::Result.new(path: "b", relative_path: "b", status: :updated, changed: true, has_anchor: true, message: ""),
+        described_class::Result.new(path: "c", relative_path: "c", status: :would_update, changed: true, has_anchor: true, message: ""),
+        described_class::Result.new(path: "d", relative_path: "d", status: :unchanged, changed: false, has_anchor: true, message: ""),
+        described_class::Result.new(path: "e", relative_path: "e", status: :skipped, changed: false, has_anchor: false, message: ""),
+        described_class::Result.new(path: "f", relative_path: "f", status: :error, changed: false, has_anchor: false, message: "err"),
+      ])
+    end
+
+    it "returns correct total" do
+      expect(runner.summary[:total]).to eq(6)
+    end
+
+    it "counts updated files" do
+      expect(runner.summary[:updated]).to eq(2)
+    end
+
+    it "counts would_update files" do
+      expect(runner.summary[:would_update]).to eq(1)
+    end
+
+    it "counts unchanged files" do
+      expect(runner.summary[:unchanged]).to eq(1)
+    end
+
+    it "counts skipped files" do
+      expect(runner.summary[:skipped]).to eq(1)
+    end
+
+    it "counts error files" do
+      expect(runner.summary[:errors]).to eq(1)
+    end
+  end
+
+  describe "#results_by_status with mocked results" do
+    let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir) }
+
+    before do
+      runner.instance_variable_set(:@results, [
+        described_class::Result.new(path: "a", relative_path: "a", status: :updated, changed: true, has_anchor: true, message: ""),
+        described_class::Result.new(path: "b", relative_path: "b", status: :updated, changed: true, has_anchor: true, message: ""),
+        described_class::Result.new(path: "c", relative_path: "c", status: :skipped, changed: false, has_anchor: false, message: ""),
+      ])
+    end
+
+    it "groups results by status symbol" do
+      by_status = runner.results_by_status
+      expect(by_status[:updated].size).to eq(2)
+      expect(by_status[:skipped].size).to eq(1)
+    end
+  end
+
+  describe "#results_table with mocked results" do
+    let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir) }
+
+    before do
+      runner.instance_variable_set(:@results, [
+        described_class::Result.new(path: "/full/path/a.md", relative_path: "a.md", status: :updated, changed: true, has_anchor: true, message: "Updated"),
+        described_class::Result.new(path: "/full/path/b.md", relative_path: "b.md", status: :unchanged, changed: false, has_anchor: true, message: "No changes"),
+      ])
+    end
+
+    it "returns array of hashes" do
+      table = runner.results_table
+      expect(table).to be_an(Array)
+      expect(table.size).to eq(2)
+    end
+
+    it "includes file relative path" do
+      table = runner.results_table
+      expect(table.first[:file]).to eq("a.md")
+    end
+
+    it "includes status as string" do
+      table = runner.results_table
+      expect(table.first[:status]).to eq("updated")
+    end
+
+    it "includes changed as yes/no" do
+      table = runner.results_table
+      expect(table.first[:changed]).to eq("yes")
+      expect(table.last[:changed]).to eq("no")
+    end
+
+    it "includes message" do
+      table = runner.results_table
+      expect(table.first[:message]).to eq("Updated")
+    end
+  end
+
+  describe "#summary_table with mocked results" do
+    let(:runner) { described_class.new(recipe, dry_run: false, base_dir: base_dir) }
+
+    before do
+      runner.instance_variable_set(:@results, [
+        described_class::Result.new(path: "a", relative_path: "a", status: :updated, changed: true, has_anchor: true, message: ""),
+        described_class::Result.new(path: "b", relative_path: "b", status: :unchanged, changed: false, has_anchor: true, message: ""),
+        described_class::Result.new(path: "c", relative_path: "c", status: :skipped, changed: false, has_anchor: false, message: ""),
+        described_class::Result.new(path: "d", relative_path: "d", status: :error, changed: false, has_anchor: false, message: ""),
+      ])
+    end
+
+    it "returns array of metric hashes" do
+      table = runner.summary_table
+      expect(table).to be_an(Array)
+      expect(table.size).to eq(5)
+    end
+
+    it "includes total files metric" do
+      table = runner.summary_table
+      total_row = table.find { |r| r[:metric] == "Total files" }
+      expect(total_row[:value]).to eq(4)
+    end
+
+    it "includes updated metric (not dry_run)" do
+      table = runner.summary_table
+      updated_row = table.find { |r| r[:metric] == "Updated" }
+      expect(updated_row[:value]).to eq(1)
+    end
+
+    it "includes unchanged metric" do
+      table = runner.summary_table
+      unchanged_row = table.find { |r| r[:metric] == "Unchanged" }
+      expect(unchanged_row[:value]).to eq(1)
+    end
+
+    it "includes skipped metric" do
+      table = runner.summary_table
+      skipped_row = table.find { |r| r[:metric] == "Skipped (no anchor)" }
+      expect(skipped_row[:value]).to eq(1)
+    end
+
+    it "includes errors metric" do
+      table = runner.summary_table
+      errors_row = table.find { |r| r[:metric] == "Errors" }
+      expect(errors_row[:value]).to eq(1)
+    end
+  end
+
+  describe "#summary_table in dry_run mode" do
+    let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir) }
+
+    before do
+      runner.instance_variable_set(:@results, [
+        described_class::Result.new(path: "a", relative_path: "a", status: :would_update, changed: true, has_anchor: true, message: ""),
+      ])
+    end
+
+    it "uses would_update count for Updated metric" do
+      table = runner.summary_table
+      updated_row = table.find { |r| r[:metric] == "Updated" }
+      expect(updated_row[:value]).to eq(1)
+    end
+  end
+
+  describe "#make_relative edge cases" do
+    let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir) }
+
+    it "handles path starting with base_dir" do
+      result = runner.send(:make_relative, File.join(base_dir, "some", "file.md"))
+      expect(result).to eq("some/file.md")
+    end
+
+    it "handles path not starting with base_dir but under recipe base" do
+      # Path under recipe's parent directory
+      recipe_base = File.dirname(recipe.recipe_path, 2)
+      result = runner.send(:make_relative, File.join(recipe_base, "other", "file.md"))
+      expect(result).to eq("other/file.md")
+    end
+
+    it "returns original path when not under any known base" do
+      result = runner.send(:make_relative, "/completely/different/path/file.md")
+      expect(result).to eq("/completely/different/path/file.md")
+    end
+  end
+
+  describe "#make_relative without recipe_path" do
+    let(:recipe_without_path) do
+      Ast::Merge::Recipe::Config.new(recipe_config)
+    end
+    let(:runner) { described_class.new(recipe_without_path, dry_run: true, base_dir: base_dir) }
+
+    it "handles nil recipe_path gracefully" do
+      result = runner.send(:make_relative, "/some/other/path/file.md")
+      expect(result).to eq("/some/other/path/file.md")
+    end
+  end
 end

@@ -20,6 +20,18 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- Comprehensive mocked tests for `Ast::Merge::Recipe::Runner` (47 new tests):
+  - Tests for `#run` method with section found, changed, and unchanged scenarios
+  - Tests for `#run` with section not found (skipped vs appended)
+  - Tests for actual file writes in non-dry_run mode
+  - Tests for exception handling during merge
+  - Tests for `#summary` with all status counts (updated, would_update, unchanged, skipped, errors)
+  - Tests for `#results_by_status` grouping
+  - Tests for `#results_table` formatting (file, status, changed, message)
+  - Tests for `#summary_table` in both dry_run and non-dry_run modes
+  - Tests for `#make_relative` edge cases (base_dir, recipe base, unknown paths)
+  - Tests for `#make_relative` without recipe_path
+
 ### Changed
 
 ### Deprecated
