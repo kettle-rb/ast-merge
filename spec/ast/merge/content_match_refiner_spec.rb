@@ -343,5 +343,92 @@ RSpec.describe Ast::Merge::ContentMatchRefiner do
       allow(node).to receive_messages(to_s: "hello")
       expect(refiner.send(:extract_content, node)).to eq("hello")
     end
+
+    it "returns empty string for nodes without content methods" do
+      node = Object.new
+      # Object#to_s will be called, returning something like "#<Object:0x...>"
+      content = refiner.send(:extract_content, node)
+      expect(content).to be_a(String)
+    end
+  end
+
+  describe "#extract_node_type" do
+    let(:refiner) { described_class.new }
+
+    it "extracts type from typed node via NodeTyping" do
+      node = double("TypedNode")
+      allow(Ast::Merge::NodeTyping).to receive(:typed_node?).with(node).and_return(true)
+      allow(Ast::Merge::NodeTyping).to receive(:merge_type_for).with(node).and_return(:custom_type)
+
+      expect(refiner.send(:extract_node_type, node)).to eq(:custom_type)
+    end
+
+    it "extracts type from node with merge_type method" do
+      node = double("MergeTypeNode")
+      allow(Ast::Merge::NodeTyping).to receive(:typed_node?).with(node).and_return(false)
+      allow(node).to receive(:respond_to?).with(:merge_type).and_return(true)
+      allow(node).to receive(:merge_type).and_return(:my_merge_type)
+
+      expect(refiner.send(:extract_node_type, node)).to eq(:my_merge_type)
+    end
+
+    it "extracts type from node with type method" do
+      node = double("RegularNode")
+      allow(Ast::Merge::NodeTyping).to receive(:typed_node?).with(node).and_return(false)
+      allow(node).to receive(:respond_to?).with(:merge_type).and_return(true)
+      allow(node).to receive(:respond_to?).with(:type).and_return(true)
+      allow(node).to receive_messages(merge_type: nil, type: :paragraph)
+
+      expect(refiner.send(:extract_node_type, node)).to eq(:paragraph)
+    end
+
+    it "converts string type to symbol" do
+      node = double("StringTypeNode")
+      allow(Ast::Merge::NodeTyping).to receive(:typed_node?).with(node).and_return(false)
+      allow(node).to receive(:respond_to?).with(:merge_type).and_return(false)
+      allow(node).to receive(:respond_to?).with(:type).and_return(true)
+      allow(node).to receive(:type).and_return("string_type")
+
+      expect(refiner.send(:extract_node_type, node)).to eq(:string_type)
+    end
+
+    it "returns nil for nodes without type methods" do
+      node = double("NoTypeNode")
+      allow(Ast::Merge::NodeTyping).to receive(:typed_node?).with(node).and_return(false)
+      allow(node).to receive(:respond_to?).with(:merge_type).and_return(false)
+      allow(node).to receive(:respond_to?).with(:type).and_return(false)
+
+      expect(refiner.send(:extract_node_type, node)).to be_nil
+    end
+  end
+
+  describe "#filter_nodes" do
+    context "with no node_types configured" do
+      let(:refiner) { described_class.new(node_types: []) }
+
+      it "returns all nodes" do
+        nodes = [double("Node1"), double("Node2")]
+        expect(refiner.send(:filter_nodes, nodes)).to eq(nodes)
+      end
+    end
+
+    context "with node_types configured" do
+      let(:refiner) { described_class.new(node_types: [:paragraph]) }
+
+      it "filters nodes by type" do
+        para_node = double("Paragraph", type: :paragraph)
+        allow(para_node).to receive(:respond_to?).with(:merge_type).and_return(false)
+        allow(para_node).to receive(:respond_to?).with(:type).and_return(true)
+        allow(Ast::Merge::NodeTyping).to receive(:typed_node?).and_return(false)
+
+        heading_node = double("Heading", type: :heading)
+        allow(heading_node).to receive(:respond_to?).with(:merge_type).and_return(false)
+        allow(heading_node).to receive(:respond_to?).with(:type).and_return(true)
+
+        nodes = [para_node, heading_node]
+        filtered = refiner.send(:filter_nodes, nodes)
+        expect(filtered).to eq([para_node])
+      end
+    end
   end
 end

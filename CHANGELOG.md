@@ -20,6 +20,34 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- Comprehensive tests for `Ast::Merge::AstNode` and nested structs (Point, Location)
+- Tests for `Ast::Merge::Comment::Style` class methods and instance methods
+- Tests for `Ast::Merge::Comment::Line` including freeze marker detection
+- Tests for `Ast::Merge::Comment::Block` including raw_content and children modes
+- Tests for `Ast::Merge::Comment::Parser` edge cases (unclosed blocks, mixed content, auto-detection)
+- Tests for `Ast::Merge::NavigableStatement` tree navigation methods
+- Tests for `Ast::Merge::InjectionPoint` (start_line, end_line, inspect)
+- Tests for `Ast::Merge::InjectionPointFinder` boundary options (boundary_type, boundary_text, boundary_matcher, boundary_same_or_shallower)
+- Tests for `Ast::Merge::PartialTemplateMerger::Result` including injection_point and default values
+- Tests for `Ast::Merge::PartialTemplateMerger` text pattern normalization (regex strings, plain strings)
+- Tests for `Ast::Merge::PartialTemplateMerger` anchor normalization with level options
+- Tests for `Ast::Merge::PartialTemplateMerger` unknown when_missing fallback behavior
+- Tests for `Ast::Merge::PartialTemplateMerger` section boundary detection and replace_mode behavior
+- Tests for `Ast::Merge::PartialTemplateMerger` unknown parser error handling
+- Tests for `Ast::Merge::Recipe::Runner::Result` stats and error attributes
+- Tests for `Ast::Merge::Recipe::Runner` actual file writes (non-dry-run mode)
+- Tests for `Ast::Merge::Recipe::Runner` error handling (unreadable files, missing template)
+- Tests for `Ast::Merge::Recipe::Runner` when_missing with append behavior
+- Tests for `Ast::Merge::Recipe::Config` same_or_shallower boundary, replace_mode, level options
+- Tests for `Ast::Merge::Recipe::Config` injection parsing with empty/nil/Regexp patterns
+- Tests for `Ast::Merge::Recipe::Config` expand_targets with absolute patterns
+- Tests for `Ast::Merge::Recipe::Preset` callable add_missing and node_typing
+- Tests for `Ast::Merge::Recipe::Preset` script_loader caching
+- Tests for `Ast::Merge::Recipe::ScriptLoader` syntax error handling
+- Tests for `Ast::Merge::Recipe::ScriptLoader` absolute path resolution
+- Tests for `Ast::Merge::ContentMatchRefiner` extract_node_type with typed nodes
+- Tests for `Ast::Merge::ContentMatchRefiner` filter_nodes with node_types
+
 ### Changed
 
 - tree_haver v3.2.1

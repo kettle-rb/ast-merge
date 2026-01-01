@@ -216,5 +216,61 @@ RSpec.describe Ast::Merge::Recipe::ScriptLoader do
       expect(scripts).to include("script1.rb")
       expect(scripts).to include("subdir/script2.rb")
     end
+
+    context "when scripts not available" do
+      let(:loader) { described_class.new }
+
+      it "returns empty array" do
+        expect(loader.available_scripts).to eq([])
+      end
+    end
+  end
+
+  describe "script file with syntax error" do
+    let(:loader) { described_class.new(recipe_path: recipe_path) }
+
+    before do
+      File.write(File.join(scripts_dir, "syntax_error.rb"), "def broken( end")
+    end
+
+    it "raises ArgumentError with syntax details" do
+      expect {
+        loader.load_callable("syntax_error.rb")
+      }.to raise_error(ArgumentError, /syntax error|failed to load/i)
+    end
+  end
+
+  describe "resolve_script_path edge cases" do
+    context "with absolute path" do
+      let(:loader) { described_class.new(recipe_path: recipe_path) }
+      let(:absolute_path) { File.join(tmpdir, "absolute_script.rb") }
+
+      before do
+        File.write(absolute_path, "->(x) { x * 3 }")
+      end
+
+      it "uses absolute path directly" do
+        callable = loader.load_callable(absolute_path)
+        expect(callable.call(2)).to eq(6)
+      end
+    end
+
+    context "when base_dir doesn't contain script" do
+      let(:loader) { described_class.new }
+
+      it "falls back to current directory resolution and raises error for missing file" do
+        expect {
+          loader.load_callable("definitely_nonexistent_script_12345.rb")
+        }.to raise_error(ArgumentError, /not found/i)
+      end
+    end
+  end
+
+  describe "#scripts_available? with nil base_dir" do
+    let(:loader) { described_class.new }
+
+    it "returns false" do
+      expect(loader.scripts_available?).to be false
+    end
   end
 end

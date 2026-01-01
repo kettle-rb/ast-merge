@@ -185,4 +185,184 @@ RSpec.describe Ast::Merge::Recipe::Config do
       expect(recipe.add_missing?).to be false
     end
   end
+
+  describe "#recipe_path" do
+    it "returns the preset_path" do
+      recipe = described_class.new(minimal_config, preset_path: "/path/to/recipe.yml")
+      expect(recipe.recipe_path).to eq("/path/to/recipe.yml")
+    end
+
+    it "supports recipe_path argument for backward compatibility" do
+      recipe = described_class.new(minimal_config, recipe_path: "/path/to/recipe.yml")
+      expect(recipe.recipe_path).to eq("/path/to/recipe.yml")
+    end
+  end
+
+  describe "#replace_mode?" do
+    it "returns false by default" do
+      recipe = described_class.new(minimal_config)
+      expect(recipe.replace_mode?).to be false
+    end
+
+    it "returns true when configured" do
+      config = minimal_config.merge("merge" => {"replace_mode" => true})
+      recipe = described_class.new(config)
+      expect(recipe.replace_mode?).to be true
+    end
+  end
+
+  describe "#finder_query with boundary options" do
+    context "with same_or_shallower boundary" do
+      let(:config_with_depth) do
+        {
+          "name" => "test",
+          "template" => "t.md",
+          "injection" => {
+            "anchor" => {
+              "type" => "heading",
+              "text" => "/Test/",
+            },
+            "boundary" => {
+              "type" => "heading",
+              "same_or_shallower" => true,
+            },
+          },
+        }
+      end
+
+      it "includes boundary_same_or_shallower in query" do
+        recipe = described_class.new(config_with_depth)
+        query = recipe.finder_query
+        expect(query[:boundary_same_or_shallower]).to be true
+      end
+    end
+
+    context "without boundary" do
+      let(:config_no_boundary) do
+        {
+          "name" => "simple",
+          "template" => "t.md",
+          "injection" => {
+            "anchor" => {"type" => "heading"},
+          },
+        }
+      end
+
+      it "handles missing boundary gracefully" do
+        recipe = described_class.new(config_no_boundary)
+        query = recipe.finder_query
+        expect(query[:boundary_type]).to be_nil
+      end
+    end
+  end
+
+  describe "#injection parsing" do
+    context "with empty injection config" do
+      let(:config_empty_injection) do
+        minimal_config.merge("injection" => {})
+      end
+
+      it "returns empty hash for empty config" do
+        recipe = described_class.new(config_empty_injection)
+        expect(recipe.injection).to eq({})
+      end
+    end
+
+    context "with level options" do
+      let(:config_with_levels) do
+        minimal_config.merge(
+          "injection" => {
+            "anchor" => {
+              "type" => "heading",
+              "level" => 2,
+              "level_lte" => 3,
+              "level_gte" => 1,
+            },
+          },
+        )
+      end
+
+      it "preserves level options in anchor" do
+        recipe = described_class.new(config_with_levels)
+        expect(recipe.injection[:anchor][:level]).to eq(2)
+        expect(recipe.injection[:anchor][:level_lte]).to eq(3)
+        expect(recipe.injection[:anchor][:level_gte]).to eq(1)
+      end
+    end
+
+    context "with Regexp text pattern" do
+      let(:config_with_regexp) do
+        minimal_config.merge(
+          "injection" => {
+            "anchor" => {
+              "type" => "heading",
+              "text" => /Already a Regexp/,
+            },
+          },
+        )
+      end
+
+      it "preserves Regexp patterns" do
+        recipe = described_class.new(config_with_regexp)
+        expect(recipe.injection[:anchor][:text]).to be_a(Regexp)
+        expect(recipe.injection[:anchor][:text]).to eq(/Already a Regexp/)
+      end
+    end
+
+    context "with plain string text pattern" do
+      let(:config_with_string) do
+        minimal_config.merge(
+          "injection" => {
+            "anchor" => {
+              "type" => "heading",
+              "text" => "Plain String",
+            },
+          },
+        )
+      end
+
+      it "keeps plain strings as strings" do
+        recipe = described_class.new(config_with_string)
+        expect(recipe.injection[:anchor][:text]).to eq("Plain String")
+      end
+    end
+
+    context "with nil text pattern" do
+      let(:config_nil_text) do
+        minimal_config.merge(
+          "injection" => {
+            "anchor" => {
+              "type" => "heading",
+            },
+          },
+        )
+      end
+
+      it "handles nil text gracefully" do
+        recipe = described_class.new(config_nil_text)
+        expect(recipe.injection[:anchor][:text]).to be_nil
+      end
+    end
+  end
+
+  describe "#expand_targets with absolute patterns" do
+    let(:base_dir) { Dir.mktmpdir }
+
+    before do
+      File.write(File.join(base_dir, "absolute_test.md"), "# Test")
+    end
+
+    after do
+      FileUtils.rm_rf(base_dir)
+    end
+
+    it "handles absolute glob patterns" do
+      config = minimal_config.merge(
+        "targets" => [File.join(base_dir, "*.md")],
+      )
+      recipe = described_class.new(config)
+      paths = recipe.expand_targets
+      expect(paths).to include(File.join(base_dir, "absolute_test.md"))
+    end
+  end
 end

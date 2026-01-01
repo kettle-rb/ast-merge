@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 module Ast
   module Merge
     module Comment

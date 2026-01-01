@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 module Ast
   module Merge
     # Mixin module for file analysis classes across all *-merge gems.

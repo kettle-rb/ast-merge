@@ -159,5 +159,52 @@ RSpec.describe Ast::Merge::Recipe::Preset do
       expect(preset.node_typing).to be_a(Hash)
       expect(preset.node_typing["CallNode"]).to respond_to(:call)
     end
+
+    it "returns existing callables unchanged" do
+      existing_callable = ->(n) { [:already, n] }
+      config = minimal_config.merge("merge" => {
+        "node_typing" => {"SomeType" => existing_callable},
+      })
+      preset = described_class.new(config)
+
+      expect(preset.node_typing["SomeType"]).to eq(existing_callable)
+    end
+  end
+
+  describe "#add_missing with callable" do
+    it "returns callable when configured as callable" do
+      filter = ->(node, _entry) { node.type == :paragraph }
+      config = minimal_config.merge("merge" => {"add_missing" => filter})
+      preset = described_class.new(config)
+
+      expect(preset.add_missing).to eq(filter)
+    end
+
+    it "add_missing? is an alias" do
+      preset = described_class.new(minimal_config)
+      expect(preset.add_missing?).to eq(preset.add_missing)
+    end
+  end
+
+  describe "#script_loader" do
+    it "returns a ScriptLoader instance" do
+      preset = described_class.new(minimal_config, preset_path: "/some/path.yml")
+      expect(preset.script_loader).to be_a(Ast::Merge::Recipe::ScriptLoader)
+    end
+
+    it "caches the script_loader" do
+      preset = described_class.new(minimal_config)
+      loader1 = preset.script_loader
+      loader2 = preset.script_loader
+      expect(loader1).to equal(loader2)
+    end
+  end
+
+  describe "parse_preference edge cases" do
+    it "returns nil for nil preference" do
+      config = minimal_config.merge("merge" => {"preference" => nil})
+      preset = described_class.new(config)
+      expect(preset.preference).to eq(:template)
+    end
   end
 end

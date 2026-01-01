@@ -98,6 +98,422 @@ RSpec.describe Ast::Merge::NavigableStatement do
       result = statements[0].take_until { |s| s.type == :class }
       expect(result).to eq([statements[1]])
     end
+
+    it "returns empty array when no statements before condition" do
+      result = statements[1].take_until { |s| s.type == :class }
+      expect(result).to eq([])
+    end
+
+    it "returns all following when condition never true" do
+      result = statements[0].take_until { |s| s.type == :nonexistent }
+      expect(result.size).to eq(3)
+    end
+  end
+
+  describe "#tree_previous" do
+    context "when node responds to previous" do
+      let(:prev_node) do
+        node = Object.new
+        allow(node).to receive_messages(type: :heading)
+        node
+      end
+
+      let(:tree_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :paragraph,
+          previous: prev_node,
+          source_position: {start_line: 2, end_line: 2},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(tree_node, index: 1) }
+
+      it "returns previous sibling" do
+        expect(statement.tree_previous.type).to eq(:heading)
+      end
+    end
+
+    context "when node does not respond to previous" do
+      let(:simple_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :simple,
+          to_s: "simple",
+          source_position: {start_line: 1, end_line: 1},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(simple_node, index: 0) }
+
+      it "returns nil" do
+        expect(statement.tree_previous).to be_nil
+      end
+    end
+  end
+
+  describe "#tree_children" do
+    context "when node responds to each" do
+      let(:children) { [mock_node, class_node] }
+      let(:enumerable_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :document,
+          source_position: {start_line: 1, end_line: 10},
+        )
+        allow(node).to receive(:each).and_yield(children[0]).and_yield(children[1])
+        allow(node).to receive(:to_a).and_return(children)
+        node
+      end
+
+      let(:statement) { described_class.new(enumerable_node, index: 0) }
+
+      it "returns children array" do
+        expect(statement.tree_children).to eq(children)
+      end
+    end
+
+    context "when node responds to children" do
+      let(:children) { [mock_node] }
+      let(:node_with_children) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :section,
+          children: children,
+          source_position: {start_line: 1, end_line: 5},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(node_with_children, index: 0) }
+
+      it "returns children" do
+        expect(statement.tree_children).to eq(children)
+      end
+    end
+
+    context "when node has neither each nor children" do
+      let(:leaf_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :text,
+          to_s: "text content",
+          source_position: {start_line: 1, end_line: 1},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(leaf_node, index: 0) }
+
+      it "returns empty array" do
+        expect(statement.tree_children).to eq([])
+      end
+    end
+  end
+
+  describe "#tree_first_child" do
+    context "when node responds to first_child" do
+      let(:first) { mock_node }
+      let(:parent_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :document,
+          first_child: first,
+          source_position: {start_line: 1, end_line: 10},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(parent_node, index: 0) }
+
+      it "returns first child" do
+        expect(statement.tree_first_child).to eq(first)
+      end
+    end
+  end
+
+  describe "#tree_last_child" do
+    context "when node responds to last_child" do
+      let(:last) { class_node }
+      let(:parent_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :document,
+          last_child: last,
+          source_position: {start_line: 1, end_line: 10},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(parent_node, index: 0) }
+
+      it "returns last child" do
+        expect(statement.tree_last_child).to eq(last)
+      end
+    end
+  end
+
+  describe "#text" do
+    context "when node responds to to_plaintext" do
+      let(:plaintext_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :paragraph,
+          to_plaintext: "Plain text content",
+          source_position: {start_line: 1, end_line: 1},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(plaintext_node, index: 0) }
+
+      it "uses to_plaintext" do
+        expect(statement.text).to eq("Plain text content")
+      end
+    end
+
+    context "when node responds to to_commonmark" do
+      let(:commonmark_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :paragraph,
+          to_commonmark: "# Heading",
+          source_position: {start_line: 1, end_line: 1},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(commonmark_node, index: 0) }
+
+      it "uses to_commonmark" do
+        expect(statement.text).to eq("# Heading")
+      end
+    end
+
+    context "when node responds to slice" do
+      let(:slice_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :code,
+          slice: "def foo; end",
+          source_position: {start_line: 1, end_line: 1},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(slice_node, index: 0) }
+
+      it "uses slice" do
+        expect(statement.text).to eq("def foo; end")
+      end
+    end
+
+    context "when node responds to text" do
+      let(:text_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :inline,
+          text: "inline text",
+          source_position: {start_line: 1, end_line: 1},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(text_node, index: 0) }
+
+      it "uses text" do
+        expect(statement.text).to eq("inline text")
+      end
+    end
+
+    context "when node has no text methods" do
+      let(:basic_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :basic,
+          source_position: {start_line: 1, end_line: 1},
+        )
+        allow(node).to receive(:to_s).and_return("basic string")
+        node
+      end
+
+      let(:statement) { described_class.new(basic_node, index: 0) }
+
+      it "uses to_s" do
+        expect(statement.text).to eq("basic string")
+      end
+    end
+  end
+
+  describe "#type when node doesn't respond to type" do
+    let(:untyped_node) do
+      node = Object.new
+      allow(node).to receive_messages(
+        to_s: "content",
+        source_position: {start_line: 1, end_line: 1},
+      )
+      node
+    end
+
+    let(:statement) { described_class.new(untyped_node, index: 0) }
+
+    it "derives type from class name" do
+      expect(statement.type).to eq("Object")
+    end
+  end
+
+  describe "#signature when node doesn't respond to signature" do
+    let(:unsigned_node) do
+      node = Object.new
+      allow(node).to receive_messages(
+        type: :simple,
+        to_s: "content",
+        source_position: {start_line: 1, end_line: 1},
+      )
+      node
+    end
+
+    let(:statement) { described_class.new(unsigned_node, index: 0) }
+
+    it "returns nil" do
+      expect(statement.signature).to be_nil
+    end
+  end
+
+  describe "#source_position when node doesn't respond to source_position" do
+    let(:unpositioned_node) do
+      node = Object.new
+      allow(node).to receive_messages(
+        type: :orphan,
+        to_s: "orphan content",
+      )
+      node
+    end
+
+    let(:statement) { described_class.new(unpositioned_node, index: 0) }
+
+    it "returns nil" do
+      expect(statement.source_position).to be_nil
+    end
+
+    it "#start_line returns nil" do
+      expect(statement.start_line).to be_nil
+    end
+
+    it "#end_line returns nil" do
+      expect(statement.end_line).to be_nil
+    end
+  end
+
+  describe "#unwrapped_node" do
+    context "with wrapper node" do
+      let(:inner) { mock_node }
+      let(:wrapper) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :wrapper,
+          inner_node: inner,
+          source_position: {start_line: 1, end_line: 1},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(wrapper, index: 0) }
+
+      it "returns inner node" do
+        expect(statement.unwrapped_node).to eq(inner)
+      end
+    end
+
+    context "with self-referencing inner_node" do
+      let(:self_ref_node) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :self_ref,
+          source_position: {start_line: 1, end_line: 1},
+        )
+        allow(node).to receive(:inner_node).and_return(node)
+        node
+      end
+
+      let(:statement) { described_class.new(self_ref_node, index: 0) }
+
+      it "returns the node itself" do
+        expect(statement.unwrapped_node).to eq(self_ref_node)
+      end
+    end
+  end
+
+  describe "#inspect" do
+    let(:statement) { described_class.new(mock_node, index: 5) }
+
+    it "returns human-readable representation" do
+      expect(statement.inspect).to match(/#<NavigableStatement\[5\] type=paragraph tree=false>/)
+    end
+  end
+
+  describe "#to_s" do
+    let(:long_node) do
+      node = Object.new
+      allow(node).to receive_messages(
+        type: :paragraph,
+        to_s: "This is a very long text that exceeds fifty characters and should be truncated",
+        source_position: {start_line: 1, end_line: 1},
+      )
+      node
+    end
+
+    let(:statement) { described_class.new(long_node, index: 0) }
+
+    it "returns truncated text" do
+      expect(statement.to_s.length).to be <= 50
+    end
+  end
+
+  describe "#method_missing" do
+    let(:node_with_custom_method) do
+      node = Object.new
+      allow(node).to receive_messages(
+        type: :custom,
+        custom_method: "custom_value",
+        source_position: {start_line: 1, end_line: 1},
+      )
+      node
+    end
+
+    let(:statement) { described_class.new(node_with_custom_method, index: 0) }
+
+    it "delegates to node" do
+      expect(statement.custom_method).to eq("custom_value")
+    end
+
+    it "raises NoMethodError for unknown methods" do
+      expect { statement.nonexistent_method }.to raise_error(NoMethodError)
+    end
+  end
+
+  describe "#respond_to_missing?" do
+    let(:node_with_method) do
+      node = Object.new
+      allow(node).to receive_messages(
+        type: :custom,
+        special_method: true,
+        source_position: {start_line: 1, end_line: 1},
+      )
+      node
+    end
+
+    let(:statement) { described_class.new(node_with_method, index: 0) }
+
+    it "returns true for methods node responds to" do
+      expect(statement.respond_to?(:special_method)).to be true
+    end
+
+    it "returns false for methods node doesn't respond to" do
+      expect(statement.respond_to?(:unknown_method)).to be false
+    end
   end
 
   describe "tree navigation" do
@@ -460,6 +876,87 @@ RSpec.describe Ast::Merge::InjectionPoint do
       expect(point.replaced_statements).to eq([statements[1], statements[2], statements[3]])
     end
   end
+
+  describe "#start_line" do
+    let(:nodes) do
+      (0..2).map do |i|
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :paragraph,
+          to_s: "Content #{i}",
+          source_position: {start_line: (i + 1) * 10, end_line: (i + 1) * 10 + 5},
+        )
+        node
+      end
+    end
+
+    let(:statements) { Ast::Merge::NavigableStatement.build_list(nodes) }
+
+    it "returns anchor start line" do
+      point = described_class.new(anchor: statements[1], position: :replace)
+      expect(point.start_line).to eq(20)
+    end
+  end
+
+  describe "#end_line" do
+    let(:nodes) do
+      (0..2).map do |i|
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :paragraph,
+          to_s: "Content #{i}",
+          source_position: {start_line: (i + 1) * 10, end_line: (i + 1) * 10 + 5},
+        )
+        node
+      end
+    end
+
+    let(:statements) { Ast::Merge::NavigableStatement.build_list(nodes) }
+
+    it "returns anchor end line when no boundary" do
+      point = described_class.new(anchor: statements[1], position: :replace)
+      expect(point.end_line).to eq(25)
+    end
+
+    it "returns boundary end line when boundary present" do
+      point = described_class.new(
+        anchor: statements[0],
+        position: :replace,
+        boundary: statements[2],
+      )
+      expect(point.end_line).to eq(35)
+    end
+  end
+
+  describe "#inspect" do
+    let(:nodes) do
+      2.times.map do |i|
+        node = Object.new
+        allow(node).to receive_messages(
+          type: :paragraph,
+          to_s: "Content #{i}",
+          source_position: {start_line: i + 1, end_line: i + 1},
+        )
+        node
+      end
+    end
+
+    let(:statements) { Ast::Merge::NavigableStatement.build_list(nodes) }
+
+    it "returns readable representation without boundary" do
+      point = described_class.new(anchor: statements[0], position: :before)
+      expect(point.inspect).to eq("#<InjectionPoint position=before anchor=0>")
+    end
+
+    it "returns readable representation with boundary" do
+      point = described_class.new(
+        anchor: statements[0],
+        position: :replace,
+        boundary: statements[1],
+      )
+      expect(point.inspect).to eq("#<InjectionPoint position=replace anchor=0 to 1>")
+    end
+  end
 end
 
 RSpec.describe Ast::Merge::InjectionPointFinder do
@@ -512,6 +1009,97 @@ RSpec.describe Ast::Merge::InjectionPointFinder do
     it "includes metadata about the match" do
       point = finder.find(type: :method, position: :before)
       expect(point.metadata[:match]).to include(type: :method)
+    end
+
+    context "with boundary_type" do
+      it "finds boundary by type" do
+        point = finder.find(type: :class, position: :replace, boundary_type: :method)
+        expect(point.boundary).not_to be_nil
+        expect(point.boundary.type).to eq(:method)
+      end
+    end
+
+    context "with boundary_text" do
+      it "finds boundary by text pattern" do
+        point = finder.find(type: :class, position: :replace, boundary_text: /baz/)
+        expect(point.boundary).not_to be_nil
+        expect(point.boundary.text).to include("baz")
+      end
+    end
+
+    context "with boundary_matcher proc" do
+      it "uses custom matcher for boundary" do
+        matcher = ->(stmt) { stmt.type == :method }
+        point = finder.find(type: :class, position: :replace, boundary_matcher: matcher)
+        expect(point.boundary).not_to be_nil
+        expect(point.boundary.type).to eq(:method)
+      end
+    end
+
+    context "with boundary_same_or_shallower" do
+      let(:grandparent) do
+        node = Object.new
+        allow(node).to receive_messages(type: :document, parent: nil)
+        node
+      end
+
+      let(:parent) do
+        node = Object.new
+        allow(node).to receive_messages(type: :section, parent: grandparent)
+        node
+      end
+
+      let(:nested_nodes) do
+        child = Object.new
+        allow(child).to receive_messages(
+          type: :heading,
+          to_s: "# Child",
+          source_position: {start_line: 1, end_line: 1},
+          parent: parent,
+        )
+
+        deeper = Object.new
+        deeper_parent = Object.new
+        allow(deeper_parent).to receive_messages(type: :subsection, parent: parent)
+        allow(deeper).to receive_messages(
+          type: :paragraph,
+          to_s: "Content",
+          source_position: {start_line: 2, end_line: 2},
+          parent: deeper_parent,
+        )
+
+        sibling = Object.new
+        allow(sibling).to receive_messages(
+          type: :heading,
+          to_s: "# Sibling",
+          source_position: {start_line: 3, end_line: 3},
+          parent: parent,
+        )
+
+        [child, deeper, sibling]
+      end
+
+      let(:statements) { Ast::Merge::NavigableStatement.build_list(nested_nodes) }
+      let(:finder) { described_class.new(statements) }
+
+      it "finds boundary at same or shallower depth" do
+        point = finder.find(type: :heading, position: :replace, boundary_same_or_shallower: true)
+        expect(point).not_to be_nil
+        # The boundary should be the sibling heading (same depth), not the deeper paragraph
+        expect(point.boundary&.type).to eq(:heading)
+        expect(point.boundary&.index).to eq(2)
+      end
+
+      it "can filter boundary by type with depth check" do
+        point = finder.find(
+          type: :heading,
+          position: :replace,
+          boundary_type: :heading,
+          boundary_same_or_shallower: true,
+        )
+        expect(point.boundary).not_to be_nil
+        expect(point.boundary.type).to eq(:heading)
+      end
     end
   end
 

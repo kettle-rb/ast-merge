@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 module Ast
   module Merge
     # Base class for freeze block nodes in AST merge libraries.
