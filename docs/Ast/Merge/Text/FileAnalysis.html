@@ -390,18 +390,18 @@ the merge infrastructure with any text-based content.</p>
       <pre class="lines">
 
 
+41
+42
+43
 44
 45
 46
 47
 48
-49
-50
-51
-52</pre>
+49</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/file_analysis.rb', line 44</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/file_analysis.rb', line 41</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_source'>source</span><span class='comma'>,</span> <span class='label'>freeze_token:</span> <span class='const'><span class='object_link'><a href="#DEFAULT_FREEZE_TOKEN-constant" title="Ast::Merge::Text::FileAnalysis::DEFAULT_FREEZE_TOKEN (constant)">DEFAULT_FREEZE_TOKEN</a></span></span><span class='comma'>,</span> <span class='label'>signature_generator:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
   <span class='ivar'>@source</span> <span class='op'>=</span> <span class='id identifier rubyid_source'>source</span>
@@ -466,12 +466,12 @@ the merge infrastructure with any text-based content.</p>
       <pre class="lines">
 
 
-57
-58
-59</pre>
+54
+55
+56</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/file_analysis.rb', line 57</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/file_analysis.rb', line 54</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_statements'>statements</span>
   <span class='ivar'>@statements</span>
@@ -549,17 +549,17 @@ the merge infrastructure with any text-based content.</p>
       <pre class="lines">
 
 
+60
+61
+62
 63
 64
 65
 66
-67
-68
-69
-70</pre>
+67</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/file_analysis.rb', line 63</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/file_analysis.rb', line 60</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_compute_node_signature'>compute_node_signature</span><span class='lparen'>(</span><span class='id identifier rubyid_node'>node</span><span class='rparen'>)</span>
   <span class='kw'>case</span> <span class='id identifier rubyid_node'>node</span>
@@ -635,12 +635,12 @@ the merge infrastructure with any text-based content.</p>
       <pre class="lines">
 
 
-76
-77
-78</pre>
+73
+74
+75</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/file_analysis.rb', line 76</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/file_analysis.rb', line 73</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_fallthrough_node?'>fallthrough_node?</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="LineNode.html" title="Ast::Merge::Text::LineNode (class)">LineNode</a></span></span><span class='rparen'>)</span> <span class='op'>||</span> <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../FreezeNodeBase.html" title="Ast::Merge::FreezeNodeBase (class)">FreezeNodeBase</a></span></span><span class='rparen'>)</span> <span class='op'>||</span> <span class='kw'>super</span>
@@ -655,7 +655,7 @@ the merge infrastructure with any text-based content.</p>
 </div>
 
       <div id="footer">
-  Generated on Wed Dec 31 02:10:51 2025 by
+  Generated on Wed Dec 31 20:38:31 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

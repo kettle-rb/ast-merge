@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [2.0.5] - 2025-12-31
+
+- TAG: [v2.0.5][2.0.5t]
+- COVERAGE: 91.68% -- 2379/2595 lines in 44 files
+- BRANCH COVERAGE: 81.37% -- 782/961 branches in 44 files
+- 98.82% documented
+
+### Added
+
 - Comprehensive tests for `Ast::Merge::AstNode` and nested structs (Point, Location)
 - Tests for `Ast::Merge::Comment::Style` class methods and instance methods
 - Tests for `Ast::Merge::Comment::Line` including freeze marker detection
@@ -52,14 +71,6 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - tree_haver v3.2.1
 - Internal files now use autoload instead of `require_relative` for consistency
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [2.0.4] - 2025-12-31
 
@@ -348,7 +359,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.4...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.5...HEAD
+[2.0.5]: https://github.com/kettle-rb/ast-merge/compare/v2.0.4...v2.0.5
+[2.0.5t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.5
 [2.0.4]: https://github.com/kettle-rb/ast-merge/compare/v2.0.3...v2.0.4
 [2.0.4t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.4
 [2.0.3]: https://github.com/kettle-rb/ast-merge/compare/v2.0.2...v2.0.3

@@ -587,6 +587,8 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
       <pre class="lines">
 
 
+32
+33
 34
 35
 36
@@ -597,12 +599,10 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
 41
 42
 43
-44
-45
-46</pre>
+44</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 34</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 32</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_content'>content</span><span class='comma'>,</span> <span class='label'>line_number:</span><span class='comma'>,</span> <span class='label'>word_index:</span><span class='comma'>,</span> <span class='label'>start_col:</span><span class='comma'>,</span> <span class='label'>end_col:</span><span class='rparen'>)</span>
   <span class='ivar'>@content</span> <span class='op'>=</span> <span class='id identifier rubyid_content'>content</span>
@@ -671,12 +671,12 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
       <pre class="lines">
 
 
-22
-23
-24</pre>
+20
+21
+22</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 22</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 20</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_content'>content</span>
   <span class='ivar'>@content</span>
@@ -730,12 +730,12 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
       <pre class="lines">
 
 
-25
-26
-27</pre>
+23
+24
+25</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 25</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 23</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_word_index'>word_index</span>
   <span class='ivar'>@word_index</span>
@@ -817,12 +817,12 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
       <pre class="lines">
 
 
-90
-91
-92</pre>
+88
+89
+90</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 90</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 88</span>
 
 <span class='kw'>def</span> <span class='op'>==</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="" title="Ast::Merge::Text::WordNode (class)">WordNode</a></span></span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@content</span> <span class='op'>==</span> <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_content'>content</span>
@@ -870,12 +870,12 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
       <pre class="lines">
 
 
-82
-83
-84</pre>
+80
+81
+82</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 82</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 80</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_end_col'>end_col</span>
   <span class='id identifier rubyid_location'>location</span><span class='period'>.</span><span class='id identifier rubyid_end_column'>end_column</span>
@@ -927,12 +927,12 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
       <pre class="lines">
 
 
-99
-100
-101</pre>
+97
+98
+99</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 99</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 97</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_hash'>hash</span>
   <span class='ivar'>@content</span><span class='period'>.</span><span class='id identifier rubyid_hash'>hash</span>
@@ -984,12 +984,12 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
       <pre class="lines">
 
 
-106
-107
-108</pre>
+104
+105
+106</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 106</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 104</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_inspect'>inspect</span>
   <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>#&lt;WordNode </span><span class='embexpr_beg'>#{</span><span class='ivar'>@content</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'> line=</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_line_number'>line_number</span><span class='embexpr_end'>}</span><span class='tstring_content'> col=</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_start_col'>start_col</span><span class='embexpr_end'>}</span><span class='tstring_content'>..</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_end_col'>end_col</span><span class='embexpr_end'>}</span><span class='tstring_content'>&gt;</span><span class='tstring_end'>&quot;</span></span>
@@ -1037,12 +1037,12 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
       <pre class="lines">
 
 
-70
-71
-72</pre>
+68
+69
+70</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 70</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 68</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_line_number'>line_number</span>
   <span class='id identifier rubyid_location'>location</span><span class='period'>.</span><span class='id identifier rubyid_start_line'>start_line</span>
@@ -1090,12 +1090,12 @@ protocol, making it compatible with all tree_haver-based merge operations.</p>
       <pre class="lines">
 
 
-64
-65
-66</pre>
+62
+63
+64</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 64</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 62</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_normalized_content'>normalized_content</span>
   <span class='ivar'>@content</span>
@@ -1148,12 +1148,12 @@ The signature is used for matching words across template/destination.</p>
       <pre class="lines">
 
 
-58
-59
-60</pre>
+56
+57
+58</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 58</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 56</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_signature'>signature</span>
   <span class='lbracket'>[</span><span class='symbol'>:word</span><span class='comma'>,</span> <span class='ivar'>@content</span><span class='rbracket'>]</span>
@@ -1201,12 +1201,12 @@ The signature is used for matching words across template/destination.</p>
       <pre class="lines">
 
 
-76
-77
-78</pre>
+74
+75
+76</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 76</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 74</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_start_col'>start_col</span>
   <span class='id identifier rubyid_location'>location</span><span class='period'>.</span><span class='id identifier rubyid_start_column'>start_column</span>
@@ -1258,12 +1258,12 @@ The signature is used for matching words across template/destination.</p>
       <pre class="lines">
 
 
-113
-114
-115</pre>
+111
+112
+113</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 113</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 111</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_to_s'>to_s</span>
   <span class='ivar'>@content</span>
@@ -1315,12 +1315,12 @@ The signature is used for matching words across template/destination.</p>
       <pre class="lines">
 
 
-50
-51
-52</pre>
+48
+49
+50</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 50</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/text/word_node.rb', line 48</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_type'>type</span>
   <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>word_node</span><span class='tstring_end'>&quot;</span></span>
@@ -1335,7 +1335,7 @@ The signature is used for matching words across template/destination.</p>
 </div>
 
       <div id="footer">
-  Generated on Wed Dec 31 02:10:51 2025 by
+  Generated on Wed Dec 31 20:38:30 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

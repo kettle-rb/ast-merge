@@ -531,6 +531,9 @@ For block-style comments (/* … */), pass <code>raw_content</code>.</p>
       <pre class="lines">
 
 
+57
+58
+59
 60
 61
 62
@@ -555,13 +558,10 @@ For block-style comments (/* … */), pass <code>raw_content</code>.</p>
 81
 82
 83
-84
-85
-86
-87</pre>
+84</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 60</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 57</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='label'>children:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>raw_content:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>start_line:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>end_line:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
   <span class='ivar'>@style</span> <span class='op'>=</span> <span class='id identifier rubyid_resolve_style'>resolve_style</span><span class='lparen'>(</span><span class='id identifier rubyid_style'>style</span><span class='rparen'>)</span>
@@ -645,12 +645,12 @@ For block-style comments (/* … */), pass <code>raw_content</code>.</p>
       <pre class="lines">
 
 
-36
-37
-38</pre>
+33
+34
+35</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 36</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 33</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_children'>children</span>
   <span class='ivar'>@children</span>
@@ -704,12 +704,12 @@ For block-style comments (/* … */), pass <code>raw_content</code>.</p>
       <pre class="lines">
 
 
-39
-40
-41</pre>
+36
+37
+38</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 39</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 36</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_raw_content'>raw_content</span>
   <span class='ivar'>@raw_content</span>
@@ -763,12 +763,12 @@ For block-style comments (/* … */), pass <code>raw_content</code>.</p>
       <pre class="lines">
 
 
-42
-43
-44</pre>
+39
+40
+41</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 42</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 39</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_style'>style</span>
   <span class='ivar'>@style</span>
@@ -846,19 +846,19 @@ For block-style comments (/* … */), pass <code>raw_content</code>.</p>
       <pre class="lines">
 
 
+113
+114
+115
 116
 117
 118
 119
 120
 121
-122
-123
-124
-125</pre>
+122</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 116</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 113</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_freeze_marker?'>freeze_marker?</span><span class='lparen'>(</span><span class='id identifier rubyid_freeze_token'>freeze_token</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>false</span> <span class='kw'>unless</span> <span class='id identifier rubyid_freeze_token'>freeze_token</span>
@@ -917,16 +917,16 @@ For block-style comments (/* … */), pass <code>raw_content</code>.</p>
       <pre class="lines">
 
 
+125
+126
+127
 128
 129
 130
-131
-132
-133
-134</pre>
+131</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 128</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 125</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_inspect'>inspect</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_raw_content'>raw_content</span>
@@ -982,19 +982,19 @@ For block-style comments (/* … */), pass <code>raw_content</code>.</p>
       <pre class="lines">
 
 
+98
+99
+100
 101
 102
 103
 104
 105
 106
-107
-108
-109
-110</pre>
+107</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 101</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 98</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_normalized_content'>normalized_content</span>
   <span class='kw'>if</span> <span class='id identifier rubyid_raw_content'>raw_content</span>
@@ -1056,13 +1056,13 @@ For block-style comments, uses the first meaningful line of content.</p>
       <pre class="lines">
 
 
-95
-96
-97
-98</pre>
+92
+93
+94
+95</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 95</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 92</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_signature'>signature</span>
   <span class='id identifier rubyid_content'>content</span> <span class='op'>=</span> <span class='id identifier rubyid_first_meaningful_content'>first_meaningful_content</span>
@@ -1115,12 +1115,12 @@ For block-style comments, uses the first meaningful line of content.</p>
       <pre class="lines">
 
 
-46
-47
-48</pre>
+43
+44
+45</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 46</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/comment/block.rb', line 43</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_type'>type</span>
   <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>comment_block</span><span class='tstring_end'>&quot;</span></span>
@@ -1135,7 +1135,7 @@ For block-style comments, uses the first meaningful line of content.</p>
 </div>
 
       <div id="footer">
-  Generated on Wed Dec 31 02:10:50 2025 by
+  Generated on Wed Dec 31 20:38:30 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>
