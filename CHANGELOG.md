@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [2.0.7] - 2026-01-01
+
+- TAG: [v2.0.7][2.0.7t]
+- COVERAGE: 97.31% -- 2569/2640 lines in 47 files
+- BRANCH COVERAGE: 89.87% -- 869/967 branches in 47 files
+- 98.84% documented
+
+### Added
+
 - `Ast::Merge::NodeTyping::Normalizer` module for thread-safe backend type normalization
   - Provides shared infrastructure for format-specific normalizers (toml-merge, markdown-merge)
   - Thread-safe backend registration via mutex-protected operations
@@ -37,16 +56,6 @@ Please file a bug if you notice a violation of semantic versioning.
   - `ast/merge/node_typing/normalizer.rb`
 - Comprehensive specs for `NodeTyping::Normalizer` including thread-safety tests
 - RBS type signatures for `NodeTyping::Normalizer` and `NodeTyping::FrozenWrapper`
-
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [2.0.6] - 2026-01-01
 
@@ -398,7 +407,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.6...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.7...HEAD
+[2.0.7]: https://github.com/kettle-rb/ast-merge/compare/v2.0.6...v2.0.7
+[2.0.7t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.7
 [2.0.6]: https://github.com/kettle-rb/ast-merge/compare/v2.0.5...v2.0.6
 [2.0.6t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.6
 [2.0.5]: https://github.com/kettle-rb/ast-merge/compare/v2.0.4...v2.0.5
