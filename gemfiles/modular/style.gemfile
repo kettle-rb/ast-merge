@@ -9,9 +9,6 @@ gem "rubocop-on-rbs", "~> 1.8" # ruby >= 3.1.0
 gem "rubocop-packaging", "~> 0.6", ">= 0.6.0"
 gem "standard", ">= 1.50"
 
-# Std Lib extractions
-gem "benchmark", "~> 0.5", ">= 0.5.0" # Removed from Std Lib in Ruby 4.0
-
 if ENV.fetch("RUBOCOP_LTS_LOCAL", "false").casecmp("true").zero?
   home = ENV["HOME"]
   gem "rubocop-lts", path: "#{home}/src/rubocop-lts/rubocop-lts"
