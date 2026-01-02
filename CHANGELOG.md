@@ -28,6 +28,12 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+- **`NavigableStatement.find_matching` now returns empty array when no criteria specified** -
+  Previously, when both `type: nil` and `text: nil` and no block was given, the method would
+  match ALL statements (since no conditions filtered anything out). This caused
+  `PartialTemplateMerger` to incorrectly report `has_section: true` when `anchor: nil` was passed.
+  Now returns an empty array when no criteria are specified.
+
 ### Security
 
 ## [2.0.8] - 2026-01-01

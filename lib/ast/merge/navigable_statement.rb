@@ -93,6 +93,9 @@ module Ast
         # @yield [NavigableStatement] Optional block for custom matching
         # @return [Array<NavigableStatement>] Matching statements
         def find_matching(statements, type: nil, text: nil, &block)
+          # If no criteria specified, return empty array (nothing to match)
+          return [] if type.nil? && text.nil? && !block_given?
+
           statements.select do |stmt|
             matches = true
             matches &&= stmt.type.to_s == type.to_s if type
