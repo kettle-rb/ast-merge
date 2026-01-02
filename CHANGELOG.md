@@ -28,13 +28,22 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+### Security
+
+## [2.0.9] - 2026-01-02
+
+- TAG: [v2.0.9][2.0.9t]
+- COVERAGE: 97.09% -- 2637/2716 lines in 48 files
+- BRANCH COVERAGE: 89.64% -- 883/985 branches in 48 files
+- 98.71% documented
+
+### Fixed
+
 - **`NavigableStatement.find_matching` now returns empty array when no criteria specified** -
   Previously, when both `type: nil` and `text: nil` and no block was given, the method would
   match ALL statements (since no conditions filtered anything out). This caused
   `PartialTemplateMerger` to incorrectly report `has_section: true` when `anchor: nil` was passed.
   Now returns an empty array when no criteria are specified.
-
-### Security
 
 ## [2.0.8] - 2026-01-01
 
@@ -435,7 +444,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.8...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.9...HEAD
+[2.0.9]: https://github.com/kettle-rb/ast-merge/compare/v2.0.8...v2.0.9
+[2.0.9t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.9
 [2.0.8]: https://github.com/kettle-rb/ast-merge/compare/v2.0.7...v2.0.8
 [2.0.8t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.8
 [2.0.7]: https://github.com/kettle-rb/ast-merge/compare/v2.0.6...v2.0.7

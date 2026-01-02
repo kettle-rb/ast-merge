@@ -627,18 +627,18 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-466
-467
-468
 469
 470
 471
 472
 473
-474</pre>
+474
+475
+476
+477</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 466</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 469</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='label'>anchor:</span><span class='comma'>,</span> <span class='label'>position:</span><span class='comma'>,</span> <span class='label'>boundary:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_metadata'>metadata</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_validate_position!'>validate_position!</span><span class='lparen'>(</span><span class='id identifier rubyid_position'>position</span><span class='rparen'>)</span>
@@ -703,12 +703,12 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-449
-450
-451</pre>
+452
+453
+454</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 449</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 452</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_anchor'>anchor</span>
   <span class='ivar'>@anchor</span>
@@ -762,12 +762,12 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-455
-456
-457</pre>
+458
+459
+460</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 455</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 458</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_boundary'>boundary</span>
   <span class='ivar'>@boundary</span>
@@ -821,12 +821,12 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-458
-459
-460</pre>
+461
+462
+463</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 458</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 461</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_metadata'>metadata</span>
   <span class='ivar'>@metadata</span>
@@ -880,12 +880,12 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-452
-453
-454</pre>
+455
+456
+457</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 452</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 455</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_position'>position</span>
   <span class='ivar'>@position</span>
@@ -944,12 +944,12 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-482
-483
-484</pre>
+485
+486
+487</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 482</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 485</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_child_injection?'>child_injection?</span>
   <span class='qsymbols_beg'>%i[</span><span class='tstring_content'>first_child</span><span class='words_sep'> </span><span class='tstring_content'>last_child</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_position'>position</span><span class='rparen'>)</span>
@@ -1001,12 +1001,12 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-514
-515
-516</pre>
+517
+518
+519</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 514</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 517</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_end_line'>end_line</span>
   <span class='lparen'>(</span><span class='id identifier rubyid_boundary'>boundary</span> <span class='op'>||</span> <span class='id identifier rubyid_anchor'>anchor</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_end_line'>end_line</span>
@@ -1058,13 +1058,13 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-519
-520
-521
-522</pre>
+522
+523
+524
+525</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 519</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 522</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_inspect'>inspect</span>
   <span class='id identifier rubyid_boundary_info'>boundary_info</span> <span class='op'>=</span> <span class='id identifier rubyid_boundary'>boundary</span> <span class='op'>?</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'> to </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_boundary'>boundary</span><span class='period'>.</span><span class='id identifier rubyid_index'>index</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span> <span class='op'>:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
@@ -1117,9 +1117,6 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-494
-495
-496
 497
 498
 499
@@ -1129,10 +1126,13 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
 503
 504
 505
-506</pre>
+506
+507
+508
+509</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 494</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 497</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_replaced_statements'>replaced_statements</span>
   <span class='kw'>return</span> <span class='lbracket'>[</span><span class='rbracket'>]</span> <span class='kw'>unless</span> <span class='id identifier rubyid_replacement?'>replacement?</span>
@@ -1194,12 +1194,12 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-477
-478
-479</pre>
+480
+481
+482</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 477</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 480</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_replacement?'>replacement?</span>
   <span class='id identifier rubyid_position'>position</span> <span class='op'>==</span> <span class='symbol'>:replace</span>
@@ -1251,12 +1251,12 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-487
-488
-489</pre>
+490
+491
+492</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 487</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 490</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_sibling_injection?'>sibling_injection?</span>
   <span class='qsymbols_beg'>%i[</span><span class='tstring_content'>before</span><span class='words_sep'> </span><span class='tstring_content'>after</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_position'>position</span><span class='rparen'>)</span>
@@ -1308,12 +1308,12 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
       <pre class="lines">
 
 
-509
-510
-511</pre>
+512
+513
+514</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 509</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 512</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_start_line'>start_line</span>
   <span class='id identifier rubyid_anchor'>anchor</span><span class='period'>.</span><span class='id identifier rubyid_start_line'>start_line</span>
@@ -1328,7 +1328,7 @@ It defines WHERE to inject content and HOW (as child, sibling, or replacement).<
 </div>
 
       <div id="footer">
-  Generated on Thu Jan  1 19:40:35 2026 by
+  Generated on Fri Jan  2 05:43:42 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>
