@@ -68,9 +68,257 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 and <a href="https://tom.preston-werner.com/2022/05/23/major-version-numbers-are-not-sacred.html">yes</a>, platform and engine support are part of the <a href="https://github.com/semver/semver/issues/716#issuecomment-869336139">public API</a>.<br>
 Please file a bug if you notice a violation of semantic versioning.</p>
 
-<h2 id="unreleased"><a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.1...HEAD">Unreleased</a></h2>
+<h2 id="unreleased"><a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.8...HEAD">Unreleased</a></h2>
 
 <h3 id="added">Added</h3>
+
+<h3 id="changed">Changed</h3>
+
+<h3 id="deprecated">Deprecated</h3>
+
+<h3 id="removed">Removed</h3>
+
+<h3 id="fixed">Fixed</h3>
+
+<h3 id="security">Security</h3>
+
+<h2 id="208---2026-01-01">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.7...v2.0.8">2.0.8</a> - 2026-01-01</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.8">v2.0.8</a>
+</li>
+  <li>COVERAGE: 97.09% – 2636/2715 lines in 48 files</li>
+  <li>BRANCH COVERAGE: 89.73% – 882/983 branches in 48 files</li>
+  <li>98.71% documented</li>
+</ul>
+
+<h3 id="added-1">Added</h3>
+
+<ul>
+  <li>
+<code>Ast::Merge::NodeWrapperBase</code> abstract base class for format-specific node wrappers
+    <ul>
+      <li>Provides common functionality shared by <code>*::Merge::NodeWrapper</code> classes across gems</li>
+      <li>Handles source context (lines, source string), line info, comments, content extraction</li>
+      <li>Defines abstract <code>#compute_signature</code> that subclasses must implement</li>
+      <li>Includes <code>#node_wrapper?</code> to distinguish from <code>NodeTyping::Wrapper</code>
+</li>
+      <li>Includes <code>#underlying_node</code> to access the raw TreeHaver node (NOT <code>#unwrap</code> to avoid<br>
+conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAnalyzable</code>)</li>
+      <li>Documents relationship between <code>NodeWrapperBase</code> and <code>NodeTyping::Wrapper</code>:
+        <ul>
+          <li>
+<code>NodeWrapperBase</code>: Format-specific functionality (line info, signatures, type predicates)</li>
+          <li>
+<code>NodeTyping::Wrapper</code>: Custom merge classification (<code>merge_type</code> attribute)</li>
+        </ul>
+      </li>
+      <li>Nodes can be double-wrapped: <code>NodeTyping::Wrapper(Format::Merge::NodeWrapper(tree_sitter_node))</code>
+</li>
+      <li>Accepts <code>**options</code> in initialize for subclass-specific parameters (e.g., <code>backend</code>, <code>document_root</code>)</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="207---2026-01-01">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.6...v2.0.7">2.0.7</a> - 2026-01-01</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.7">v2.0.7</a>
+</li>
+  <li>COVERAGE: 97.31% – 2569/2640 lines in 47 files</li>
+  <li>BRANCH COVERAGE: 89.87% – 869/967 branches in 47 files</li>
+  <li>98.84% documented</li>
+</ul>
+
+<h3 id="added-2">Added</h3>
+
+<ul>
+  <li>
+<code>Ast::Merge::NodeTyping::Normalizer</code> module for thread-safe backend type normalization
+    <ul>
+      <li>Provides shared infrastructure for format-specific normalizers (toml-merge, markdown-merge)</li>
+      <li>Thread-safe backend registration via mutex-protected operations</li>
+      <li>
+<code>configure_normalizer</code> for initial backend mappings configuration</li>
+      <li>
+<code>register_backend</code> for runtime registration of new backends</li>
+      <li>
+<code>canonical_type</code> for mapping backend-specific types to canonical types</li>
+      <li>
+<code>wrap</code> for wrapping nodes with canonical merge_type</li>
+      <li>
+<code>registered_backends</code>, <code>backend_registered?</code>, <code>mappings_for</code>, <code>canonical_types</code> query methods</li>
+    </ul>
+  </li>
+  <li>
+<code>Ast::Merge::NodeTyping::FrozenWrapper</code> class for frozen AST nodes
+    <ul>
+      <li>Includes <code>Freezable</code> behavior for freeze marker support</li>
+      <li>
+<code>frozen_node?</code>, <code>slice</code>, <code>signature</code> methods</li>
+    </ul>
+  </li>
+  <li>Split <code>NodeTyping</code> module into separate files following autoload pattern:
+    <ul>
+      <li><code>ast/merge/node_typing/wrapper.rb</code></li>
+      <li><code>ast/merge/node_typing/frozen_wrapper.rb</code></li>
+      <li><code>ast/merge/node_typing/normalizer.rb</code></li>
+    </ul>
+  </li>
+  <li>Comprehensive specs for <code>NodeTyping::Normalizer</code> including thread-safety tests</li>
+  <li>RBS type signatures for <code>NodeTyping::Normalizer</code> and <code>NodeTyping::FrozenWrapper</code>
+</li>
+</ul>
+
+<h2 id="206---2026-01-01">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.5...v2.0.6">2.0.6</a> - 2026-01-01</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.6">v2.0.6</a>
+</li>
+  <li>COVERAGE: 97.19% – 2522/2595 lines in 44 files</li>
+  <li>BRANCH COVERAGE: 89.91% – 864/961 branches in 44 files</li>
+  <li>98.82% documented</li>
+</ul>
+
+<h3 id="added-3">Added</h3>
+
+<ul>
+  <li>Comprehensive mocked tests for <code>Ast::Merge::Recipe::Runner</code> (47 new tests):
+    <ul>
+      <li>Tests for <code>#run</code> method with section found, changed, and unchanged scenarios</li>
+      <li>Tests for <code>#run</code> with section not found (skipped vs appended)</li>
+      <li>Tests for actual file writes in non-dry_run mode</li>
+      <li>Tests for exception handling during merge</li>
+      <li>Tests for <code>#summary</code> with all status counts (updated, would_update, unchanged, skipped, errors)</li>
+      <li>Tests for <code>#results_by_status</code> grouping</li>
+      <li>Tests for <code>#results_table</code> formatting (file, status, changed, message)</li>
+      <li>Tests for <code>#summary_table</code> in both dry_run and non-dry_run modes</li>
+      <li>Tests for <code>#make_relative</code> edge cases (base_dir, recipe base, unknown paths)</li>
+      <li>Tests for <code>#make_relative</code> without recipe_path</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="205---2025-12-31">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.4...v2.0.5">2.0.5</a> - 2025-12-31</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.5">v2.0.5</a>
+</li>
+  <li>COVERAGE: 91.68% – 2379/2595 lines in 44 files</li>
+  <li>BRANCH COVERAGE: 81.37% – 782/961 branches in 44 files</li>
+  <li>98.82% documented</li>
+</ul>
+
+<h3 id="added-4">Added</h3>
+
+<ul>
+  <li>Comprehensive tests for <code>Ast::Merge::AstNode</code> and nested structs (Point, Location)</li>
+  <li>Tests for <code>Ast::Merge::Comment::Style</code> class methods and instance methods</li>
+  <li>Tests for <code>Ast::Merge::Comment::Line</code> including freeze marker detection</li>
+  <li>Tests for <code>Ast::Merge::Comment::Block</code> including raw_content and children modes</li>
+  <li>Tests for <code>Ast::Merge::Comment::Parser</code> edge cases (unclosed blocks, mixed content, auto-detection)</li>
+  <li>Tests for <code>Ast::Merge::NavigableStatement</code> tree navigation methods</li>
+  <li>Tests for <code>Ast::Merge::InjectionPoint</code> (start_line, end_line, inspect)</li>
+  <li>Tests for <code>Ast::Merge::InjectionPointFinder</code> boundary options (boundary_type, boundary_text, boundary_matcher, boundary_same_or_shallower)</li>
+  <li>Tests for <code>Ast::Merge::PartialTemplateMerger::Result</code> including injection_point and default values</li>
+  <li>Tests for <code>Ast::Merge::PartialTemplateMerger</code> text pattern normalization (regex strings, plain strings)</li>
+  <li>Tests for <code>Ast::Merge::PartialTemplateMerger</code> anchor normalization with level options</li>
+  <li>Tests for <code>Ast::Merge::PartialTemplateMerger</code> unknown when_missing fallback behavior</li>
+  <li>Tests for <code>Ast::Merge::PartialTemplateMerger</code> section boundary detection and replace_mode behavior</li>
+  <li>Tests for <code>Ast::Merge::PartialTemplateMerger</code> unknown parser error handling</li>
+  <li>Tests for <code>Ast::Merge::Recipe::Runner::Result</code> stats and error attributes</li>
+  <li>Tests for <code>Ast::Merge::Recipe::Runner</code> actual file writes (non-dry-run mode)</li>
+  <li>Tests for <code>Ast::Merge::Recipe::Runner</code> error handling (unreadable files, missing template)</li>
+  <li>Tests for <code>Ast::Merge::Recipe::Runner</code> when_missing with append behavior</li>
+  <li>Tests for <code>Ast::Merge::Recipe::Config</code> same_or_shallower boundary, replace_mode, level options</li>
+  <li>Tests for <code>Ast::Merge::Recipe::Config</code> injection parsing with empty/nil/Regexp patterns</li>
+  <li>Tests for <code>Ast::Merge::Recipe::Config</code> expand_targets with absolute patterns</li>
+  <li>Tests for <code>Ast::Merge::Recipe::Preset</code> callable add_missing and node_typing</li>
+  <li>Tests for <code>Ast::Merge::Recipe::Preset</code> script_loader caching</li>
+  <li>Tests for <code>Ast::Merge::Recipe::ScriptLoader</code> syntax error handling</li>
+  <li>Tests for <code>Ast::Merge::Recipe::ScriptLoader</code> absolute path resolution</li>
+  <li>Tests for <code>Ast::Merge::ContentMatchRefiner</code> extract_node_type with typed nodes</li>
+  <li>Tests for <code>Ast::Merge::ContentMatchRefiner</code> filter_nodes with node_types</li>
+</ul>
+
+<h3 id="changed-1">Changed</h3>
+
+<ul>
+  <li>tree_haver v3.2.1</li>
+  <li>Internal files now use autoload instead of <code>require_relative</code> for consistency</li>
+</ul>
+
+<h2 id="204---2025-12-31">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.3...v2.0.4">2.0.4</a> - 2025-12-31</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.4">v2.0.4</a>
+</li>
+  <li>COVERAGE: 88.61% – 2903/3276 lines in 53 files</li>
+  <li>BRANCH COVERAGE: 67.90% – 700/1031 branches in 53 files</li>
+  <li>98.82% documented</li>
+</ul>
+
+<h3 id="added-5">Added</h3>
+
+<ul>
+  <li>Many more tests</li>
+</ul>
+
+<h3 id="fixed-1">Fixed</h3>
+
+<ul>
+  <li>RSpec shared examples for <code>Ast::Merge::DebugLogger</code> now handle Ruby 4.0+ where benchmark is a bundled gem
+    <ul>
+      <li>The <code>#time logs start and completion with timing</code> test now checks <code>BENCHMARK_AVAILABLE</code> constant</li>
+      <li>When benchmark is available: expects full timing output with “Starting:”, “Completed:”, and <code>real_ms</code>
+</li>
+      <li>When benchmark is unavailable: expects warning message about benchmark gem not being available</li>
+      <li>Fixes CI failures on Ruby 4.0.0 for downstream gems (e.g., bash-merge) using the shared examples</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="203---2025-12-30">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.2...v2.0.3">2.0.3</a> - 2025-12-30</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.3">v2.0.3</a>
+</li>
+  <li>COVERAGE: 88.45% – 2894/3272 lines in 53 files</li>
+  <li>BRANCH COVERAGE: 67.83% – 698/1029 branches in 53 files</li>
+  <li>98.82% documented</li>
+</ul>
+
+<h3 id="fixed-2">Fixed</h3>
+
+<ul>
+  <li>
+<code>Ast::Merge::DebugLogger::BENCHMARK_AVAILABLE</code> now correctly detects when benchmark gem is unavailable
+    <ul>
+      <li>Previous implementation used <code>autoload</code> which never raises <code>LoadError</code> (it only registers for lazy loading)</li>
+      <li>Now uses <code>require "benchmark"</code> which properly catches <code>LoadError</code> on Ruby 4.0+ where benchmark is a bundled gem</li>
+      <li>The <code>#time</code> method now correctly falls back to non-timed execution when benchmark is unavailable</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="202---2025-12-30">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.1...v2.0.2">2.0.2</a> - 2025-12-30</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.2">v2.0.2</a>
+</li>
+  <li>COVERAGE: 88.47% – 2894/3271 lines in 53 files</li>
+  <li>BRANCH COVERAGE: 67.83% – 698/1029 branches in 53 files</li>
+  <li>98.82% documented</li>
+</ul>
+
+<h3 id="added-6">Added</h3>
 
 <ul>
   <li>Backend Platform Compatibility section to README and GEM_FAMILY_SECTION.md
@@ -81,7 +329,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed">Changed</h3>
+<h3 id="changed-2">Changed</h3>
 
 <ul>
   <li>Updated RSpec README documentation for tree_haver dependency tag changes
@@ -96,14 +344,6 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="deprecated">Deprecated</h3>
-
-<h3 id="removed">Removed</h3>
-
-<h3 id="fixed">Fixed</h3>
-
-<h3 id="security">Security</h3>
-
 <h2 id="201---2025-12-29">
 <a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.0...v2.0.1">2.0.1</a> - 2025-12-29</h2>
 
@@ -115,7 +355,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="changed-1">Changed</h3>
+<h3 id="changed-3">Changed</h3>
 
 <ul>
   <li>Upgraded dependencies
@@ -127,7 +367,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="fixed-1">Fixed</h3>
+<h3 id="fixed-3">Fixed</h3>
 
 <ul>
   <li>Documentation cleanup (via yard-fence)</li>
@@ -144,7 +384,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-1">Added</h3>
+<h3 id="added-7">Added</h3>
 
 <ul>
   <li>
@@ -365,7 +605,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-2">Changed</h3>
+<h3 id="changed-4">Changed</h3>
 
 <ul>
   <li>
@@ -418,7 +658,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>98.45% documented</li>
 </ul>
 
-<h3 id="added-2">Added</h3>
+<h3 id="added-8">Added</h3>
 
 <ul>
   <li>
@@ -462,7 +702,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-3">Changed</h3>
+<h3 id="changed-5">Changed</h3>
 
 <ul>
   <li>
@@ -497,7 +737,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 <strong>Configuration Documentation</strong>: Enhanced backend selection documentation</li>
 </ul>
 
-<h3 id="fixed-2">Fixed</h3>
+<h3 id="fixed-4">Fixed</h3>
 
 <ul>
   <li>Fixed gemspec and Appraisals alignment with tree_haver requirements</li>
@@ -517,7 +757,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>99.29% documented</li>
 </ul>
 
-<h3 id="added-3">Added</h3>
+<h3 id="added-9">Added</h3>
 
 <ul>
   <li>Initial release</li>
@@ -526,7 +766,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Thu Jan  1 19:29:31 2026 by
+  Generated on Thu Jan  1 19:40:33 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

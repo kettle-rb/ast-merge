@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [2.0.8] - 2026-01-01
+
+- TAG: [v2.0.8][2.0.8t]
+- COVERAGE: 97.09% -- 2636/2715 lines in 48 files
+- BRANCH COVERAGE: 89.73% -- 882/983 branches in 48 files
+- 98.71% documented
+
+### Added
+
 - `Ast::Merge::NodeWrapperBase` abstract base class for format-specific node wrappers
   - Provides common functionality shared by `*::Merge::NodeWrapper` classes across gems
   - Handles source context (lines, source string), line info, comments, content extraction
@@ -32,16 +51,6 @@ Please file a bug if you notice a violation of semantic versioning.
     - `NodeTyping::Wrapper`: Custom merge classification (`merge_type` attribute)
   - Nodes can be double-wrapped: `NodeTyping::Wrapper(Format::Merge::NodeWrapper(tree_sitter_node))`
   - Accepts `**options` in initialize for subclass-specific parameters (e.g., `backend`, `document_root`)
-
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [2.0.7] - 2026-01-01
 
