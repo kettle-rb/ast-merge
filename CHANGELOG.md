@@ -20,6 +20,19 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- `Ast::Merge::NodeWrapperBase` abstract base class for format-specific node wrappers
+  - Provides common functionality shared by `*::Merge::NodeWrapper` classes across gems
+  - Handles source context (lines, source string), line info, comments, content extraction
+  - Defines abstract `#compute_signature` that subclasses must implement
+  - Includes `#node_wrapper?` to distinguish from `NodeTyping::Wrapper`
+  - Includes `#underlying_node` to access the raw TreeHaver node (NOT `#unwrap` to avoid
+    conflict with `NodeTyping::Wrapper#unwrap` semantics in `FileAnalyzable`)
+  - Documents relationship between `NodeWrapperBase` and `NodeTyping::Wrapper`:
+    - `NodeWrapperBase`: Format-specific functionality (line info, signatures, type predicates)
+    - `NodeTyping::Wrapper`: Custom merge classification (`merge_type` attribute)
+  - Nodes can be double-wrapped: `NodeTyping::Wrapper(Format::Merge::NodeWrapper(tree_sitter_node))`
+  - Accepts `**options` in initialize for subclass-specific parameters (e.g., `backend`, `document_root`)
+
 ### Changed
 
 ### Deprecated
@@ -407,7 +420,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.7...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.8...HEAD
+[2.0.8]: https://github.com/kettle-rb/ast-merge/compare/v2.0.7...v2.0.8
+[2.0.8t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.8
 [2.0.7]: https://github.com/kettle-rb/ast-merge/compare/v2.0.6...v2.0.7
 [2.0.7t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.7
 [2.0.6]: https://github.com/kettle-rb/ast-merge/compare/v2.0.5...v2.0.6

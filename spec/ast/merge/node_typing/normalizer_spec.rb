@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable ThreadSafety/NewThread -- This spec tests thread safety and requires creating threads
 RSpec.describe Ast::Merge::NodeTyping::Normalizer do
   # Create a test module that extends Normalizer for testing
   let(:test_normalizer) do
@@ -292,3 +293,4 @@ RSpec.describe Ast::Merge::NodeTyping::Normalizer do
     end
   end
 end
+# rubocop:enable ThreadSafety/NewThread

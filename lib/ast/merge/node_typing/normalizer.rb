@@ -57,9 +57,11 @@ module Ast
         # Sets up the mutex and backend mappings storage.
         #
         # @param base [Module] The module extending this one
-        def self.extended(base)
-          base.instance_variable_set(:@normalizer_mutex, Mutex.new)
-          base.instance_variable_set(:@backend_mappings, {})
+        class << self
+          def extended(base)
+            base.instance_variable_set(:@normalizer_mutex, Mutex.new)
+            base.instance_variable_set(:@backend_mappings, {})
+          end
         end
 
         # Configure the normalizer with initial backend mappings.

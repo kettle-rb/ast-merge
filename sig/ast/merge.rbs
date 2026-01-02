@@ -595,7 +595,8 @@ module Ast
         def self.extended: (Module base) -> void
 
         # Configure initial backend mappings
-        def configure_normalizer: (**Hash[Symbol, Symbol] mappings) -> void
+        # @param mappings Keyword args where keys are backend symbols and values are type mapping hashes
+        def configure_normalizer: (**untyped) -> void
 
         # Register type mappings for a new backend (thread-safe)
         def register_backend: (Symbol backend, Hash[Symbol, Symbol] mappings) -> void

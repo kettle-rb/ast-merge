@@ -153,6 +153,7 @@ module Ast
     autoload :MergerConfig, "ast/merge/merger_config"
     autoload :NavigableStatement, "ast/merge/navigable_statement"
     autoload :NodeTyping, "ast/merge/node_typing"
+    autoload :NodeWrapperBase, "ast/merge/node_wrapper_base"
     autoload :PartialTemplateMerger, "ast/merge/partial_template_merger"
     autoload :SectionTyping, "ast/merge/section_typing"
     autoload :SmartMergerBase, "ast/merge/smart_merger_base"
