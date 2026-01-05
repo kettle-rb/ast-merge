@@ -430,7 +430,7 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
     # Regression tests for blank line accumulation bug
     # Previously, parts.join("\n\n") would add extra blank lines when
     # content already ended with newlines from to_commonmark output
-    context "blank line accumulation prevention" do
+    context "when preventing blank line accumulation" do
       it "does not add extra blank lines when before ends with blank line" do
         # Simulates content that already has a blank line at the end
         # (as would happen with consecutive GapLineNodes)

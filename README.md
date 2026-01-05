@@ -593,12 +593,12 @@ preferences for different types of nodes (e.g., prefer template for linter confi
 #### How It Works
 
 1.  **Define a `node_typing`**: A Hash mapping node type symbols to callables that receive a node and return either:
-    
+
       - The original node (no special handling)
       - A wrapped node with a `merge_type` attribute (via `Ast::Merge::NodeTyping::Wrapper`)
 
 2.  **Use a Hash-based preference**: Instead of a simple `:destination` or `:template` Symbol, pass a Hash with:
-    
+
       - `:default` key for the fallback preference
       - Custom keys matching the `merge_type` values from your `node_typing`
 <!-- end list -->
