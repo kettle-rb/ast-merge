@@ -358,25 +358,38 @@ module Ast
       end
 
       def build_merged_content(before, section, after)
-        parts = []
+        result = +""
 
         # Before content
         unless before.nil? || before.strip.empty?
-          parts << before.chomp
+          result << before.chomp("\n")
         end
 
-        # Merged section
+        # Merged section - ensure exactly one blank line before it if there's content before
         unless section.nil? || section.strip.empty?
-          parts << section.chomp
+          if result.empty?
+            result << section.chomp("\n")
+          else
+            # Ensure exactly one blank line between before and section
+            result << "\n" unless result.end_with?("\n")
+            result << "\n" unless result.end_with?("\n\n")
+            result << section.chomp("\n")
+          end
         end
 
-        # After content
+        # After content - ensure exactly one blank line before it if there's content before
         unless after.nil? || after.strip.empty?
-          parts << after.chomp
+          if result.empty?
+            result << after.chomp("\n")
+          else
+            # Ensure exactly one blank line between section and after
+            result << "\n" unless result.end_with?("\n")
+            result << "\n" unless result.end_with?("\n\n")
+            result << after.chomp("\n")
+          end
         end
 
-        result = parts.join("\n\n")
-        result += "\n" unless result.end_with?("\n")
+        result << "\n" unless result.empty? || result.end_with?("\n")
         result
       end
 

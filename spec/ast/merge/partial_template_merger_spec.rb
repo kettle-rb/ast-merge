@@ -426,6 +426,49 @@ RSpec.describe Ast::Merge::PartialTemplateMerger do
       result = merger.send(:build_merged_content, "Before\n", "Section\n", "After\n")
       expect(result).to eq("Before\n\nSection\n\nAfter\n")
     end
+
+    # Regression tests for blank line accumulation bug
+    # Previously, parts.join("\n\n") would add extra blank lines when
+    # content already ended with newlines from to_commonmark output
+    context "blank line accumulation prevention" do
+      it "does not add extra blank lines when before ends with blank line" do
+        # Simulates content that already has a blank line at the end
+        # (as would happen with consecutive GapLineNodes)
+        result = merger.send(:build_merged_content, "Before\n\n", "Section", "After")
+        expect(result).to eq("Before\n\nSection\n\nAfter\n")
+        expect(result).not_to include("\n\n\n") # No triple newlines
+      end
+
+      it "does not add extra blank lines when section ends with blank line" do
+        result = merger.send(:build_merged_content, "Before", "Section\n\n", "After")
+        expect(result).to eq("Before\n\nSection\n\nAfter\n")
+        expect(result).not_to include("\n\n\n")
+      end
+
+      it "handles content with multiple trailing newlines" do
+        result = merger.send(:build_merged_content, "Before\n\n\n", "Section", "After")
+        # Should normalize to exactly one blank line between sections
+        expect(result).to eq("Before\n\nSection\n\nAfter\n")
+        expect(result).not_to include("\n\n\n")
+      end
+
+      it "is idempotent - repeated merges produce same result" do
+        # First merge
+        first_result = merger.send(:build_merged_content, "Before\n", "Section", "After")
+        # Second merge (simulating re-running recipe on already-merged content)
+        second_result = merger.send(:build_merged_content, "Before\n", "Section", "After")
+        expect(first_result).to eq(second_result)
+      end
+
+      it "preserves single newline between content blocks" do
+        result = merger.send(:build_merged_content, "Before", "Section", "After")
+        # Should have exactly \n\n (one blank line) between each part
+        lines = result.split("\n", -1)
+        # "Before", "", "Section", "", "After", ""
+        expect(lines[1]).to eq("") # blank line after Before
+        expect(lines[3]).to eq("") # blank line after Section
+      end
+    end
   end
 
   describe "#handle_missing_section" do
