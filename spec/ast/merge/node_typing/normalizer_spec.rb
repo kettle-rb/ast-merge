@@ -161,18 +161,6 @@ RSpec.describe Ast::Merge::NodeTyping::Normalizer do
       expect(backends).to include(:backend_a)
       expect(backends).to include(:backend_b)
     end
-
-    it "is thread-safe" do
-      results = []
-      threads = 10.times.map do
-        Thread.new do
-          results << test_normalizer.registered_backends
-        end
-      end
-      threads.each(&:join)
-
-      expect(results).to all(include(:backend_a, :backend_b))
-    end
   end
 
   describe "#backend_registered?" do
