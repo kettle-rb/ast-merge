@@ -49,6 +49,9 @@
 # [:psych_merge]
 #   psych-merge gem is available and functional.
 #
+# [:rbs_merge]
+#   rbs-merge gem is available and functional.
+#
 # [:any_markdown_merge]
 #   At least one markdown merge gem (markly-merge or commonmarker-merge) is available.
 #
@@ -57,7 +60,7 @@
 # All positive tags have negated versions prefixed with `not_`:
 # - :not_markly_merge, :not_commonmarker_merge, :not_markdown_merge
 # - :not_prism_merge, :not_json_merge, :not_jsonc_merge
-# - :not_toml_merge, :not_bash_merge, :not_psych_merge
+# - :not_toml_merge, :not_bash_merge, :not_psych_merge, :not_rbs_merge
 # - :not_any_markdown_merge
 
 module Ast
@@ -142,6 +145,14 @@ module Ast
             return @psych_merge_available if defined?(@psych_merge_available)
             @psych_merge_available = merge_gem_works?("psych/merge", "Psych::Merge::SmartMerger", "key: value")
           end
+
+          # Check if rbs-merge is available and functional
+          #
+          # @return [Boolean] true if rbs-merge works
+          def rbs_merge_available?
+            return @rbs_merge_available if defined?(@rbs_merge_available)
+            @rbs_merge_available = merge_gem_works?("rbs/merge", "Rbs::Merge::SmartMerger", "class Foo end")
+          end
           # rubocop:enable ThreadSafety/ClassInstanceVariable
 
           # Check if at least one markdown merge gem is available
@@ -169,6 +180,7 @@ module Ast
               toml_merge: toml_merge_available?,
               bash_merge: bash_merge_available?,
               psych_merge: psych_merge_available?,
+              rbs_merge: rbs_merge_available?,
               any_markdown_merge: any_markdown_merge_available?,
             }
           end
@@ -233,6 +245,7 @@ RSpec.configure do |config|
   config.filter_run_excluding(toml_merge: true) unless deps.toml_merge_available?
   config.filter_run_excluding(bash_merge: true) unless deps.bash_merge_available?
   config.filter_run_excluding(psych_merge: true) unless deps.psych_merge_available?
+  config.filter_run_excluding(rbs_merge: true) unless deps.rbs_merge_available?
   config.filter_run_excluding(any_markdown_merge: true) unless deps.any_markdown_merge_available?
 
   # ============================================================
@@ -248,5 +261,6 @@ RSpec.configure do |config|
   config.filter_run_excluding(not_toml_merge: true) if deps.toml_merge_available?
   config.filter_run_excluding(not_bash_merge: true) if deps.bash_merge_available?
   config.filter_run_excluding(not_psych_merge: true) if deps.psych_merge_available?
+  config.filter_run_excluding(not_rbs_merge: true) if deps.rbs_merge_available?
   config.filter_run_excluding(not_any_markdown_merge: true) if deps.any_markdown_merge_available?
 end
