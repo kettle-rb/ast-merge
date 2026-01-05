@@ -68,7 +68,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 and <a href="https://tom.preston-werner.com/2022/05/23/major-version-numbers-are-not-sacred.html">yes</a>, platform and engine support are part of the <a href="https://github.com/semver/semver/issues/716#issuecomment-869336139">public API</a>.<br>
 Please file a bug if you notice a violation of semantic versioning.</p>
 
-<h2 id="unreleased"><a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.9...HEAD">Unreleased</a></h2>
+<h2 id="unreleased"><a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.10...HEAD">Unreleased</a></h2>
 
 <h3 id="added">Added</h3>
 
@@ -82,6 +82,37 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <h3 id="security">Security</h3>
 
+<h2 id="2010---2026-01-04">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.9...v2.0.10">2.0.10</a> - 2026-01-04</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.10">v2.0.10</a>
+</li>
+  <li>COVERAGE: 97.10% – 2642/2721 lines in 48 files</li>
+  <li>BRANCH COVERAGE: 89.57% – 893/997 branches in 48 files</li>
+  <li>98.72% documented</li>
+</ul>
+
+<h3 id="added-1">Added</h3>
+
+<ul>
+  <li>Dependency tags for <code>rbs_merge</code> and <code>not_rbs_merge</code>
+</li>
+</ul>
+
+<h3 id="changed-1">Changed</h3>
+
+<ul>
+  <li>Upgraded to <code>tree_haver</code> v3.2.4 (major new features, and bug fixes, see <a href="https://github.com/kettle-rb/tree_haver/releases/tag/v3.2.4">release notes</a>)</li>
+</ul>
+
+<h3 id="fixed-1">Fixed</h3>
+
+<ul>
+  <li>
+<code>PartialTemplateMerger#build_merged_content</code> previously always injected an extra newline between parts, now join is context-aware</li>
+</ul>
+
 <h2 id="209---2026-01-02">
 <a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.8...v2.0.9">2.0.9</a> - 2026-01-02</h2>
 
@@ -93,7 +124,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>98.71% documented</li>
 </ul>
 
-<h3 id="fixed-1">Fixed</h3>
+<h3 id="fixed-2">Fixed</h3>
 
 <ul>
   <li>
@@ -115,7 +146,7 @@ Now returns an empty array when no criteria are specified.</li>
   <li>98.71% documented</li>
 </ul>
 
-<h3 id="added-1">Added</h3>
+<h3 id="added-2">Added</h3>
 
 <ul>
   <li>
@@ -154,7 +185,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.84% documented</li>
 </ul>
 
-<h3 id="added-2">Added</h3>
+<h3 id="added-3">Added</h3>
 
 <ul>
   <li>
@@ -205,7 +236,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-3">Added</h3>
+<h3 id="added-4">Added</h3>
 
 <ul>
   <li>Comprehensive mocked tests for <code>Ast::Merge::Recipe::Runner</code> (47 new tests):
@@ -235,7 +266,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-4">Added</h3>
+<h3 id="added-5">Added</h3>
 
 <ul>
   <li>Comprehensive tests for <code>Ast::Merge::AstNode</code> and nested structs (Point, Location)</li>
@@ -267,7 +298,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>Tests for <code>Ast::Merge::ContentMatchRefiner</code> filter_nodes with node_types</li>
 </ul>
 
-<h3 id="changed-1">Changed</h3>
+<h3 id="changed-2">Changed</h3>
 
 <ul>
   <li>tree_haver v3.2.1</li>
@@ -285,13 +316,13 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-5">Added</h3>
+<h3 id="added-6">Added</h3>
 
 <ul>
   <li>Many more tests</li>
 </ul>
 
-<h3 id="fixed-2">Fixed</h3>
+<h3 id="fixed-3">Fixed</h3>
 
 <ul>
   <li>RSpec shared examples for <code>Ast::Merge::DebugLogger</code> now handle Ruby 4.0+ where benchmark is a bundled gem
@@ -316,7 +347,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="fixed-3">Fixed</h3>
+<h3 id="fixed-4">Fixed</h3>
 
 <ul>
   <li>
@@ -340,7 +371,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-6">Added</h3>
+<h3 id="added-7">Added</h3>
 
 <ul>
   <li>Backend Platform Compatibility section to README and GEM_FAMILY_SECTION.md
@@ -351,7 +382,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-2">Changed</h3>
+<h3 id="changed-3">Changed</h3>
 
 <ul>
   <li>Updated RSpec README documentation for tree_haver dependency tag changes
@@ -377,7 +408,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="changed-3">Changed</h3>
+<h3 id="changed-4">Changed</h3>
 
 <ul>
   <li>Upgraded dependencies
@@ -389,7 +420,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="fixed-4">Fixed</h3>
+<h3 id="fixed-5">Fixed</h3>
 
 <ul>
   <li>Documentation cleanup (via yard-fence)</li>
@@ -406,7 +437,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-7">Added</h3>
+<h3 id="added-8">Added</h3>
 
 <ul>
   <li>
@@ -627,7 +658,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-4">Changed</h3>
+<h3 id="changed-5">Changed</h3>
 
 <ul>
   <li>
@@ -680,7 +711,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.45% documented</li>
 </ul>
 
-<h3 id="added-8">Added</h3>
+<h3 id="added-9">Added</h3>
 
 <ul>
   <li>
@@ -724,7 +755,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-5">Changed</h3>
+<h3 id="changed-6">Changed</h3>
 
 <ul>
   <li>
@@ -759,7 +790,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 <strong>Configuration Documentation</strong>: Enhanced backend selection documentation</li>
 </ul>
 
-<h3 id="fixed-5">Fixed</h3>
+<h3 id="fixed-6">Fixed</h3>
 
 <ul>
   <li>Fixed gemspec and Appraisals alignment with tree_haver requirements</li>
@@ -779,7 +810,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>99.29% documented</li>
 </ul>
 
-<h3 id="added-9">Added</h3>
+<h3 id="added-10">Added</h3>
 
 <ul>
   <li>Initial release</li>
@@ -788,7 +819,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 </div></div>
 
       <div id="footer">
-  Generated on Fri Jan  2 05:43:39 2026 by
+  Generated on Sun Jan  4 21:12:17 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

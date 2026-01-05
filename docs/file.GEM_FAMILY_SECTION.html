@@ -65,7 +65,7 @@
   <thead>
     <tr>
       <th>Gem</th>
-      <th>Format</th>
+      <th>Language<br>/ Format</th>
       <th>Parser Backend(s)</th>
       <th>Description</th>
     </tr>
@@ -86,16 +86,24 @@
 <strong>Infrastructure</strong>: Shared base classes and merge logic for all <code>*-merge</code> gems</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/kettle-rb/prism-merge">prism-merge</a></td>
-      <td>Ruby</td>
-      <td><a href="https://github.com/ruby/prism">Prism</a></td>
-      <td>Smart merge for Ruby source files</td>
+      <td><a href="https://github.com/kettle-rb/bash-merge">bash-merge</a></td>
+      <td>Bash</td>
+      <td>
+<a href="https://github.com/tree-sitter/tree-sitter-bash">tree-sitter-bash</a> (via tree_haver)</td>
+      <td>Smart merge for Bash scripts</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/kettle-rb/psych-merge">psych-merge</a></td>
-      <td>YAML</td>
-      <td><a href="https://github.com/ruby/psych">Psych</a></td>
-      <td>Smart merge for YAML files</td>
+      <td><a href="https://github.com/kettle-rb/commonmarker-merge">commonmarker-merge</a></td>
+      <td>Markdown</td>
+      <td>
+<a href="https://github.com/gjtorikian/commonmarker">Commonmarker</a> (via tree_haver)</td>
+      <td>Smart merge for Markdown (CommonMark via comrak Rust)</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/kettle-rb/dotenv-merge">dotenv-merge</a></td>
+      <td>Dotenv</td>
+      <td>internal</td>
+      <td>Smart merge for <code>.env</code> files</td>
     </tr>
     <tr>
       <td><a href="https://github.com/kettle-rb/json-merge">json-merge</a></td>
@@ -110,32 +118,6 @@
       <td>
 <a href="https://gitlab.com/WhyNotHugo/tree-sitter-jsonc">tree-sitter-jsonc</a> (via tree_haver)</td>
       <td>⚠️ Proof of concept; Smart merge for JSON with Comments</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/kettle-rb/bash-merge">bash-merge</a></td>
-      <td>Bash</td>
-      <td>
-<a href="https://github.com/tree-sitter/tree-sitter-bash">tree-sitter-bash</a> (via tree_haver)</td>
-      <td>Smart merge for Bash scripts</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/kettle-rb/rbs-merge">rbs-merge</a></td>
-      <td>RBS</td>
-      <td><a href="https://github.com/ruby/rbs">RBS</a></td>
-      <td>Smart merge for Ruby type signatures</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/kettle-rb/dotenv-merge">dotenv-merge</a></td>
-      <td>Dotenv</td>
-      <td>internal</td>
-      <td>Smart merge for <code>.env</code> files</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/kettle-rb/toml-merge">toml-merge</a></td>
-      <td>TOML</td>
-      <td>
-<a href="https://github.com/emancu/toml-rb">Citrus + toml-rb</a> (default, via tree_haver), <a href="https://github.com/tree-sitter-grammars/tree-sitter-toml">tree-sitter-toml</a> (via tree_haver)</td>
-      <td>Smart merge for TOML files</td>
     </tr>
     <tr>
       <td><a href="https://github.com/kettle-rb/markdown-merge">markdown-merge</a></td>
@@ -153,11 +135,32 @@
       <td>Smart merge for Markdown (CommonMark via cmark-gfm C)</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/kettle-rb/commonmarker-merge">commonmarker-merge</a></td>
-      <td>Markdown</td>
+      <td><a href="https://github.com/kettle-rb/prism-merge">prism-merge</a></td>
+      <td>Ruby</td>
       <td>
-<a href="https://github.com/gjtorikian/commonmarker">Commonmarker</a> (via tree_haver)</td>
-      <td>Smart merge for Markdown (CommonMark via comrak Rust)</td>
+<a href="https://github.com/ruby/prism">Prism</a> (<code>prism</code> std lib gem)</td>
+      <td>Smart merge for Ruby source files</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/kettle-rb/psych-merge">psych-merge</a></td>
+      <td>YAML</td>
+      <td>
+<a href="https://github.com/ruby/psych">Psych</a> (<code>psych</code> std lib gem)</td>
+      <td>Smart merge for YAML files</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/kettle-rb/rbs-merge">rbs-merge</a></td>
+      <td>RBS</td>
+      <td>
+<a href="https://github.com/joker1007/tree-sitter-rbs">tree-sitter-bash</a> (via tree_haver), <a href="https://github.com/ruby/rbs">RBS</a> (<code>rbs</code> std lib gem)</td>
+      <td>Smart merge for Ruby type signatures</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/kettle-rb/toml-merge">toml-merge</a></td>
+      <td>TOML</td>
+      <td>
+<a href="https://github.com/emancu/toml-rb">Citrus + toml-rb</a> (default, via tree_haver), <a href="https://github.com/tree-sitter-grammars/tree-sitter-toml">tree-sitter-toml</a> (via tree_haver)</td>
+      <td>Smart merge for TOML files</td>
     </tr>
   </tbody>
 </table>
@@ -287,7 +290,7 @@
 </div></div>
 
       <div id="footer">
-  Generated on Fri Jan  2 05:43:40 2026 by
+  Generated on Sun Jan  4 21:12:17 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

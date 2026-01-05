@@ -125,7 +125,7 @@
   <thead>
     <tr>
       <th>Gem</th>
-      <th>Format</th>
+      <th>Language<br>/ Format</th>
       <th>Parser Backend(s)</th>
       <th>Description</th>
     </tr>
@@ -146,16 +146,24 @@
 <strong>Infrastructure</strong>: Shared base classes and merge logic for all <code>*-merge</code> gems</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/kettle-rb/prism-merge">prism-merge</a></td>
-      <td>Ruby</td>
-      <td><a href="https://github.com/ruby/prism">Prism</a></td>
-      <td>Smart merge for Ruby source files</td>
+      <td><a href="https://github.com/kettle-rb/bash-merge">bash-merge</a></td>
+      <td>Bash</td>
+      <td>
+<a href="https://github.com/tree-sitter/tree-sitter-bash">tree-sitter-bash</a> (via tree_haver)</td>
+      <td>Smart merge for Bash scripts</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/kettle-rb/psych-merge">psych-merge</a></td>
-      <td>YAML</td>
-      <td><a href="https://github.com/ruby/psych">Psych</a></td>
-      <td>Smart merge for YAML files</td>
+      <td><a href="https://github.com/kettle-rb/commonmarker-merge">commonmarker-merge</a></td>
+      <td>Markdown</td>
+      <td>
+<a href="https://github.com/gjtorikian/commonmarker">Commonmarker</a> (via tree_haver)</td>
+      <td>Smart merge for Markdown (CommonMark via comrak Rust)</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/kettle-rb/dotenv-merge">dotenv-merge</a></td>
+      <td>Dotenv</td>
+      <td>internal</td>
+      <td>Smart merge for <code>.env</code> files</td>
     </tr>
     <tr>
       <td><a href="https://github.com/kettle-rb/json-merge">json-merge</a></td>
@@ -170,32 +178,6 @@
       <td>
 <a href="https://gitlab.com/WhyNotHugo/tree-sitter-jsonc">tree-sitter-jsonc</a> (via tree_haver)</td>
       <td>⚠️ Proof of concept; Smart merge for JSON with Comments</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/kettle-rb/bash-merge">bash-merge</a></td>
-      <td>Bash</td>
-      <td>
-<a href="https://github.com/tree-sitter/tree-sitter-bash">tree-sitter-bash</a> (via tree_haver)</td>
-      <td>Smart merge for Bash scripts</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/kettle-rb/rbs-merge">rbs-merge</a></td>
-      <td>RBS</td>
-      <td><a href="https://github.com/ruby/rbs">RBS</a></td>
-      <td>Smart merge for Ruby type signatures</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/kettle-rb/dotenv-merge">dotenv-merge</a></td>
-      <td>Dotenv</td>
-      <td>internal</td>
-      <td>Smart merge for <code>.env</code> files</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/kettle-rb/toml-merge">toml-merge</a></td>
-      <td>TOML</td>
-      <td>
-<a href="https://github.com/emancu/toml-rb">Citrus + toml-rb</a> (default, via tree_haver), <a href="https://github.com/tree-sitter-grammars/tree-sitter-toml">tree-sitter-toml</a> (via tree_haver)</td>
-      <td>Smart merge for TOML files</td>
     </tr>
     <tr>
       <td><a href="https://github.com/kettle-rb/markdown-merge">markdown-merge</a></td>
@@ -213,11 +195,31 @@
       <td>Smart merge for Markdown (CommonMark via cmark-gfm C)</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/kettle-rb/commonmarker-merge">commonmarker-merge</a></td>
-      <td>Markdown</td>
+      <td><a href="https://github.com/kettle-rb/prism-merge">prism-merge</a></td>
+      <td>Ruby</td>
       <td>
-<a href="https://github.com/gjtorikian/commonmarker">Commonmarker</a> (via tree_haver)</td>
-      <td>Smart merge for Markdown (CommonMark via comrak Rust)</td>
+<a href="https://github.com/ruby/prism">Prism</a> (<code>prism</code> std lib gem)</td>
+      <td>Smart merge for Ruby source files</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/kettle-rb/psych-merge">psych-merge</a></td>
+      <td>YAML</td>
+      <td>
+<a href="https://github.com/ruby/psych">Psych</a> (<code>psych</code> std lib gem)</td>
+      <td>Smart merge for YAML files</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/kettle-rb/rbs-merge">rbs-merge</a></td>
+      <td>RBS</td>
+      <td>[tree-sitter-bash][ts-rbs] (via tree_haver), <a href="https://github.com/ruby/rbs">RBS</a> (<code>rbs</code> std lib gem)</td>
+      <td>Smart merge for Ruby type signatures</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/kettle-rb/toml-merge">toml-merge</a></td>
+      <td>TOML</td>
+      <td>
+<a href="https://github.com/emancu/toml-rb">Citrus + toml-rb</a> (default, via tree_haver), <a href="https://github.com/tree-sitter-grammars/tree-sitter-toml">tree-sitter-toml</a> (via tree_haver)</td>
+      <td>Smart merge for TOML files</td>
     </tr>
   </tbody>
 </table>
@@ -808,16 +810,25 @@ merger = MyFormat::SmartMerger.new(
   <p><a href="https://tidelift.com/subscription/pkg/rubygems-ast-merge?utm_source=rubygems-ast-merge&amp;utm_medium=referral&amp;utm_campaign=readme"><img src="https://img.shields.io/badge/Tidelift_and_Sonar-Enterprise_Support-FD3456?style=for-the-badge&amp;logo=sonar&amp;logoColor=white" alt="Get help from me on Tidelift"></a></p>
 
   <ul>
-    <li>💡Subscribe for support guarantees covering <em>all</em> your FLOSS dependencies</li>
-    <li>💡Tidelift is part of <a href="https://blog.tidelift.com/tidelift-joins-sonar">Sonar</a>
-</li>
+    <li>
+      <p>💡Subscribe for support guarantees covering <em>all</em> your FLOSS dependencies</p>
+    </li>
+    <li>
+      <p>💡Tidelift is part of <a href="https://blog.tidelift.com/tidelift-joins-sonar">Sonar</a></p>
+    </li>
     <li>
       <p>💡Tidelift pays maintainers to maintain the software you depend on!<br>📊<code>@</code>Pointy Haired Boss: An <a href="https://tidelift.com/subscription/pkg/rubygems-ast-merge?utm_source=rubygems-ast-merge&amp;utm_medium=referral&amp;utm_campaign=readme">enterprise support</a> subscription is “<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">never gonna let you down</a>”, and <em>supports</em> open source maintainers
 Alternatively:</p>
     </li>
-    <li><a href="https://discord.gg/3qme4XHNKN"><img src="https://img.shields.io/discord/1373797679469170758?style=for-the-badge&amp;logo=discord" alt="Live Chat on Discord"></a></li>
-    <li><a href="https://www.upwork.com/freelancers/~014942e9b056abdf86?mp_source=share"><img src="https://img.shields.io/badge/UpWork-13544E?style=for-the-badge&amp;logo=Upwork&amp;logoColor=white" alt="Get help from me on Upwork"></a></li>
-    <li><a href="https://www.codementor.io/peterboling?utm_source=github&amp;utm_medium=button&amp;utm_term=peterboling&amp;utm_campaign=github"><img src="https://img.shields.io/badge/CodeMentor-Get_Help-1abc9c?style=for-the-badge&amp;logo=CodeMentor&amp;logoColor=white" alt="Get help from me on Codementor"></a></li>
+    <li>
+      <p><a href="https://discord.gg/3qme4XHNKN"><img src="https://img.shields.io/discord/1373797679469170758?style=for-the-badge&amp;logo=discord" alt="Live Chat on Discord"></a></p>
+    </li>
+    <li>
+      <p><a href="https://www.upwork.com/freelancers/~014942e9b056abdf86?mp_source=share"><img src="https://img.shields.io/badge/UpWork-13544E?style=for-the-badge&amp;logo=Upwork&amp;logoColor=white" alt="Get help from me on Upwork"></a></p>
+    </li>
+    <li>
+      <p><a href="https://www.codementor.io/peterboling?utm_source=github&amp;utm_medium=button&amp;utm_term=peterboling&amp;utm_campaign=github"><img src="https://img.shields.io/badge/CodeMentor-Get_Help-1abc9c?style=for-the-badge&amp;logo=CodeMentor&amp;logoColor=white" alt="Get help from me on Codementor"></a></p>
+    </li>
   </ul>
 </details>
 
@@ -997,115 +1008,62 @@ This is useful for hand-edited customizations you never want overwritten.</p>
 <ul>
   <li>A <strong>start marker</strong> comment (e.g., <code># mytoken:freeze</code>)</li>
   <li>The protected content</li>
-  <li>An <strong>end marker</strong> comment (e.g., <code># mytoken:unfreeze</code>)</li>
+  <li>An <strong>end marker</strong> comment (e.g., <code># mytoken:unfreeze</code>)<br>
+<!-- end list --><br>
+``` ruby
+    <h1 id="in-a-ruby-file-with-prism-merge">In a Ruby file with prism-merge:</h1>
+    <p>class MyApp<br>
+  # prism-merge:freeze<br>
+  # Custom configuration that should never be overwritten<br>
+  CUSTOM_SETTING = “my-value”<br>
+  # prism-merge:unfreeze</p>
+  </li>
 </ul>
 
-<!-- end list -->
-<pre class="code language-ruby"><code class="language-ruby"># In a Ruby file with prism-merge:
-class MyApp
-  # prism-merge:freeze
-  # Custom configuration that should never be overwritten
-  CUSTOM_SETTING = &quot;my-value&quot;
-  # prism-merge:unfreeze
+<p>VERSION = “1.0.0”  # This can be updated by template<br>
+end</p>
+<pre class="code ruby"><code class="ruby">
+The `FreezeNode` class represents these protected regions internally.
+Each format-specific merge gem (like `prism-merge`, `psych-merge`, etc.) configures its own
+freeze token (the `token` in `token:freeze`), which defaults to the gem name (e.g., `prism-merge`).
 
-  VERSION = &quot;1.0.0&quot;  # This can be updated by template
-end
-</code></pre>
+### Supported Comment Patterns
 
-<p>The <code>FreezeNode</code> class represents these protected regions internally.<br>
-Each format-specific merge gem (like <code>prism-merge</code>, <code>psych-merge</code>, etc.) configures its own<br>
-freeze token (the <code>token</code> in <code>token:freeze</code>), which defaults to the gem name (e.g., <code>prism-merge</code>).</p>
+Different file formats use different comment syntaxes. The merge tools detect freeze markers
+using the appropriate pattern for each format:
 
-<h3 id="supported-comment-patterns">Supported Comment Patterns</h3>
+| Pattern Type | Start Marker | End Marker | Languages |
+| --- | --- | --- | --- |
+| `:hash_comment` | `# token:freeze` | `# token:unfreeze` | Ruby, Python, YAML, Bash, Shell |
+| `:html_comment` | `&lt;!-- token:freeze --&gt;` | `&lt;!-- token:unfreeze --&gt;` | HTML, XML, Markdown |
+| `:c_style_line` | `// token:freeze` | `// token:unfreeze` | C (C99+), C++, JavaScript, TypeScript, Java, C\#, Go, Rust, Swift, Kotlin, PHP, JSONC |
+| `:c_style_block` | `/* token:freeze */` | `/* token:unfreeze */` | C, C++, JavaScript, TypeScript, Java, C\#, Go, Rust, Swift, Kotlin, PHP, CSS |
 
-<p>Different file formats use different comment syntaxes. The merge tools detect freeze markers<br>
-using the appropriate pattern for each format:</p>
+| 📍 NOTE |
+| --- |
+| CSS only supports block comments (`/* */`), not line comments. |
+| JSON does not support comments; use JSONC for JSON with comments. |
 
-<table>
-  <thead>
-    <tr>
-      <th>Pattern Type</th>
-      <th>Start Marker</th>
-      <th>End Marker</th>
-      <th>Languages</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>:hash_comment</code></td>
-      <td><code># token:freeze</code></td>
-      <td><code># token:unfreeze</code></td>
-      <td>Ruby, Python, YAML, Bash, Shell</td>
-    </tr>
-    <tr>
-      <td><code>:html_comment</code></td>
-      <td><code>&lt;!-- token:freeze --&gt;</code></td>
-      <td><code>&lt;!-- token:unfreeze --&gt;</code></td>
-      <td>HTML, XML, Markdown</td>
-    </tr>
-    <tr>
-      <td><code>:c_style_line</code></td>
-      <td><code>// token:freeze</code></td>
-      <td><code>// token:unfreeze</code></td>
-      <td>C (C99+), C++, JavaScript, TypeScript, Java, C#, Go, Rust, Swift, Kotlin, PHP, JSONC</td>
-    </tr>
-    <tr>
-      <td><code>:c_style_block</code></td>
-      <td><code>/* token:freeze */</code></td>
-      <td><code>/* token:unfreeze */</code></td>
-      <td>C, C++, JavaScript, TypeScript, Java, C#, Go, Rust, Swift, Kotlin, PHP, CSS</td>
-    </tr>
-  </tbody>
-</table>
+### Per-Node-Type Preference with `node_typing`
 
-<table>
-  <thead>
-    <tr>
-      <th>📍 NOTE</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>CSS only supports block comments (<code>/* */</code>), not line comments.</td>
-    </tr>
-    <tr>
-      <td>JSON does not support comments; use JSONC for JSON with comments.</td>
-    </tr>
-  </tbody>
-</table>
+The `node_typing` option allows you to customize merge behavior on a per-node-type basis.
+When combined with a Hash-based `preference`, you can specify different merge
+preferences for different types of nodes (e.g., prefer template for linter configs but destination for everything else).
 
-<h3 id="per-node-type-preference-with-node_typing">Per-Node-Type Preference with <code>node_typing</code>
-</h3>
+#### How It Works
 
-<p>The <code>node_typing</code> option allows you to customize merge behavior on a per-node-type basis.<br>
-When combined with a Hash-based <code>preference</code>, you can specify different merge<br>
-preferences for different types of nodes (e.g., prefer template for linter configs but destination for everything else).</p>
+1.  **Define a `node_typing`**: A Hash mapping node type symbols to callables that receive a node and return either:
 
-<h4 id="how-it-works">How It Works</h4>
+      - The original node (no special handling)
+      - A wrapped node with a `merge_type` attribute (via `Ast::Merge::NodeTyping::Wrapper`)
 
-<ol>
-  <li>
-    <p><strong>Define a <code>node_typing</code></strong>: A Hash mapping node type symbols to callables that receive a node and return either:</p>
+2.  **Use a Hash-based preference**: Instead of a simple `:destination` or `:template` Symbol, pass a Hash with:
 
-    <ul>
-      <li>The original node (no special handling)</li>
-      <li>A wrapped node with a <code>merge_type</code> attribute (via <code>Ast::Merge::NodeTyping::Wrapper</code>)</li>
-    </ul>
-  </li>
-  <li>
-    <p><strong>Use a Hash-based preference</strong>: Instead of a simple <code>:destination</code> or <code>:template</code> Symbol, pass a Hash with:</p>
-
-    <ul>
-      <li>
-<code>:default</code> key for the fallback preference</li>
-      <li>Custom keys matching the <code>merge_type</code> values from your <code>node_typing</code>
-</li>
-    </ul>
-  </li>
-</ol>
-
-<!-- end list -->
-<pre class="code language-ruby"><code class="language-ruby"># Example: Prefer template for lint gem configs, destination for everything else
+      - `:default` key for the fallback preference
+      - Custom keys matching the `merge_type` values from your `node_typing`
+&lt;!-- end list --&gt;
+``` ruby
+# Example: Prefer template for lint gem configs, destination for everything else
 node_typing = {
   call_node: -&gt;(node) {
     if node.name == :gem &amp;&amp; node.arguments&amp;.arguments&amp;.first&amp;.unescaped&amp;.match?(/rubocop|standard|reek/)
@@ -1385,7 +1343,7 @@ Please consider sponsoring me or the project.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Fri Jan  2 05:43:40 2026 by
+  Generated on Sun Jan  4 21:12:17 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

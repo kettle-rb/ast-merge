@@ -30,6 +30,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Security
 
+## [2.0.10] - 2026-01-04
+
+- TAG: [v2.0.10][2.0.10t]
+- COVERAGE: 97.10% -- 2642/2721 lines in 48 files
+- BRANCH COVERAGE: 89.57% -- 893/997 branches in 48 files
+- 98.72% documented
+
+### Added
+
+- Dependency tags for `rbs_merge` and `not_rbs_merge`
+
+### Changed
+
+- Upgraded to `tree_haver` v3.2.4 (major new features, and bug fixes, see [release notes](https://github.com/kettle-rb/tree_haver/releases/tag/v3.2.4))
+
+### Fixed
+
+- `PartialTemplateMerger#build_merged_content` previously always injected an extra newline between parts, now join is context-aware
+
 ## [2.0.9] - 2026-01-02
 
 - TAG: [v2.0.9][2.0.9t]
@@ -444,7 +463,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.9...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.10...HEAD
+[2.0.10]: https://github.com/kettle-rb/ast-merge/compare/v2.0.9...v2.0.10
+[2.0.10t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.10
 [2.0.9]: https://github.com/kettle-rb/ast-merge/compare/v2.0.8...v2.0.9
 [2.0.9t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.9
 [2.0.8]: https://github.com/kettle-rb/ast-merge/compare/v2.0.7...v2.0.8
