@@ -2,7 +2,10 @@
 
 # Node typing for link_definition nodes - identifies gem family link refs.
 #
-# @param node [Object] Link definition node
+# The node is a TreeHaver node (or equivalent) which provides a unified
+# API with #text, #type methods that work across all backends.
+#
+# @param node [Object] TreeHaver node (or equivalent with unified API)
 # @return [Object] Node with merge type applied, or original node
 
 # Known gem family link reference labels
@@ -14,13 +17,8 @@ GEM_FAMILY_LABELS = %w[
 ].freeze
 
 lambda do |node|
-  raw = Ast::Merge::NodeTyping.unwrap(node)
-
-  text = if raw.respond_to?(:to_commonmark)
-    raw.to_commonmark.to_s.strip
-  else
-    raw.to_s.strip
-  end
+  # TreeHaver nodes provide #text method for normalized text extraction
+  text = node.text.to_s.strip
 
   # Extract the label from [label]: url format
   if text =~ /^\[([^\]]+)\]:/

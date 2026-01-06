@@ -5,30 +5,22 @@
 # This gives matching signatures to gem family content so template and destination
 # sections match even when the content differs slightly.
 #
-# @param node [Object] Markdown node
+# The node passed here is a TreeHaver node (or equivalent) which provides a unified
+# API with #text, #type, #source_position methods that work across all backends.
+#
+# @param node [Object] TreeHaver node (or equivalent with unified API)
 # @return [Array, nil] Signature for the node, or nil for default behavior
 
 lambda do |node|
-  # Extract text content from the node
-  text = if node.respond_to?(:to_plaintext)
-    node.to_plaintext.to_s.strip
-  elsif node.respond_to?(:to_commonmark)
-    node.to_commonmark.to_s.strip
-  else
-    node.to_s.strip
-  end
+  # TreeHaver nodes provide #text method for normalized text extraction
+  text = node.text.to_s.strip
 
   # Get the node type
-  type = if node.respond_to?(:type)
-    node.type.to_s
-  else
-    "unknown"
-  end
+  type = node.type.to_s
 
   # Check heading
   if type == "heading"
-    raw = Ast::Merge::NodeTyping.unwrap(node)
-    level = raw.respond_to?(:header_level) ? raw.header_level : nil
+    level = node.respond_to?(:header_level) ? node.header_level : nil
     if level == 3 && text.include?("*-merge") && text.include?("Gem Family")
       return [:gem_family, :heading, "*-merge Gem Family"]
     end
@@ -47,7 +39,14 @@ lambda do |node|
 
   # Check paragraphs
   if type == "paragraph"
+    # Match intro paragraph - various phrasings for gem family intro
+    # Template uses: "The `*-merge` gem family provides intelligent, AST-based merging"
+    # Destination uses: "This gem is part of a family of gems that provide intelligent merging"
     if text.include?("*-merge") && text.include?("gem family")
+      return [:gem_family, :paragraph, :intro]
+    elsif text.include?("family of gems") && text.include?("intelligent merging")
+      return [:gem_family, :paragraph, :intro]
+    elsif text.include?("part of a family") && text.include?("intelligent merging")
       return [:gem_family, :paragraph, :intro]
     elsif text.include?("Example implementations")
       return [:gem_family, :paragraph, :example_intro]
@@ -55,7 +54,7 @@ lambda do |node|
   end
 
   # Check link reference definitions
-  if type == "link_definition" || type.to_s == "link_definition"
+  if type == "link_definition"
     # Known gem family link labels
     gem_family_labels = %w[
       tree_haver ast-merge prism-merge psych-merge json-merge jsonc-merge

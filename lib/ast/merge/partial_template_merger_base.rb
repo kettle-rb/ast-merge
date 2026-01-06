@@ -2,36 +2,23 @@
 
 module Ast
   module Merge
-    # Merges a partial template into a specific section of a destination document.
+    # Base class for merging a partial template into a specific section of a destination document.
     #
-    # Unlike the full SmartMerger which merges entire documents, PartialTemplateMerger:
+    # Unlike the full SmartMerger which merges entire documents, PartialTemplateMergerBase:
     # 1. Finds a specific section in the destination (using InjectionPoint)
     # 2. Replaces/merges only that section with the template
     # 3. Leaves the rest of the destination unchanged
     #
-    # This is useful for updating a specific section (like a "Gem Family" section)
-    # across multiple files while preserving file-specific content.
+    # This is an abstract base class. Subclasses must implement:
+    # - #create_analysis(content) - Create a FileAnalysis for the given content
+    # - #create_smart_merger(template, section) - Create a SmartMerger for the section merge
+    # - #find_section_end(statements, injection_point) - Find where the section ends
+    # - #node_to_text(node, analysis) - Convert a node to source text
     #
-    # @example Basic usage
-    #   merger = PartialTemplateMerger.new(
-    #     template: template_content,
-    #     destination: destination_content,
-    #     anchor: { type: :heading, text: /Gem Family/ },
-    #     parser: :markly
-    #   )
-    #   result = merger.merge
-    #   puts result.content
+    # @abstract Subclass and implement parser-specific methods
+    # @see Markdown::Merge::PartialTemplateMerger For markdown implementation
     #
-    # @example With boundary
-    #   merger = PartialTemplateMerger.new(
-    #     template: template_content,
-    #     destination: destination_content,
-    #     anchor: { type: :heading, text: /Installation/ },
-    #     boundary: { type: :heading },  # Stop at next heading
-    #     parser: :markly
-    #   )
-    #
-    class PartialTemplateMerger
+    class PartialTemplateMergerBase
       # Result of a partial template merge
       class Result
         # @return [String] The merged content
@@ -79,9 +66,6 @@ module Ast
       # @return [Hash, nil] Boundary matcher configuration
       attr_reader :boundary
 
-      # @return [Symbol] Parser to use (:markly, :commonmarker, etc.)
-      attr_reader :parser
-
       # @return [Symbol, Hash] Merge preference (:template, :destination, or per-type hash)
       attr_reader :preference
 
@@ -97,43 +81,46 @@ module Ast
       # @return [Hash, nil] Node typing configuration for per-type preferences
       attr_reader :node_typing
 
-      # Initialize a PartialTemplateMerger.
+      # @return [Object, nil] Match refiner for fuzzy matching unmatched nodes
+      attr_reader :match_refiner
+
+      # Initialize a PartialTemplateMergerBase.
       #
       # @param template [String] The template content (the section to merge in)
       # @param destination [String] The destination content
       # @param anchor [Hash] Anchor matcher: { type: :heading, text: /pattern/ }
       # @param boundary [Hash, nil] Boundary matcher (defaults to same type as anchor)
-      # @param parser [Symbol] Parser to use (:markly, :commonmarker, :prism, :psych)
       # @param preference [Symbol, Hash] Which content wins (:template, :destination, or per-type hash)
       # @param add_missing [Boolean, Proc] Whether to add template nodes not in destination
       # @param when_missing [Symbol] What to do if section not found (:skip, :append, :prepend)
       # @param replace_mode [Boolean] If true, template replaces section entirely (no merge)
       # @param signature_generator [Proc, nil] Custom signature generator for SmartMerger
       # @param node_typing [Hash, nil] Node typing configuration for per-type preferences
+      # @param match_refiner [Object, nil] Match refiner for fuzzy matching (e.g., ContentMatchRefiner)
       def initialize(
         template:,
         destination:,
         anchor:,
         boundary: nil,
-        parser: :markly,
         preference: :template,
         add_missing: true,
         when_missing: :skip,
         replace_mode: false,
         signature_generator: nil,
-        node_typing: nil
+        node_typing: nil,
+        match_refiner: nil
       )
         @template = template
         @destination = destination
         @anchor = normalize_matcher(anchor)
         @boundary = boundary ? normalize_matcher(boundary) : nil
-        @parser = parser
         @preference = preference
         @add_missing = add_missing
         @when_missing = when_missing
         @replace_mode = replace_mode
         @signature_generator = signature_generator
         @node_typing = node_typing
+        @match_refiner = match_refiner
       end
 
       # Perform the partial template merge.
@@ -159,6 +146,47 @@ module Ast
 
         # Found the section - now merge
         perform_section_merge(d_analysis, d_statements, injection_point)
+      end
+
+      protected
+
+      # Create a FileAnalysis for the given content.
+      #
+      # @abstract Subclasses must implement this method
+      # @param content [String] The content to analyze
+      # @return [Object] A FileAnalysis instance
+      def create_analysis(content)
+        raise NotImplementedError, "#{self.class} must implement #create_analysis"
+      end
+
+      # Create a SmartMerger for merging the section.
+      #
+      # @abstract Subclasses must implement this method
+      # @param template_content [String] The template content
+      # @param destination_content [String] The destination section content
+      # @return [Object] A SmartMerger instance
+      def create_smart_merger(template_content, destination_content)
+        raise NotImplementedError, "#{self.class} must implement #create_smart_merger"
+      end
+
+      # Find where the section ends.
+      #
+      # @abstract Subclasses must implement this method
+      # @param statements [Array<NavigableStatement>] All statements
+      # @param injection_point [InjectionPoint] The injection point
+      # @return [Integer] Index of the last statement in the section
+      def find_section_end(statements, injection_point)
+        raise NotImplementedError, "#{self.class} must implement #find_section_end"
+      end
+
+      # Convert a node to its source text.
+      #
+      # @abstract Subclasses must implement this method
+      # @param node [Object] The node to convert
+      # @param analysis [Object, nil] The analysis object for source lookup
+      # @return [String] The source text
+      def node_to_text(node, analysis = nil)
+        raise NotImplementedError, "#{self.class} must implement #node_to_text"
       end
 
       private
@@ -187,17 +215,10 @@ module Ast
         end
       end
 
-      def handle_missing_section(_d_analysis)
+      def handle_missing_section(d_analysis)
         case when_missing
-        when :skip
-          Result.new(
-            content: destination,
-            has_section: false,
-            changed: false,
-            message: "Section not found, skipping",
-          )
         when :append
-          # Append template at end of document
+          # Append template to end of destination
           new_content = destination.chomp + "\n\n" + template
           Result.new(
             content: new_content,
@@ -206,7 +227,7 @@ module Ast
             message: "Section not found, appended template",
           )
         when :prepend
-          # Prepend template at start (after any frontmatter)
+          # Prepend template to beginning of destination
           new_content = template + "\n\n" + destination
           Result.new(
             content: new_content,
@@ -219,12 +240,12 @@ module Ast
             content: destination,
             has_section: false,
             changed: false,
-            message: "Section not found, no action taken",
+            message: "Section not found, skipping",
           )
         end
       end
 
-      def perform_section_merge(_d_analysis, d_statements, injection_point)
+      def perform_section_merge(d_analysis, d_statements, injection_point)
         # Determine section boundaries in destination
         section_start_idx = injection_point.anchor.index
         section_end_idx = find_section_end(d_statements, injection_point)
@@ -235,12 +256,12 @@ module Ast
         after_statements = d_statements[(section_end_idx + 1)..]
 
         # Determine the merged section content
-        section_content = statements_to_content(section_statements)
+        section_content = statements_to_content(section_statements, d_analysis)
         merged_section, stats = merge_section_content(section_content)
 
-        # Reconstruct the document
-        before_content = statements_to_content(before_statements)
-        after_content = statements_to_content(after_statements)
+        # Reconstruct the document using source-based extraction
+        before_content = statements_to_content(before_statements, d_analysis)
+        after_content = statements_to_content(after_statements, d_analysis)
 
         new_content = build_merged_content(before_content, merged_section, after_content)
 
@@ -280,81 +301,13 @@ module Ast
         @replace_mode == true
       end
 
-      def find_section_end(statements, injection_point)
-        # If boundary was specified and found, use it (exclusive - section ends before boundary)
-        if injection_point.boundary
-          return injection_point.boundary.index - 1
-        end
-
-        # Otherwise, find the next node of same type (for headings, same or higher level)
-        anchor = injection_point.anchor
-        anchor_type = anchor.type
-
-        # For headings, find next heading of same or higher level
-        if heading_type?(anchor_type)
-          anchor_level = get_heading_level(anchor)
-
-          ((anchor.index + 1)...statements.length).each do |idx|
-            stmt = statements[idx]
-            if heading_type?(stmt.type)
-              stmt_level = get_heading_level(stmt)
-              if stmt_level && anchor_level && stmt_level <= anchor_level
-                # Found next heading of same or higher level - section ends before it
-                return idx - 1
-              end
-            end
-          end
-        else
-          # For non-headings, find next node of same type
-          ((anchor.index + 1)...statements.length).each do |idx|
-            stmt = statements[idx]
-            if stmt.type == anchor_type
-              return idx - 1
-            end
-          end
-        end
-
-        # Section extends to end of document
-        statements.length - 1
-      end
-
-      def heading_type?(type)
-        type.to_s == "heading" || type == :heading || type == :header
-      end
-
-      def get_heading_level(stmt)
-        inner = stmt.respond_to?(:unwrapped_node) ? stmt.unwrapped_node : stmt.node
-
-        if inner.respond_to?(:header_level)
-          inner.header_level
-        elsif inner.respond_to?(:level)
-          inner.level
-        end
-      end
-
-      def statements_to_content(statements)
+      def statements_to_content(statements, analysis = nil)
         return "" if statements.nil? || statements.empty?
 
         statements.map do |stmt|
           node = stmt.respond_to?(:node) ? stmt.node : stmt
-          node_to_text(node)
+          node_to_text(node, analysis)
         end.join
-      end
-
-      def node_to_text(node)
-        # Unwrap if needed
-        inner = node
-        while inner.respond_to?(:inner_node) && inner.inner_node != inner
-          inner = inner.inner_node
-        end
-
-        if inner.respond_to?(:to_commonmark)
-          inner.to_commonmark.to_s
-        elsif inner.respond_to?(:to_s)
-          inner.to_s
-        else
-          ""
-        end
       end
 
       def build_merged_content(before, section, after)
@@ -387,54 +340,6 @@ module Ast
 
         result << "\n" unless result.empty? || result.end_with?("\n")
         result
-      end
-
-      def create_analysis(content)
-        case parser
-        when :markly
-          require "markly/merge" unless defined?(Markly::Merge)
-          Markly::Merge::FileAnalysis.new(content)
-        when :commonmarker
-          require "commonmarker/merge" unless defined?(Commonmarker::Merge)
-          Commonmarker::Merge::FileAnalysis.new(content)
-        when :prism
-          require "prism/merge" unless defined?(Prism::Merge)
-          Prism::Merge::FileAnalysis.new(content)
-        when :psych
-          require "psych/merge" unless defined?(Psych::Merge)
-          Psych::Merge::FileAnalysis.new(content)
-        else
-          raise ArgumentError, "Unknown parser: #{parser}"
-        end
-      end
-
-      def create_smart_merger(template_content, destination_content)
-        merger_class = case parser
-        when :markly
-          require "markly/merge" unless defined?(Markly::Merge)
-          Markly::Merge::SmartMerger
-        when :commonmarker
-          require "commonmarker/merge" unless defined?(Commonmarker::Merge)
-          Commonmarker::Merge::SmartMerger
-        when :prism
-          require "prism/merge" unless defined?(Prism::Merge)
-          Prism::Merge::SmartMerger
-        when :psych
-          require "psych/merge" unless defined?(Psych::Merge)
-          Psych::Merge::SmartMerger
-        else
-          raise ArgumentError, "Unknown parser: #{parser}"
-        end
-
-        # Build options hash, only including non-nil values
-        options = {
-          preference: preference,
-          add_template_only_nodes: add_missing,
-        }
-        options[:signature_generator] = signature_generator if signature_generator
-        options[:node_typing] = node_typing if node_typing
-
-        merger_class.new(template_content, destination_content, **options)
       end
     end
   end

@@ -140,28 +140,17 @@ module Ast
 
       # Extract text content from a node.
       #
-      # Uses the custom content_extractor if provided, otherwise tries
-      # common methods for getting text content.
+      # Uses the custom content_extractor if provided, otherwise uses the
+      # standard #text method that all TreeHaver nodes provide.
       #
-      # @param node [Object] The node
+      # @param node [Object] The node (must conform to TreeHaver Node API)
       # @return [String] The text content
       def extract_content(node)
         return @content_extractor.call(node) if @content_extractor
 
-        # Try common content extraction methods
-        if node.respond_to?(:text_content)
-          node.text_content.to_s
-        elsif node.respond_to?(:string_content)
-          node.string_content.to_s
-        elsif node.respond_to?(:content)
-          node.content.to_s
-        elsif node.respond_to?(:text)
-          node.text.to_s
-        elsif node.respond_to?(:to_s)
-          node.to_s
-        else
-          ""
-        end
+        # TreeHaver nodes (and any node conforming to the unified API) provide #text.
+        # No conditional fallbacks - nodes must conform to the API.
+        node.text.to_s
       end
 
       # Compute similarity score between two nodes based on content.

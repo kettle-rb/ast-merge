@@ -1,28 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::NavigableStatement do
-  # Create a simple mock node for testing
-  let(:mock_node) do
-    node = Object.new
-    allow(node).to receive_messages(
-      type: :paragraph,
-      signature: [:paragraph, "test"],
-      to_s: "Test content",
-      source_position: {start_line: 1, end_line: 1},
-    )
-    node
-  end
-
-  let(:class_node) do
-    node = Object.new
-    allow(node).to receive_messages(
-      type: :class,
-      signature: [:class, "Foo"],
-      to_s: "class Foo\nend",
-      source_position: {start_line: 1, end_line: 2},
-    )
-    node
-  end
+  # Create test nodes using TestableNode which conforms to TreeHaver API
+  let(:mock_node) { TestableNode.create(type: :paragraph, text: "Test content", start_line: 1) }
+  let(:class_node) { TestableNode.create(type: :class, text: "class Foo\nend", start_line: 1) }
 
   describe ".build_list" do
     let(:nodes) { [mock_node, class_node, mock_node] }
@@ -95,17 +76,17 @@ RSpec.describe Ast::Merge::NavigableStatement do
     let(:statements) { described_class.build_list(nodes) }
 
     it "collects statements until condition is true" do
-      result = statements[0].take_until { |s| s.type == :class }
+      result = statements[0].take_until { |s| s.type == "class" }
       expect(result).to eq([statements[1]])
     end
 
     it "returns empty array when no statements before condition" do
-      result = statements[1].take_until { |s| s.type == :class }
+      result = statements[1].take_until { |s| s.type == "class" }
       expect(result).to eq([])
     end
 
     it "returns all following when condition never true" do
-      result = statements[0].take_until { |s| s.type == :nonexistent }
+      result = statements[0].take_until { |s| s.type == "nonexistent" }
       expect(result.size).to eq(3)
     end
   end
@@ -256,93 +237,30 @@ RSpec.describe Ast::Merge::NavigableStatement do
   end
 
   describe "#text" do
-    context "when node responds to to_plaintext" do
-      let(:plaintext_node) do
-        node = Object.new
-        allow(node).to receive_messages(
-          type: :paragraph,
-          to_plaintext: "Plain text content",
-          source_position: {start_line: 1, end_line: 1},
-        )
-        node
-      end
+    context "when node conforms to TreeHaver API" do
+      let(:node) { TestableNode.create(type: :paragraph, text: "Hello world") }
+      let(:statement) { described_class.new(node, index: 0) }
 
-      let(:statement) { described_class.new(plaintext_node, index: 0) }
-
-      it "uses to_plaintext" do
-        expect(statement.text).to eq("Plain text content")
+      it "delegates to node.text" do
+        expect(statement.text).to eq("Hello world")
       end
     end
 
-    context "when node responds to to_commonmark" do
-      let(:commonmark_node) do
-        node = Object.new
-        allow(node).to receive_messages(
-          type: :paragraph,
-          to_commonmark: "# Heading",
-          source_position: {start_line: 1, end_line: 1},
-        )
-        node
-      end
+    context "with multiline text" do
+      let(:node) { TestableNode.create(type: :code_block, text: "def foo\n  bar\nend") }
+      let(:statement) { described_class.new(node, index: 0) }
 
-      let(:statement) { described_class.new(commonmark_node, index: 0) }
-
-      it "uses to_commonmark" do
-        expect(statement.text).to eq("# Heading")
+      it "returns the full text" do
+        expect(statement.text).to eq("def foo\n  bar\nend")
       end
     end
 
-    context "when node responds to slice" do
-      let(:slice_node) do
-        node = Object.new
-        allow(node).to receive_messages(
-          type: :code,
-          slice: "def foo; end",
-          source_position: {start_line: 1, end_line: 1},
-        )
-        node
-      end
+    context "with empty text" do
+      let(:node) { TestableNode.create(type: :blank, text: "") }
+      let(:statement) { described_class.new(node, index: 0) }
 
-      let(:statement) { described_class.new(slice_node, index: 0) }
-
-      it "uses slice" do
-        expect(statement.text).to eq("def foo; end")
-      end
-    end
-
-    context "when node responds to text" do
-      let(:text_node) do
-        node = Object.new
-        allow(node).to receive_messages(
-          type: :inline,
-          text: "inline text",
-          source_position: {start_line: 1, end_line: 1},
-        )
-        node
-      end
-
-      let(:statement) { described_class.new(text_node, index: 0) }
-
-      it "uses text" do
-        expect(statement.text).to eq("inline text")
-      end
-    end
-
-    context "when node has no text methods" do
-      let(:basic_node) do
-        node = Object.new
-        allow(node).to receive_messages(
-          type: :basic,
-          source_position: {start_line: 1, end_line: 1},
-        )
-        allow(node).to receive(:to_s).and_return("basic string")
-        node
-      end
-
-      let(:statement) { described_class.new(basic_node, index: 0) }
-
-      it "uses to_s" do
-        expect(statement.text).to eq("basic string")
+      it "returns empty string" do
+        expect(statement.text).to eq("")
       end
     end
   end
@@ -409,11 +327,18 @@ RSpec.describe Ast::Merge::NavigableStatement do
 
   describe "#unwrapped_node" do
     context "with wrapper node" do
-      let(:inner) { mock_node }
+      # Use a simple object as inner - not TestableNode since TestableNode itself has inner_node
+      let(:inner) do
+        node = Object.new
+        allow(node).to receive_messages(type: "paragraph", text: "inner text")
+        node
+      end
+
       let(:wrapper) do
         node = Object.new
         allow(node).to receive_messages(
-          type: :wrapper,
+          type: "wrapper",
+          text: "wrapper text",
           inner_node: inner,
           source_position: {start_line: 1, end_line: 1},
         )
@@ -427,11 +352,44 @@ RSpec.describe Ast::Merge::NavigableStatement do
       end
     end
 
+    context "with deeply nested wrappers" do
+      # Test that unwrapped_node traverses through multiple layers
+      let(:innermost) do
+        node = Object.new
+        allow(node).to receive_messages(type: "text", text: "innermost")
+        node
+      end
+
+      let(:middle) do
+        node = Object.new
+        allow(node).to receive_messages(type: "middle", text: "middle", inner_node: innermost)
+        node
+      end
+
+      let(:outer) do
+        node = Object.new
+        allow(node).to receive_messages(
+          type: "outer",
+          text: "outer",
+          inner_node: middle,
+          source_position: {start_line: 1, end_line: 1},
+        )
+        node
+      end
+
+      let(:statement) { described_class.new(outer, index: 0) }
+
+      it "returns innermost node" do
+        expect(statement.unwrapped_node).to eq(innermost)
+      end
+    end
+
     context "with self-referencing inner_node" do
       let(:self_ref_node) do
         node = Object.new
         allow(node).to receive_messages(
-          type: :self_ref,
+          type: "self_ref",
+          text: "self ref content",
           source_position: {start_line: 1, end_line: 1},
         )
         allow(node).to receive(:inner_node).and_return(node)
@@ -456,13 +414,11 @@ RSpec.describe Ast::Merge::NavigableStatement do
 
   describe "#to_s" do
     let(:long_node) do
-      node = Object.new
-      allow(node).to receive_messages(
+      TestableNode.create(
         type: :paragraph,
-        to_s: "This is a very long text that exceeds fifty characters and should be truncated",
-        source_position: {start_line: 1, end_line: 1},
+        text: "This is a very long text that exceeds fifty characters and should be truncated",
+        start_line: 1,
       )
-      node
     end
 
     let(:statement) { described_class.new(long_node, index: 0) }
@@ -732,7 +688,7 @@ RSpec.describe Ast::Merge::NavigableStatement do
     it "finds by type" do
       result = described_class.find_matching(statements, type: :class)
       expect(result.size).to eq(1)
-      expect(result.first.type).to eq(:class)
+      expect(result.first.type).to eq("class")
     end
 
     it "finds by text" do

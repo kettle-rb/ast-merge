@@ -23,7 +23,15 @@ injection:
   # The anchor identifies where the section starts
   anchor:
     type: heading
-    text: "/Gem Family/"
+    # IMPORTANT: The .text method returns plain text WITHOUT markdown formatting.
+    # Inline formatting like backticks, bold, italic, and links are stripped.
+    #
+    # In the markdown source:  ### The `*-merge` Gem Family
+    # The .text returns:       "The *-merge Gem Family\n"
+    #
+    # So we match against plain text, not the markdown source.
+    # Use ^ to anchor at start if you need exact heading match.
+    text: "/^The \\*-merge Gem Family/"
 
   # Position: replace means we replace from anchor to boundary
   position: replace
@@ -40,20 +48,19 @@ merge:
   # For matched nodes, prefer template content
   preference: template
 
-  # Add nodes from template that aren't in destination
-  # Uses a filter script that only adds gem_family nodes
-  add_missing: add_missing_filter.rb
+  # Replace the entire section with template content
+  # This is the most reliable behavior - the template completely replaces
+  # whatever is in the destination's section
+  replace_mode: true
 
-  # Custom signature generator for better node matching
-  signature_generator: signature_generator.rb
-
-  # Node typing configuration - scripts by node type
-  # These tag nodes with merge types for per-type preference handling
-  node_typing:
-    heading: typing/heading.rb
-    table: typing/table.rb
-    paragraph: typing/paragraph.rb
-    link_definition: typing/link_definition.rb
+  # Note: With replace_mode: true, the following options are NOT used:
+  # - add_missing (no node-by-node comparison)
+  # - signature_generator (no node-by-node matching)
+  # - node_typing (no per-type preference handling)
+  # - match_refiner (no fuzzy matching)
+  #
+  # The template completely replaces the section content.
+  # These options only apply when replace_mode: false (intelligent merge mode).
 
 # What to do when a target file doesn't have the anchor
 # skip = don't modify files without the section

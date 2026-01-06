@@ -64,12 +64,7 @@ RSpec.describe Ast::Merge::ContentMatchRefiner do
     let(:refiner) { described_class.new(threshold: 0.5) }
 
     def create_mock_node(content, type: :paragraph)
-      node = double("Node")
-      allow(node).to receive_messages(type: type, text_content: content)
-      allow(node).to receive(:respond_to?) do |method, *|
-        [:type, :text_content].include?(method)
-      end
-      node
+      TestableNode.create(type: type, text: content)
     end
 
     context "with empty arrays" do
@@ -302,53 +297,28 @@ RSpec.describe Ast::Merge::ContentMatchRefiner do
   describe "content extraction" do
     let(:refiner) { described_class.new }
 
-    it "extracts from text_content" do
-      node = double("Node")
-      allow(node).to receive(:respond_to?).with(:text_content).and_return(true)
-      allow(node).to receive(:text_content).and_return("hello")
-      expect(refiner.send(:extract_content, node)).to eq("hello")
+    it "extracts from node.text (TreeHaver API)" do
+      node = TestableNode.create(type: :paragraph, text: "hello world")
+      expect(refiner.send(:extract_content, node)).to eq("hello world")
     end
 
-    it "extracts from string_content" do
-      node = double("Node")
-      allow(node).to receive(:respond_to?).with(:text_content).and_return(false)
-      allow(node).to receive(:respond_to?).with(:string_content).and_return(true)
-      allow(node).to receive(:string_content).and_return("hello")
-      expect(refiner.send(:extract_content, node)).to eq("hello")
+    it "extracts multiline content" do
+      node = TestableNode.create(type: :code_block, text: "line1\nline2\nline3")
+      expect(refiner.send(:extract_content, node)).to eq("line1\nline2\nline3")
     end
 
-    it "extracts from content" do
-      node = double("Node")
-      allow(node).to receive(:respond_to?).with(:text_content).and_return(false)
-      allow(node).to receive(:respond_to?).with(:string_content).and_return(false)
-      allow(node).to receive(:respond_to?).with(:content).and_return(true)
-      allow(node).to receive(:content).and_return("hello")
-      expect(refiner.send(:extract_content, node)).to eq("hello")
+    it "extracts empty content" do
+      node = TestableNode.create(type: :blank, text: "")
+      expect(refiner.send(:extract_content, node)).to eq("")
     end
 
-    it "extracts from text" do
-      node = double("Node")
-      allow(node).to receive(:respond_to?).with(:text_content).and_return(false)
-      allow(node).to receive(:respond_to?).with(:string_content).and_return(false)
-      allow(node).to receive(:respond_to?).with(:content).and_return(false)
-      allow(node).to receive(:respond_to?).with(:text).and_return(true)
-      allow(node).to receive(:text).and_return("hello")
-      expect(refiner.send(:extract_content, node)).to eq("hello")
-    end
-
-    it "falls back to to_s" do
-      node = double("Node")
-      allow(node).to receive(:respond_to?).and_return(false)
-      allow(node).to receive(:respond_to?).with(:to_s).and_return(true)
-      allow(node).to receive_messages(to_s: "hello")
-      expect(refiner.send(:extract_content, node)).to eq("hello")
-    end
-
-    it "returns empty string for nodes without content methods" do
-      node = Object.new
-      # Object#to_s will be called, returning something like "#<Object:0x...>"
-      content = refiner.send(:extract_content, node)
-      expect(content).to be_a(String)
+    context "with custom content_extractor" do
+      it "uses custom extractor when provided" do
+        custom_extractor = ->(n) { "custom: #{n.type}" }
+        refiner_with_extractor = described_class.new(content_extractor: custom_extractor)
+        node = TestableNode.create(type: :paragraph, text: "ignored")
+        expect(refiner_with_extractor.send(:extract_content, node)).to eq("custom: paragraph")
+      end
     end
   end
 

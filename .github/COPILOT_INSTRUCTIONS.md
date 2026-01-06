@@ -333,6 +333,44 @@ This runs tests with coverage instrumentation and generates detailed coverage re
 3. **`content_string` is legacy** - Use `to_s` instead
 4. **`merged_source` doesn't exist** - `merge` returns a String directly
 
+## Markdown Text Matching Behavior
+
+**CRITICAL**: When matching Markdown nodes by text content (e.g., for anchor patterns in merge recipes or `PartialTemplateMerger`), the `.text` method returns **plain text without markdown formatting**.
+
+**Example**:
+- Markdown source: `` ### The `*-merge` Gem Family ``
+- `.text` returns: `"The *-merge Gem Family\n"`
+
+The backticks are stripped because they are inline formatting, not content.
+
+**Stripped formatting includes**:
+- Bold: `**text**` → `text`
+- Italic: `*text*` or `_text_` → `text`
+- Code: `` `code` `` → `code`
+- Links: `[text](url)` → `text`
+- Images: `![alt](src)` → `alt`
+
+**Pattern examples**:
+```ruby
+# ❌ WRONG - backticks won't be found
+anchor: { type: :heading, text: /`\*-merge` Gem Family/ }
+
+# ✅ CORRECT - match plain text
+anchor: { type: :heading, text: /\*-merge.*Gem Family/ }
+
+# ✅ CORRECT - use ^ for exact heading match
+anchor: { type: :heading, text: /^The \*-merge Gem Family/ }
+```
+
+**In YAML recipes** (double escaping needed):
+```yaml
+anchor:
+  type: heading
+  text: "/^The \\*-merge Gem Family/"
+```
+
+This applies to both Commonmarker and Markly backends. Other parsers may have their own idiosyncrasies with trailing newlines, whitespace normalization, or entity encoding. Always test patterns against actual parsed content.
+
 ## Terminal Command Restrictions
 
 ### Terminal Session Management

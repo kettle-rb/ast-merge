@@ -224,6 +224,10 @@ module Ast
           # - Type checks work (e.g., `node.is_a?(Prism::CallNode)`)
           # - The generator sees the real AST structure
           # - Frozen nodes match by their underlying identity
+          #
+          # NOTE: For TreeHaver-based backends, the node already has a unified API
+          # with #text, #type, #source_position methods. For other backends, they
+          # must conform to the same API (either via TreeHaver or equivalent adapter).
           custom_result = signature_generator.call(actual_node)
           case custom_result
           when Array, nil

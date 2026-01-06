@@ -139,7 +139,10 @@ module Ast
           callable = find_typing_callable(typing_config, type_key, node)
           return node unless callable
 
-          # Call the typing callable with the node
+          # Call the typing callable with the node.
+          # NOTE: For TreeHaver-based backends, the node already has a unified API
+          # with #text, #type, #source_position methods. For other backends, they
+          # must conform to the same API (either via TreeHaver or equivalent adapter).
           callable.call(node)
         end
 

@@ -12,11 +12,13 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/kettle-jem.iml" filepath="$PROJECT_DIR$/.idea/modules/kettle-jem.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/kettle-soup-cover.iml" filepath="$PROJECT_DIR$/.idea/modules/kettle-soup-cover.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/kettle-test.iml" filepath="$PROJECT_DIR$/.idea/modules/kettle-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/magnus.iml" filepath="$PROJECT_DIR$/.idea/modules/magnus.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/markdown-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/markdown-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/markly.iml" filepath="$PROJECT_DIR$/.idea/modules/markly.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/markly-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/markly-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/prism-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/prism-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/psych-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/psych-merge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/rb-sys.iml" filepath="$PROJECT_DIR$/.idea/modules/rb-sys.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/rbs-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/rbs-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ruby-tree-sitter.iml" filepath="$PROJECT_DIR$/.idea/modules/ruby-tree-sitter.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/toml-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/toml-merge.iml" />

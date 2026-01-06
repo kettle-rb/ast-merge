@@ -144,19 +144,19 @@ module Ast
           begin
             destination_content = File.read(target_path)
 
-            # Use PartialTemplateMerger which handles finding injection point and merging
-            merger = PartialTemplateMerger.new(
+            # Use the appropriate PartialTemplateMerger based on parser
+            merger = create_partial_template_merger(
               template: template_content,
               destination: destination_content,
               anchor: recipe.injection[:anchor] || {},
               boundary: recipe.injection[:boundary],
-              parser: parser,
               preference: recipe.preference,
               add_missing: recipe.add_missing,
               when_missing: recipe.when_missing,
               replace_mode: recipe.replace_mode?,
               signature_generator: recipe.signature_generator,
               node_typing: recipe.node_typing,
+              match_refiner: recipe.match_refiner,
             )
 
             result = merger.merge
@@ -176,6 +176,26 @@ module Ast
               message: e.message,
               error: e,
             )
+          end
+        end
+
+        # Create the appropriate PartialTemplateMerger based on parser type.
+        #
+        # @param options [Hash] Merger options
+        # @return [Object] A PartialTemplateMerger instance
+        def create_partial_template_merger(**options)
+          case parser.to_sym
+          when :markly, :commonmarker
+            require "markdown/merge" unless defined?(Markdown::Merge)
+            Markdown::Merge::PartialTemplateMerger.new(backend: parser, **options)
+          when :prism
+            require "prism/merge" unless defined?(Prism::Merge)
+            raise NotImplementedError, "Prism PartialTemplateMerger not yet implemented"
+          when :psych
+            require "psych/merge" unless defined?(Psych::Merge)
+            raise NotImplementedError, "Psych PartialTemplateMerger not yet implemented"
+          else
+            raise ArgumentError, "Unknown parser: #{parser}. Supported: :markly, :commonmarker"
           end
         end
 

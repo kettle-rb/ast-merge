@@ -270,17 +270,9 @@ module Ast
 
       # @return [String] Node text content
       def text
-        if node.respond_to?(:to_plaintext)
-          node.to_plaintext.to_s
-        elsif node.respond_to?(:to_commonmark)
-          node.to_commonmark.to_s
-        elsif node.respond_to?(:slice)
-          node.slice.to_s
-        elsif node.respond_to?(:text)
-          node.text.to_s
-        else
-          node.to_s
-        end
+        # TreeHaver nodes (and any node conforming to the unified API) provide #text.
+        # No conditional fallbacks - nodes must conform to the API.
+        node.text.to_s
       end
 
       # @return [Hash, nil] Source position info

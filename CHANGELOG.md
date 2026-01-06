@@ -20,13 +20,42 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- `TestableNode` spec helper class that wraps a mock in a real `TreeHaver::Node`, providing consistent API testing without relying on fragile mocks
+- `Recipe::Preset#match_refiner` accessor method (was missing, causing errors in Recipe::Runner)
+- Minimal reproduction specs for `to_commonmark` normalization behavior:
+  - `spec/integration/link_reference_preservation_spec.rb` - tests link ref preservation
+  - `spec/integration/table_formatting_preservation_spec.rb` - tests table padding preservation
+- `Ast::Merge::PartialTemplateMergerBase` - Abstract base class for parser-agnostic partial template merging
+  - `#build_position_based_signature_generator` - Creates signature generators that match elements by position
+  - Position counters reset per document key, enabling tables at same position to match regardless of structure
+
 ### Changed
+
+- **BREAKING**: `NavigableStatement#text` now requires nodes to conform to TreeHaver Node API (must have `#text` method)
+  - Removed conditional fallbacks for `to_plaintext`, `to_commonmark`, `slice`
+  - Nodes must now implement `#text` directly (all TreeHaver backends already do)
+- **BREAKING**: `ContentMatchRefiner#extract_content` now requires nodes to conform to TreeHaver Node API
+  - Removed conditional fallbacks for `text_content`, `string_content`, `content`, `to_s`
+  - Custom `content_extractor` proc still supported for non-standard nodes
+- Signature generators and typing scripts now receive TreeHaver nodes directly (no NavigableStatement wrapping)
+- Removed NavigableStatement wrapping from `FileAnalyzable#generate_signature` and `NodeTyping.process`
 
 ### Deprecated
 
 ### Removed
 
+- **BREAKING**: `Ast::Merge::PartialTemplateMerger` removed. Use `Markdown::Merge::PartialTemplateMerger` directly.
+  - The base class `Ast::Merge::PartialTemplateMergerBase` remains for other parsers to extend
+  - Migration: change `Ast::Merge::PartialTemplateMerger.new(parser: :markly, ...)` to
+    `Markdown::Merge::PartialTemplateMerger.new(backend: :markly, ...)`
+
 ### Fixed
+
+- **Source-based rendering**: `Markdown::Merge::PartialTemplateMerger#node_to_text` now prefers extracting
+  original source text using `analysis.source_range` instead of `to_commonmark`. This preserves:
+  - Link reference definitions (no conversion to inline links)
+  - Table column padding/alignment
+  - Original formatting exactly as written
 
 ### Security
 

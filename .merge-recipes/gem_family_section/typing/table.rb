@@ -2,19 +2,15 @@
 
 # Node typing for table nodes - identifies gem family tables.
 #
-# @param node [Object] Table node
+# The node is a TreeHaver node (or equivalent) which provides a unified
+# API with #text, #type methods that work across all backends.
+#
+# @param node [Object] TreeHaver node (or equivalent with unified API)
 # @return [Object] Node with merge type applied, or original node
 
 lambda do |node|
-  raw = Ast::Merge::NodeTyping.unwrap(node)
-
-  text = if raw.respond_to?(:to_plaintext)
-    raw.to_plaintext.to_s.strip
-  elsif raw.respond_to?(:to_commonmark)
-    raw.to_commonmark.to_s.strip
-  else
-    raw.to_s.strip
-  end
+  # TreeHaver nodes provide #text method for normalized text extraction
+  text = node.text.to_s.strip
 
   if text.include?("tree_haver") || text.include?("ast-merge") || text.include?("prism-merge")
     Ast::Merge::NodeTyping.with_merge_type(node, :gem_family_table)
@@ -22,4 +18,3 @@ lambda do |node|
     node
   end
 end
-

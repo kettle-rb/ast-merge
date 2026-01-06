@@ -124,6 +124,17 @@ module Ast
           script_loader.load_callable_hash(value)
         end
 
+        # Get the match_refiner callable, loading from script if needed.
+        #
+        # @return [Object, nil] Match refiner instance or callable
+        def match_refiner
+          value = merge_config[:match_refiner]
+          return if value.nil?
+          return value if value.respond_to?(:call) || value.is_a?(Ast::Merge::MatchRefinerBase)
+
+          script_loader.load_callable(value)
+        end
+
         # Convert preset to a hash suitable for SmartMerger options.
         #
         # @return [Hash]
@@ -133,6 +144,7 @@ module Ast
             add_template_only_nodes: add_missing,
             signature_generator: signature_generator,
             node_typing: node_typing,
+            match_refiner: match_refiner,
             freeze_token: freeze_token,
           }.compact
         end
@@ -155,6 +167,7 @@ module Ast
             deep: config["deep"] == true,
             signature_generator: config["signature_generator"],
             node_typing: config["node_typing"],
+            match_refiner: config["match_refiner"],
           }
         end
 

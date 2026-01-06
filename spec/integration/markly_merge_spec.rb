@@ -62,17 +62,17 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
   describe "#merge" do
     context "when destination has the section" do
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_with_section,
           anchor: {type: :heading, text: /Gem Family/},
-          parser: :markly,
+          backend: :markly,
         )
       end
 
       it "returns a Result" do
         result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
+        expect(result).to be_a(Markdown::Merge::PartialTemplateMerger::Result)
       end
 
       it "finds the section" do
@@ -114,11 +114,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
     context "when destination does NOT have the section" do
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_without_section,
           anchor: {type: :heading, text: /Gem Family/},
-          parser: :markly,
+          backend: :markly,
           when_missing: :skip,
         )
       end
@@ -132,11 +132,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
       context "with when_missing: :append" do
         let(:merger) do
-          Ast::Merge::PartialTemplateMerger.new(
+          Markdown::Merge::PartialTemplateMerger.new(
             template: template,
             destination: destination_without_section,
             anchor: {type: :heading, text: /Gem Family/},
-            parser: :markly,
+            backend: :markly,
             when_missing: :append,
           )
         end
@@ -151,11 +151,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
       context "with when_missing: :prepend" do
         let(:merger) do
-          Ast::Merge::PartialTemplateMerger.new(
+          Markdown::Merge::PartialTemplateMerger.new(
             template: template,
             destination: destination_without_section,
             anchor: {type: :heading, text: /Gem Family/},
-            parser: :markly,
+            backend: :markly,
             when_missing: :prepend,
           )
         end
@@ -198,12 +198,12 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: section_b_template,
           destination: destination_multi_section,
           anchor: {type: :heading, text: /Section B/},
           boundary: {type: :heading},
-          parser: :markly,
+          backend: :markly,
           replace_mode: true,  # Full replacement, not merge
         )
       end
@@ -249,12 +249,12 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: section_b_template,
           destination: destination_multi_section,
           anchor: {type: :heading, text: /Section B/},
           boundary: {type: :heading},
-          parser: :markly,
+          backend: :markly,
           preference: :template,
           add_missing: true,
           # replace_mode defaults to false - uses SmartMerger
@@ -267,17 +267,17 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
         expect(result.content).to include("New content for B")
         expect(result.content).to include("Content C")
         # With SmartMerger, behavior depends on matching and preference
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
+        expect(result).to be_a(Markdown::Merge::PartialTemplateMerger::Result)
       end
     end
 
     context "with preference: :destination" do
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_with_section,
           anchor: {type: :heading, text: /Gem Family/},
-          parser: :markly,
+          backend: :markly,
           preference: :destination,
         )
       end
@@ -285,17 +285,17 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       it "prefers destination content for conflicts" do
         result = merger.merge
         # The merger should still work, preference affects conflict resolution
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
+        expect(result).to be_a(Markdown::Merge::PartialTemplateMerger::Result)
       end
     end
 
     context "with add_missing: false" do
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_with_section,
           anchor: {type: :heading, text: /Gem Family/},
-          parser: :markly,
+          backend: :markly,
           add_missing: false,
         )
       end
@@ -303,14 +303,14 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       it "does not add template-only nodes" do
         result = merger.merge
         # With add_missing: false, new nodes from template shouldn't be added
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
+        expect(result).to be_a(Markdown::Merge::PartialTemplateMerger::Result)
       end
     end
   end
 
   describe "Result" do
     let(:result) do
-      Ast::Merge::PartialTemplateMerger::Result.new(
+      Markdown::Merge::PartialTemplateMerger::Result.new(
         content: "merged content",
         has_section: true,
         changed: true,
@@ -355,7 +355,7 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:result_with_injection) do
-        Ast::Merge::PartialTemplateMerger::Result.new(
+        Markdown::Merge::PartialTemplateMerger::Result.new(
           content: "content",
           has_section: true,
           changed: true,
@@ -370,7 +370,7 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
     context "with default values" do
       let(:minimal_result) do
-        Ast::Merge::PartialTemplateMerger::Result.new(
+        Markdown::Merge::PartialTemplateMerger::Result.new(
           content: "content",
           has_section: false,
           changed: false,
@@ -419,11 +419,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
     end
 
     let(:merger) do
-      Ast::Merge::PartialTemplateMerger.new(
+      Markdown::Merge::PartialTemplateMerger.new(
         template: subsection_template,
         destination: destination_with_h2_and_h3,
         anchor: {type: :heading, text: /Subsection/},
-        parser: :markly,
+        backend: :markly,
       )
     end
 
@@ -473,12 +473,12 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination,
           anchor: {type: :heading, text: /Features/},
           boundary: {type: :heading},
-          parser: :markly,
+          backend: :markly,
           signature_generator: custom_signature_generator,
         )
       end
@@ -489,7 +489,7 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
       it "merges with custom signatures" do
         result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
+        expect(result).to be_a(Markdown::Merge::PartialTemplateMerger::Result)
         expect(result.section_found?).to be true
       end
     end
@@ -538,11 +538,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination,
           anchor: {type: :heading, text: /Special Section/},
-          parser: :markly,
+          backend: :markly,
           node_typing: node_typing_config,
           preference: :template,
         )
@@ -554,7 +554,7 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
       it "merges with node typing" do
         result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
+        expect(result).to be_a(Markdown::Merge::PartialTemplateMerger::Result)
         expect(result.section_found?).to be true
       end
     end
@@ -563,11 +563,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
   describe "text pattern normalization" do
     context "with regex string pattern /pattern/" do
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_with_section,
           anchor: {type: :heading, text: "/Gem Family/"},
-          parser: :markly,
+          backend: :markly,
         )
       end
 
@@ -579,11 +579,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
     context "with plain string pattern" do
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_with_section,
           anchor: {type: :heading, text: "The Gem Family"},
-          parser: :markly,
+          backend: :markly,
         )
       end
 
@@ -613,17 +613,17 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: simple_template,
           destination: destination_with_heading,
           anchor: {type: :heading},
-          parser: :markly,
+          backend: :markly,
         )
       end
 
       it "matches by type only when text is nil" do
         result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
+        expect(result).to be_a(Markdown::Merge::PartialTemplateMerger::Result)
       end
     end
   end
@@ -631,20 +631,20 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
   describe "when_missing edge cases" do
     context "with unknown when_missing value" do
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_without_section,
           anchor: {type: :heading, text: /Gem Family/},
-          parser: :markly,
+          backend: :markly,
           when_missing: :unknown_action,
         )
       end
 
-      it "falls through to default (no action)" do
+      it "falls through to default (skipping)" do
         result = merger.merge
         expect(result.has_section).to be false
         expect(result.changed).to be false
-        expect(result.message).to include("no action taken")
+        expect(result.message).to include("skipping")
       end
     end
   end
@@ -652,11 +652,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
   describe "anchor normalization" do
     context "with nil anchor" do
       it "handles nil anchor gracefully" do
-        merger = Ast::Merge::PartialTemplateMerger.new(
+        merger = Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_with_section,
           anchor: nil,
-          parser: :markly,
+          backend: :markly,
         )
         result = merger.merge
         # Should not find section with nil anchor
@@ -680,11 +680,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: "## New Section\n\nNew content.",
           destination: destination_with_levels,
           anchor: {type: :heading, level: 2},
-          parser: :markly,
+          backend: :markly,
         )
       end
 
@@ -695,11 +695,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
     context "with level_lte option" do
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_with_section,
           anchor: {type: :heading, level_lte: 3},
-          parser: :markly,
+          backend: :markly,
         )
       end
 
@@ -710,11 +710,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
     context "with level_gte option" do
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: template,
           destination: destination_with_section,
           anchor: {type: :heading, level_gte: 2},
-          parser: :markly,
+          backend: :markly,
         )
       end
 
@@ -743,11 +743,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: "### Target Section\n\nNew content.",
           destination: destination_section_at_end,
           anchor: {type: :heading, text: /Target Section/},
-          parser: :markly,
+          backend: :markly,
         )
       end
 
@@ -775,17 +775,17 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: "MARKER_START\n\nReplacement content.",
           destination: destination_with_paragraph,
           anchor: {type: :paragraph, text: /MARKER_START/},
-          parser: :markly,
+          backend: :markly,
         )
       end
 
       it "finds boundary at next node of same type" do
         result = merger.merge
-        expect(result).to be_a(Ast::Merge::PartialTemplateMerger::Result)
+        expect(result).to be_a(Markdown::Merge::PartialTemplateMerger::Result)
       end
     end
   end
@@ -807,12 +807,12 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: "## Target\n\nCompletely new content.",
           destination: destination,
           anchor: {type: :heading, text: /Target/},
           boundary: {type: :heading},
-          parser: :markly,
+          backend: :markly,
           replace_mode: true,
         )
       end
@@ -839,12 +839,12 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: "## Target\n\nTemplate content.",
           destination: destination,
           anchor: {type: :heading, text: /Target/},
           boundary: {type: :heading},
-          parser: :markly,
+          backend: :markly,
           replace_mode: false,
         )
       end
@@ -869,11 +869,11 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:merger) do
-        Ast::Merge::PartialTemplateMerger.new(
+        Markdown::Merge::PartialTemplateMerger.new(
           template: "## Section\n\nExact content.",
           destination: destination,
           anchor: {type: :heading, text: /Section/},
-          parser: :markly,
+          backend: :markly,
           replace_mode: true,
         )
       end
@@ -886,16 +886,16 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
     end
   end
 
-  describe "unknown parser" do
-    it "raises ArgumentError for unknown parser" do
-      merger = Ast::Merge::PartialTemplateMerger.new(
-        template: template,
-        destination: destination_with_section,
-        anchor: {type: :heading, text: /Gem Family/},
-        parser: :unknown_parser,
-      )
-
-      expect { merger.merge }.to raise_error(ArgumentError, /Unknown parser/)
+  describe "unknown backend" do
+    it "raises ArgumentError for unknown backend" do
+      expect {
+        Markdown::Merge::PartialTemplateMerger.new(
+          template: template,
+          destination: destination_with_section,
+          anchor: {type: :heading, text: /Gem Family/},
+          backend: :unknown_backend,
+        )
+      }.to raise_error(ArgumentError, /Unknown backend/)
     end
   end
 end

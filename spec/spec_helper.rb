@@ -23,6 +23,9 @@ end
 # this library
 require "ast/merge"
 
+# Test support files
+require_relative "support/testable_node"
+
 # RSpec support: dependency tags + shared examples
 # Loads TreeHaver tags (parser backends) + Ast::Merge tags (merge gems) + shared examples
 require "ast/merge/rspec"

@@ -20,6 +20,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
       },
       "merge" => {
         "preference" => "template",
+        "replace_mode" => true,
       },
       "when_missing" => "skip",
     }
@@ -350,13 +351,13 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 
-  describe "mocked run behavior" do
+  describe "mocked run behavior", :markdown_merge do
     # These tests mock PartialTemplateMerger to test Runner logic without requiring a real parser
     let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :markly) }
 
     let(:mock_merge_result_with_section) do
       instance_double(
-        Ast::Merge::PartialTemplateMerger::Result,
+        Markdown::Merge::PartialTemplateMerger::Result,
         section_found?: true,
         has_section: true,
         changed: true,
@@ -368,7 +369,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
     let(:mock_merge_result_unchanged) do
       instance_double(
-        Ast::Merge::PartialTemplateMerger::Result,
+        Markdown::Merge::PartialTemplateMerger::Result,
         section_found?: true,
         has_section: true,
         changed: false,
@@ -380,7 +381,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
     let(:mock_merge_result_no_section) do
       instance_double(
-        Ast::Merge::PartialTemplateMerger::Result,
+        Markdown::Merge::PartialTemplateMerger::Result,
         section_found?: false,
         has_section: false,
         changed: false,
@@ -392,7 +393,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
     let(:mock_merge_result_appended) do
       instance_double(
-        Ast::Merge::PartialTemplateMerger::Result,
+        Markdown::Merge::PartialTemplateMerger::Result,
         section_found?: false,
         has_section: false,
         changed: true,
@@ -411,9 +412,9 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
     describe "#run with section found and changed" do
       before do
-        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        mock_merger = instance_double(Markdown::Merge::PartialTemplateMerger)
         allow(mock_merger).to receive(:merge).and_return(mock_merge_result_with_section)
-        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+        allow(Markdown::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
       end
 
       it "returns results array" do
@@ -451,9 +452,9 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
     describe "#run with section found but unchanged" do
       before do
-        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        mock_merger = instance_double(Markdown::Merge::PartialTemplateMerger)
         allow(mock_merger).to receive(:merge).and_return(mock_merge_result_unchanged)
-        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+        allow(Markdown::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
       end
 
       it "sets status to :unchanged" do
@@ -474,9 +475,9 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
     describe "#run with section not found (skipped)" do
       before do
-        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        mock_merger = instance_double(Markdown::Merge::PartialTemplateMerger)
         allow(mock_merger).to receive(:merge).and_return(mock_merge_result_no_section)
-        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+        allow(Markdown::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
       end
 
       it "sets status to :skipped" do
@@ -492,9 +493,9 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
     describe "#run with section not found but appended" do
       before do
-        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        mock_merger = instance_double(Markdown::Merge::PartialTemplateMerger)
         allow(mock_merger).to receive(:merge).and_return(mock_merge_result_appended)
-        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+        allow(Markdown::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
       end
 
       it "sets status to :would_update in dry_run mode" do
@@ -517,9 +518,9 @@ RSpec.describe Ast::Merge::Recipe::Runner do
       let(:runner) { described_class.new(recipe, dry_run: false, base_dir: base_dir, parser: :markly) }
 
       before do
-        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        mock_merger = instance_double(Markdown::Merge::PartialTemplateMerger)
         allow(mock_merger).to receive(:merge).and_return(mock_merge_result_with_section)
-        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+        allow(Markdown::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
       end
 
       it "writes file to disk" do
@@ -543,9 +544,9 @@ RSpec.describe Ast::Merge::Recipe::Runner do
       let(:runner) { described_class.new(recipe, dry_run: false, base_dir: base_dir, parser: :markly) }
 
       before do
-        mock_merger = instance_double(Ast::Merge::PartialTemplateMerger)
+        mock_merger = instance_double(Markdown::Merge::PartialTemplateMerger)
         allow(mock_merger).to receive(:merge).and_return(mock_merge_result_appended)
-        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
+        allow(Markdown::Merge::PartialTemplateMerger).to receive(:new).and_return(mock_merger)
       end
 
       it "writes appended content to disk" do
@@ -562,7 +563,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
     describe "#run with exception" do
       before do
-        allow(Ast::Merge::PartialTemplateMerger).to receive(:new).and_raise(StandardError.new("Parse failed"))
+        allow(Markdown::Merge::PartialTemplateMerger).to receive(:new).and_raise(StandardError.new("Parse failed"))
       end
 
       it "catches exceptions and returns error result" do

@@ -114,6 +114,49 @@ merge:
 when_missing: skip          # skip, add, error
 ```
 
+## Text Matching Behavior
+
+**Important**: When matching nodes by text content, the `.text` method returns **plain text without markdown formatting**. This is critical to understand when writing anchor patterns.
+
+For example:
+- Markdown source: `` ### The `*-merge` Gem Family ``
+- `.text` returns: `"The *-merge Gem Family\n"`
+
+The backticks are stripped because they are inline formatting.
+
+**Affected formatting**:
+- Bold: `**text**` → `text`
+- Italic: `*text*` or `_text_` → `text`
+- Code: `` `code` `` → `code`
+- Links: `[text](url)` → `text`
+- Images: `![alt](src)` → `alt`
+
+**Writing anchor patterns**:
+
+```yaml
+# ❌ WRONG - backticks are not in .text output
+anchor:
+  type: heading
+  text: "/`\\*-merge` Gem Family/"
+
+# ✅ CORRECT - match plain text content
+anchor:
+  type: heading
+  text: "/\\*-merge Gem Family/"
+
+# ✅ CORRECT - use ^ to anchor at start
+anchor:
+  type: heading
+  text: "/^The \\*-merge Gem Family/"
+```
+
+**Note**: Different parsers (Commonmarker, Markly) may have slightly different behavior for:
+- Trailing newlines
+- Whitespace normalization
+- Entity encoding
+
+Always test your patterns against actual parsed content when developing recipes.
+
 ## CLI Usage
 
 ```bash
