@@ -447,6 +447,29 @@ for standalone recipe execution.</p>
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#match_refiner-instance_method" title="#match_refiner (instance method)">#<strong>match_refiner</strong>  &#x21d2; Object<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the match_refiner callable, loading from script if needed.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#node_typing-instance_method" title="#node_typing (instance method)">#<strong>node_typing</strong>  &#x21d2; Hash<sup>?</sup> </a>
     
 
@@ -1241,6 +1264,71 @@ for standalone recipe execution.</p>
 </div>
     
       <div class="method_details ">
+  <h3 class="signature " id="match_refiner-instance_method">
+  
+    #<strong>match_refiner</strong>  &#x21d2; <tt>Object</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the match_refiner callable, loading from script if needed.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Object</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Match refiner instance or callable</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+130
+131
+132
+133
+134
+135
+136</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 130</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_match_refiner'>match_refiner</span>
+  <span class='id identifier rubyid_value'>value</span> <span class='op'>=</span> <span class='id identifier rubyid_merge_config'>merge_config</span><span class='lbracket'>[</span><span class='symbol'>:match_refiner</span><span class='rbracket'>]</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+  <span class='kw'>return</span> <span class='id identifier rubyid_value'>value</span> <span class='kw'>if</span> <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:call</span><span class='rparen'>)</span> <span class='op'>||</span> <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../../../Ast.html" title="Ast (module)">Ast</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Merge.html" title="Ast::Merge (module)">Merge</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../MatchRefinerBase.html" title="Ast::Merge::MatchRefinerBase (class)">MatchRefinerBase</a></span></span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_script_loader'>script_loader</span><span class='period'>.</span><span class='id identifier rubyid_load_callable'>load_callable</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
   <h3 class="signature " id="node_typing-instance_method">
   
     #<strong>node_typing</strong>  &#x21d2; <tt>Hash</tt><sup>?</sup> 
@@ -1400,12 +1488,12 @@ for standalone recipe execution.</p>
       <pre class="lines">
 
 
-143
-144
-145</pre>
+155
+156
+157</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 143</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 155</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_script_loader'>script_loader</span>
   <span class='ivar'>@script_loader</span> <span class='op'>||=</span> <span class='const'><span class='object_link'><a href="ScriptLoader.html" title="Ast::Merge::Recipe::ScriptLoader (class)">ScriptLoader</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="ScriptLoader.html#initialize-instance_method" title="Ast::Merge::Recipe::ScriptLoader#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>recipe_path:</span> <span class='id identifier rubyid_preset_path'>preset_path</span><span class='rparen'>)</span>
@@ -1518,18 +1606,19 @@ for standalone recipe execution.</p>
       <pre class="lines">
 
 
-130
-131
-132
-133
-134
-135
-136
-137
-138</pre>
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 130</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 141</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_to_h'>to_h</span>
   <span class='lbrace'>{</span>
@@ -1537,6 +1626,7 @@ for standalone recipe execution.</p>
     <span class='label'>add_template_only_nodes:</span> <span class='id identifier rubyid_add_missing'>add_missing</span><span class='comma'>,</span>
     <span class='label'>signature_generator:</span> <span class='id identifier rubyid_signature_generator'>signature_generator</span><span class='comma'>,</span>
     <span class='label'>node_typing:</span> <span class='id identifier rubyid_node_typing'>node_typing</span><span class='comma'>,</span>
+    <span class='label'>match_refiner:</span> <span class='id identifier rubyid_match_refiner'>match_refiner</span><span class='comma'>,</span>
     <span class='label'>freeze_token:</span> <span class='id identifier rubyid_freeze_token'>freeze_token</span><span class='comma'>,</span>
   <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_compact'>compact</span>
 <span class='kw'>end</span></pre>
@@ -1550,7 +1640,7 @@ for standalone recipe execution.</p>
 </div>
 
       <div id="footer">
-  Generated on Sun Jan  4 21:12:18 2026 by
+  Generated on Mon Jan  5 22:05:06 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

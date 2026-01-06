@@ -68,7 +68,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 and <a href="https://tom.preston-werner.com/2022/05/23/major-version-numbers-are-not-sacred.html">yes</a>, platform and engine support are part of the <a href="https://github.com/semver/semver/issues/716#issuecomment-869336139">public API</a>.<br>
 Please file a bug if you notice a violation of semantic versioning.</p>
 
-<h2 id="unreleased"><a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.10...HEAD">Unreleased</a></h2>
+<h2 id="unreleased"><a href="https://github.com/kettle-rb/ast-merge/compare/v3.0.0...HEAD">Unreleased</a></h2>
 
 <h3 id="added">Added</h3>
 
@@ -82,6 +82,94 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <h3 id="security">Security</h3>
 
+<h2 id="300---2026-01-05">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.10...v3.0.0">3.0.0</a> - 2026-01-05</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v3.0.0">v3.0.0</a>
+</li>
+  <li>COVERAGE: 96.93% – 2462/2540 lines in 47 files</li>
+  <li>BRANCH COVERAGE: 89.62% – 794/886 branches in 47 files</li>
+  <li>98.72% documented</li>
+</ul>
+
+<h3 id="added-1">Added</h3>
+
+<ul>
+  <li>
+<code>TestableNode</code> spec helper class that wraps a mock in a real <code>TreeHaver::Node</code>, providing consistent API testing without relying on fragile mocks</li>
+  <li>
+<code>Recipe::Preset#match_refiner</code> accessor method (was missing, causing errors in Recipe::Runner)</li>
+  <li>Minimal reproduction specs for <code>to_commonmark</code> normalization behavior:
+    <ul>
+      <li>
+<code>spec/integration/link_reference_preservation_spec.rb</code> - tests link ref preservation</li>
+      <li>
+<code>spec/integration/table_formatting_preservation_spec.rb</code> - tests table padding preservation</li>
+    </ul>
+  </li>
+  <li>
+<code>Ast::Merge::PartialTemplateMergerBase</code> - Abstract base class for parser-agnostic partial template merging
+    <ul>
+      <li>
+<code>#build_position_based_signature_generator</code> - Creates signature generators that match elements by position</li>
+      <li>Position counters reset per document key, enabling tables at same position to match regardless of structure</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="changed-1">Changed</h3>
+
+<ul>
+  <li>
+<strong>BREAKING</strong>: <code>NavigableStatement#text</code> now requires nodes to conform to TreeHaver Node API (must have <code>#text</code> method)
+    <ul>
+      <li>Removed conditional fallbacks for <code>to_plaintext</code>, <code>to_commonmark</code>, <code>slice</code>
+</li>
+      <li>Nodes must now implement <code>#text</code> directly (all TreeHaver backends already do)</li>
+    </ul>
+  </li>
+  <li>
+<strong>BREAKING</strong>: <code>ContentMatchRefiner#extract_content</code> now requires nodes to conform to TreeHaver Node API
+    <ul>
+      <li>Removed conditional fallbacks for <code>text_content</code>, <code>string_content</code>, <code>content</code>, <code>to_s</code>
+</li>
+      <li>Custom <code>content_extractor</code> proc still supported for non-standard nodes</li>
+    </ul>
+  </li>
+  <li>Signature generators and typing scripts now receive TreeHaver nodes directly (no NavigableStatement wrapping)</li>
+  <li>Removed NavigableStatement wrapping from <code>FileAnalyzable#generate_signature</code> and <code>NodeTyping.process</code>
+</li>
+</ul>
+
+<h3 id="removed-1">Removed</h3>
+
+<ul>
+  <li>
+<strong>BREAKING</strong>: <code>Ast::Merge::PartialTemplateMerger</code> removed. Use <code>Markdown::Merge::PartialTemplateMerger</code> directly.
+    <ul>
+      <li>The base class <code>Ast::Merge::PartialTemplateMergerBase</code> remains for other parsers to extend</li>
+      <li>Migration: change <code>Ast::Merge::PartialTemplateMerger.new(parser: :markly, ...)</code> to<br>
+<code>Markdown::Merge::PartialTemplateMerger.new(backend: :markly, ...)</code>
+</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="fixed-1">Fixed</h3>
+
+<ul>
+  <li>
+<strong>Source-based rendering</strong>: <code>Markdown::Merge::PartialTemplateMerger#node_to_text</code> now prefers extracting<br>
+original source text using <code>analysis.source_range</code> instead of <code>to_commonmark</code>. This preserves:
+    <ul>
+      <li>Link reference definitions (no conversion to inline links)</li>
+      <li>Table column padding/alignment</li>
+      <li>Original formatting exactly as written</li>
+    </ul>
+  </li>
+</ul>
+
 <h2 id="2010---2026-01-04">
 <a href="https://github.com/kettle-rb/ast-merge/compare/v2.0.9...v2.0.10">2.0.10</a> - 2026-01-04</h2>
 
@@ -93,20 +181,20 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>98.72% documented</li>
 </ul>
 
-<h3 id="added-1">Added</h3>
+<h3 id="added-2">Added</h3>
 
 <ul>
   <li>Dependency tags for <code>rbs_merge</code> and <code>not_rbs_merge</code>
 </li>
 </ul>
 
-<h3 id="changed-1">Changed</h3>
+<h3 id="changed-2">Changed</h3>
 
 <ul>
   <li>Upgraded to <code>tree_haver</code> v3.2.4 (major new features, and bug fixes, see <a href="https://github.com/kettle-rb/tree_haver/releases/tag/v3.2.4">release notes</a>)</li>
 </ul>
 
-<h3 id="fixed-1">Fixed</h3>
+<h3 id="fixed-2">Fixed</h3>
 
 <ul>
   <li>
@@ -124,7 +212,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>98.71% documented</li>
 </ul>
 
-<h3 id="fixed-2">Fixed</h3>
+<h3 id="fixed-3">Fixed</h3>
 
 <ul>
   <li>
@@ -146,7 +234,7 @@ Now returns an empty array when no criteria are specified.</li>
   <li>98.71% documented</li>
 </ul>
 
-<h3 id="added-2">Added</h3>
+<h3 id="added-3">Added</h3>
 
 <ul>
   <li>
@@ -185,7 +273,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.84% documented</li>
 </ul>
 
-<h3 id="added-3">Added</h3>
+<h3 id="added-4">Added</h3>
 
 <ul>
   <li>
@@ -236,7 +324,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-4">Added</h3>
+<h3 id="added-5">Added</h3>
 
 <ul>
   <li>Comprehensive mocked tests for <code>Ast::Merge::Recipe::Runner</code> (47 new tests):
@@ -266,7 +354,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-5">Added</h3>
+<h3 id="added-6">Added</h3>
 
 <ul>
   <li>Comprehensive tests for <code>Ast::Merge::AstNode</code> and nested structs (Point, Location)</li>
@@ -298,7 +386,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>Tests for <code>Ast::Merge::ContentMatchRefiner</code> filter_nodes with node_types</li>
 </ul>
 
-<h3 id="changed-2">Changed</h3>
+<h3 id="changed-3">Changed</h3>
 
 <ul>
   <li>tree_haver v3.2.1</li>
@@ -316,13 +404,13 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-6">Added</h3>
+<h3 id="added-7">Added</h3>
 
 <ul>
   <li>Many more tests</li>
 </ul>
 
-<h3 id="fixed-3">Fixed</h3>
+<h3 id="fixed-4">Fixed</h3>
 
 <ul>
   <li>RSpec shared examples for <code>Ast::Merge::DebugLogger</code> now handle Ruby 4.0+ where benchmark is a bundled gem
@@ -347,7 +435,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="fixed-4">Fixed</h3>
+<h3 id="fixed-5">Fixed</h3>
 
 <ul>
   <li>
@@ -371,7 +459,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-7">Added</h3>
+<h3 id="added-8">Added</h3>
 
 <ul>
   <li>Backend Platform Compatibility section to README and GEM_FAMILY_SECTION.md
@@ -382,7 +470,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-3">Changed</h3>
+<h3 id="changed-4">Changed</h3>
 
 <ul>
   <li>Updated RSpec README documentation for tree_haver dependency tag changes
@@ -408,7 +496,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="changed-4">Changed</h3>
+<h3 id="changed-5">Changed</h3>
 
 <ul>
   <li>Upgraded dependencies
@@ -420,7 +508,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="fixed-5">Fixed</h3>
+<h3 id="fixed-6">Fixed</h3>
 
 <ul>
   <li>Documentation cleanup (via yard-fence)</li>
@@ -437,7 +525,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-8">Added</h3>
+<h3 id="added-9">Added</h3>
 
 <ul>
   <li>
@@ -658,7 +746,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-5">Changed</h3>
+<h3 id="changed-6">Changed</h3>
 
 <ul>
   <li>
@@ -711,7 +799,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.45% documented</li>
 </ul>
 
-<h3 id="added-9">Added</h3>
+<h3 id="added-10">Added</h3>
 
 <ul>
   <li>
@@ -755,7 +843,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-6">Changed</h3>
+<h3 id="changed-7">Changed</h3>
 
 <ul>
   <li>
@@ -790,7 +878,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 <strong>Configuration Documentation</strong>: Enhanced backend selection documentation</li>
 </ul>
 
-<h3 id="fixed-6">Fixed</h3>
+<h3 id="fixed-7">Fixed</h3>
 
 <ul>
   <li>Fixed gemspec and Appraisals alignment with tree_haver requirements</li>
@@ -810,7 +898,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>99.29% documented</li>
 </ul>
 
-<h3 id="added-10">Added</h3>
+<h3 id="added-11">Added</h3>
 
 <ul>
   <li>Initial release</li>
@@ -819,7 +907,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 </div></div>
 
       <div id="footer">
-  Generated on Sun Jan  4 21:12:17 2026 by
+  Generated on Mon Jan  5 22:05:05 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

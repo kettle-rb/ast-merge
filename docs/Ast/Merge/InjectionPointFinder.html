@@ -288,12 +288,12 @@ NavigableStatement interface regardless of the underlying parser.</p>
       <pre class="lines">
 
 
-566
-567
-568</pre>
+558
+559
+560</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 566</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 558</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_statements'>statements</span><span class='rparen'>)</span>
   <span class='ivar'>@statements</span> <span class='op'>=</span> <span class='id identifier rubyid_statements'>statements</span>
@@ -352,12 +352,12 @@ NavigableStatement interface regardless of the underlying parser.</p>
       <pre class="lines">
 
 
-564
-565
-566</pre>
+556
+557
+558</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 564</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 556</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_statements'>statements</span>
   <span class='ivar'>@statements</span>
@@ -554,6 +554,14 @@ NavigableStatement interface regardless of the underlying parser.</p>
       <pre class="lines">
 
 
+573
+574
+575
+576
+577
+578
+579
+580
 581
 582
 583
@@ -584,18 +592,10 @@ NavigableStatement interface regardless of the underlying parser.</p>
 608
 609
 610
-611
-612
-613
-614
-615
-616
-617
-618
-619</pre>
+611</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 581</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 573</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='label'>type:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>text:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>position:</span><span class='comma'>,</span> <span class='label'>boundary_type:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>boundary_text:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>boundary_matcher:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>boundary_same_or_shallower:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_anchor'>anchor</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="NavigableStatement.html" title="Ast::Merge::NavigableStatement (class)">NavigableStatement</a></span></span><span class='period'>.</span><span class='id identifier rubyid_find_first'><span class='object_link'><a href="NavigableStatement.html#find_first-class_method" title="Ast::Merge::NavigableStatement.find_first (method)">find_first</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_statements'>statements</span><span class='comma'>,</span> <span class='label'>type:</span> <span class='id identifier rubyid_type'>type</span><span class='comma'>,</span> <span class='label'>text:</span> <span class='id identifier rubyid_text'>text</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
@@ -796,15 +796,15 @@ NavigableStatement interface regardless of the underlying parser.</p>
       <pre class="lines">
 
 
-625
-626
-627
-628
-629
-630</pre>
+617
+618
+619
+620
+621
+622</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 625</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/navigable_statement.rb', line 617</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_find_all'>find_all</span><span class='lparen'>(</span><span class='label'>type:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>text:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>position:</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_anchors'>anchors</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="NavigableStatement.html" title="Ast::Merge::NavigableStatement (class)">NavigableStatement</a></span></span><span class='period'>.</span><span class='id identifier rubyid_find_matching'><span class='object_link'><a href="NavigableStatement.html#find_matching-class_method" title="Ast::Merge::NavigableStatement.find_matching (method)">find_matching</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_statements'>statements</span><span class='comma'>,</span> <span class='label'>type:</span> <span class='id identifier rubyid_type'>type</span><span class='comma'>,</span> <span class='label'>text:</span> <span class='id identifier rubyid_text'>text</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
@@ -822,7 +822,7 @@ NavigableStatement interface regardless of the underlying parser.</p>
 </div>
 
       <div id="footer">
-  Generated on Sun Jan  4 21:12:19 2026 by
+  Generated on Mon Jan  5 22:05:07 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

@@ -736,7 +736,10 @@ or nil if the node should be skipped</p>
 141
 142
 143
-144</pre>
+144
+145
+146
+147</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing.rb', line 131</span>
@@ -752,7 +755,10 @@ or nil if the node should be skipped</p>
 </span>  <span class='id identifier rubyid_callable'>callable</span> <span class='op'>=</span> <span class='id identifier rubyid_find_typing_callable'>find_typing_callable</span><span class='lparen'>(</span><span class='id identifier rubyid_typing_config'>typing_config</span><span class='comma'>,</span> <span class='id identifier rubyid_type_key'>type_key</span><span class='comma'>,</span> <span class='id identifier rubyid_node'>node</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='id identifier rubyid_node'>node</span> <span class='kw'>unless</span> <span class='id identifier rubyid_callable'>callable</span>
 
-  <span class='comment'># Call the typing callable with the node
+  <span class='comment'># Call the typing callable with the node.
+</span>  <span class='comment'># NOTE: For TreeHaver-based backends, the node already has a unified API
+</span>  <span class='comment'># with #text, #type, #source_position methods. For other backends, they
+</span>  <span class='comment'># must conform to the same API (either via TreeHaver or equivalent adapter).
 </span>  <span class='id identifier rubyid_callable'>callable</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_node'>node</span><span class='rparen'>)</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -974,9 +980,6 @@ Returns the node unchanged if it’s not wrapped.</p>
       <pre class="lines">
 
 
-151
-152
-153
 154
 155
 156
@@ -993,10 +996,13 @@ Returns the node unchanged if it’s not wrapped.</p>
 167
 168
 169
-170</pre>
+170
+171
+172
+173</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing.rb', line 151</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/node_typing.rb', line 154</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_validate!'>validate!</span><span class='lparen'>(</span><span class='id identifier rubyid_typing_config'>typing_config</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_typing_config'>typing_config</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
@@ -1129,7 +1135,7 @@ Returns the node unchanged if it’s not wrapped.</p>
 </div>
 
       <div id="footer">
-  Generated on Sun Jan  4 21:12:17 2026 by
+  Generated on Mon Jan  5 22:05:05 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

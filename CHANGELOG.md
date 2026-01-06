@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [3.0.0] - 2026-01-05
+
+- TAG: [v3.0.0][3.0.0t]
+- COVERAGE: 96.93% -- 2462/2540 lines in 47 files
+- BRANCH COVERAGE: 89.62% -- 794/886 branches in 47 files
+- 98.72% documented
+
+### Added
+
 - `TestableNode` spec helper class that wraps a mock in a real `TreeHaver::Node`, providing consistent API testing without relying on fragile mocks
 - `Recipe::Preset#match_refiner` accessor method (was missing, causing errors in Recipe::Runner)
 - Minimal reproduction specs for `to_commonmark` normalization behavior:
@@ -40,8 +59,6 @@ Please file a bug if you notice a violation of semantic versioning.
 - Signature generators and typing scripts now receive TreeHaver nodes directly (no NavigableStatement wrapping)
 - Removed NavigableStatement wrapping from `FileAnalyzable#generate_signature` and `NodeTyping.process`
 
-### Deprecated
-
 ### Removed
 
 - **BREAKING**: `Ast::Merge::PartialTemplateMerger` removed. Use `Markdown::Merge::PartialTemplateMerger` directly.
@@ -56,8 +73,6 @@ Please file a bug if you notice a violation of semantic versioning.
   - Link reference definitions (no conversion to inline links)
   - Table column padding/alignment
   - Original formatting exactly as written
-
-### Security
 
 ## [2.0.10] - 2026-01-04
 
@@ -492,7 +507,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v2.0.10...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/kettle-rb/ast-merge/compare/v2.0.10...v3.0.0
+[3.0.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v3.0.0
 [2.0.10]: https://github.com/kettle-rb/ast-merge/compare/v2.0.9...v2.0.10
 [2.0.10t]: https://github.com/kettle-rb/ast-merge/releases/tag/v2.0.10
 [2.0.9]: https://github.com/kettle-rb/ast-merge/compare/v2.0.8...v2.0.9
