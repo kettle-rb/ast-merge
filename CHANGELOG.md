@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [3.1.0] - 2026-01-08
+
+- TAG: [v3.1.0][3.1.0t]
+- COVERAGE: 96.89% -- 2465/2544 lines in 47 files
+- BRANCH COVERAGE: 89.62% -- 794/886 branches in 47 files
+- 98.75% documented
+
+### Added
+
 - `Ast::Merge::EmitterBase` - Abstract base class for format-specific emitters
   - Provides common infrastructure for converting AST structures back to text
   - Tracks indentation level with configurable `indent_size` (default: 2 spaces)
@@ -36,14 +55,6 @@ Please file a bug if you notice a violation of semantic versioning.
 ### Changed
 
 - tree_haver v4.0.0
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [3.0.0] - 2026-01-05
 
@@ -522,7 +533,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/kettle-rb/ast-merge/compare/v3.0.0...v3.1.0
+[3.1.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v3.1.0
 [3.0.0]: https://github.com/kettle-rb/ast-merge/compare/v2.0.10...v3.0.0
 [3.0.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v3.0.0
 [2.0.10]: https://github.com/kettle-rb/ast-merge/compare/v2.0.9...v2.0.10
