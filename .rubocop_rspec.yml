@@ -31,3 +31,7 @@ RSpec/DescribeClass:
 
 RSpec/MultipleMemoizedHelpers:
   Enabled: false
+
+RSpec/Output:
+  Exclude:
+    - 'spec/fixtures/**/*'

@@ -13,6 +13,27 @@ module Ast
     # The `merge_type` attribute can then be used by other merge tools like
     # `signature_generator`, `match_refiner`, and per-node-type `preference` settings.
     #
+    # ## Important: Two Uses of merge_type
+    #
+    # The `merge_type` method serves two complementary purposes in the codebase:
+    #
+    # ### 1. NodeTyping-specific (gated by typed_node?)
+    # Wrapped nodes (Wrapper/FrozenWrapper) with custom type tagging for:
+    # - Per-node-type preferences (e.g., `:lint_gem` → `:template`)
+    # - Match refinement based on custom categories
+    # - Only applies when `typed_node?` returns true
+    # - Accessed via `NodeTyping.merge_type_for(node)`
+    #
+    # ### 2. General node classification (any node)
+    # Any node can implement `merge_type` for category identification:
+    # - FreezeNodeBase has `merge_type` → `:freeze_block`
+    # - GapLineNode has `merge_type` → `:gap_line`
+    # - Used by systems like MarkdownStructure for structural spacing rules
+    # - These nodes are NOT "typed nodes" (typed_node? returns false)
+    #
+    # The key distinction: **typed_node? is the gate** for NodeTyping wrapper
+    # semantics. A node can have `merge_type` without being a NodeTyping wrapper.
+    #
     # @example Basic node typing for different gem types
     #   node_typing = {
     #     CallNode: ->(node) {

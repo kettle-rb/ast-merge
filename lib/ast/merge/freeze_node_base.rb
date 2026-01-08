@@ -354,6 +354,15 @@ module Ast
         true
       end
 
+      # Node type for merge classification
+      # @return [Symbol] :freeze_block
+      def merge_type
+        :freeze_block
+      end
+
+      # Alias for compatibility
+      alias_method :type, :merge_type
+
       # Returns a stable signature for this freeze block.
       # Override in subclasses for file-type-specific normalization.
       # @return [Array] Signature array

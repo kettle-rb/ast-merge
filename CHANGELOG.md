@@ -20,7 +20,22 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- `Ast::Merge::EmitterBase` - Abstract base class for format-specific emitters
+  - Provides common infrastructure for converting AST structures back to text
+  - Tracks indentation level with configurable `indent_size` (default: 2 spaces)
+  - Manages output lines collection with `#lines` accessor
+  - `#emit_blank_line` - Emit an empty line
+  - `#emit_leading_comments` - Emit comments from CommentTracker
+  - `#emit_raw_lines` - Emit lines without modification (preserves exact formatting)
+  - `#to_s` - Get output as a single string with trailing newline
+  - `#clear` - Reset emitter state
+  - `#indent` / `#dedent` - Increase/decrease indentation level
+  - Subclass hooks: `#initialize_subclass_state`, `#clear_subclass_state`, `#emit_tracked_comment`
+  - Used by jsonc-merge, json-merge, bash-merge, toml-merge, and psych-merge emitters
+
 ### Changed
+
+- tree_haver v4.0.0
 
 ### Deprecated
 
