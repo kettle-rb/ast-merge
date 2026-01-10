@@ -1,0 +1,472 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# AST Merge Diff Tool
+#
+# Apply changes from a unified git diff to a destination file using AST-aware merging.
+# This enables propagating changes from one file to many similar files.
+#
+# Usage:
+#   ast-merge-diff --original FILE --destination FILE [--diff FILE|-] [options]
+#
+# Examples:
+#   git diff HEAD~1 rubocop.yml | ast-merge-diff --original rubocop.yml --destination other/rubocop.yml
+#   ast-merge-diff --diff changes.patch --original config.yml --destination other/config.yml --dry-run
+
+require "bundler/inline"
+require "optparse"
+
+# Format detection mappings
+FORMAT_EXTENSIONS = {
+  ".yml" => :yaml,
+  ".yaml" => :yaml,
+  ".json" => :json,
+  ".rb" => :ruby,
+  ".md" => :markdown,
+  ".markdown" => :markdown,
+  ".toml" => :toml,
+  ".env" => :dotenv,
+  ".sh" => :bash,
+  ".bash" => :bash,
+  ".rbs" => :rbs,
+}.freeze
+
+FORMAT_TO_GEM = {
+  yaml: "psych-merge",
+  json: "json-merge",
+  ruby: "prism-merge",
+  markdown: "markly-merge",
+  toml: "toml-merge",
+  dotenv: "dotenv-merge",
+  bash: "bash-merge",
+  rbs: "rbs-merge",
+}.freeze
+
+FORMAT_TO_REQUIRE = {
+  yaml: "psych/merge",
+  json: "json/merge",
+  ruby: "prism/merge",
+  markdown: "markly/merge",
+  toml: "toml/merge",
+  dotenv: "dotenv/merge",
+  bash: "bash/merge",
+  rbs: "rbs/merge",
+}.freeze
+
+FORMAT_TO_MERGER_CLASS = {
+  yaml: "Psych::Merge::SmartMerger",
+  json: "Json::Merge::SmartMerger",
+  ruby: "Prism::Merge::SmartMerger",
+  markdown: "Markly::Merge::SmartMerger",
+  toml: "Toml::Merge::SmartMerger",
+  dotenv: "Dotenv::Merge::SmartMerger",
+  bash: "Bash::Merge::SmartMerger",
+  rbs: "Rbs::Merge::SmartMerger",
+}.freeze
+
+FORMAT_TO_DIFF_MAPPER_CLASS = {
+  yaml: "Psych::Merge::DiffMapper",
+  # Other formats can be added as DiffMapper implementations are created
+}.freeze
+
+# Parse options before bundler/inline to determine which gems to load
+options = {
+  diff_file: nil,
+  original_file: nil,
+  destination_file: nil,
+  format: nil,
+  dry_run: false,
+  verbose: false,
+  add_only: false,
+  remove_only: false,
+  dev_mode: ENV.fetch("KETTLE_RB_DEV", "false").casecmp?("true"),
+  dev_root: nil,
+}
+
+# Pre-parse to extract format and dev options
+option_parser = OptionParser.new do |opts|
+  opts.banner = "Usage: #{File.basename($0)} [options]"
+  opts.separator("")
+  opts.separator("Apply changes from a unified git diff to a destination file using AST-aware merging.")
+  opts.separator("")
+  opts.separator("Options:")
+
+  opts.on("-d", "--diff FILE", String, "Path to unified diff file (use - for stdin, default: stdin)") do |file|
+    options[:diff_file] = file
+  end
+
+  opts.on("-o", "--original FILE", String, "Path to the original file (required for AST path mapping)") do |file|
+    options[:original_file] = file
+  end
+
+  opts.on("-D", "--destination FILE", String, "Path to the destination file to merge into") do |file|
+    options[:destination_file] = file
+  end
+
+  opts.on(
+    "-f",
+    "--format FORMAT",
+    String,
+    "File format (yaml, json, ruby, markdown, etc.)",
+    "Auto-detected from --original extension if not specified",
+  ) do |format|
+    options[:format] = format.downcase.to_sym
+  end
+
+  opts.on("-n", "--dry-run", "Show what would change without modifying files") do
+    options[:dry_run] = true
+  end
+
+  opts.on("-v", "--verbose", "Show detailed output") do
+    options[:verbose] = true
+  end
+
+  opts.on("--add-only", "Only apply additions from the diff (no removals)") do
+    options[:add_only] = true
+  end
+
+  opts.on("--remove-only", "Only apply removals from the diff (no additions)") do
+    options[:remove_only] = true
+  end
+
+  opts.on("--dev-root DIR", String, "Root directory for development gems") do |dir|
+    options[:dev_mode] = true
+    options[:dev_root] = File.expand_path(dir)
+  end
+
+  opts.on("-V", "--version", "Show version") do
+    # Version will be available after bundler/inline
+    options[:show_version] = true
+  end
+
+  opts.on("-h", "--help", "Show this help message") do
+    puts opts
+    puts
+    puts "Examples:"
+    puts "  # Apply diff from stdin"
+    puts "  git diff HEAD~1 rubocop.yml | #{File.basename($0)} -o rubocop.yml -D other/rubocop.yml"
+    puts
+    puts "  # Apply diff from file"
+    puts "  #{File.basename($0)} --diff changes.patch -o config.yml -D other/config.yml"
+    puts
+    puts "  # Dry run to preview changes"
+    puts "  #{File.basename($0)} -d changes.patch -o config.yml -D other/config.yml --dry-run"
+    puts
+    puts "Supported formats:"
+    FORMAT_TO_GEM.each do |format, gem_name|
+      puts "  #{format}: #{gem_name}"
+    end
+    exit(0)
+  end
+end
+
+begin
+  option_parser.parse!
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument => e
+  $stderr.puts "ERROR: #{e.message}"
+  $stderr.puts
+  $stderr.puts option_parser
+  exit(1)
+end
+
+# Detect format from original file extension if not specified
+if options[:format].nil? && options[:original_file]
+  ext = File.extname(options[:original_file]).downcase
+  options[:format] = FORMAT_EXTENSIONS[ext]
+end
+
+if options[:format].nil? && !options[:show_version]
+  $stderr.puts "ERROR: Could not detect format. Please specify --format or use a file with a known extension."
+  exit(1)
+end
+
+# Validate format has a DiffMapper
+unless options[:show_version]
+  unless FORMAT_TO_DIFF_MAPPER_CLASS.key?(options[:format])
+    $stderr.puts "ERROR: Format '#{options[:format]}' does not yet have DiffMapper support."
+    $stderr.puts "Supported formats: #{FORMAT_TO_DIFF_MAPPER_CLASS.keys.join(", ")}"
+    exit(1)
+  end
+end
+
+# Determine dev root for local gems
+dev_root = options[:dev_root] || ENV["AST_MERGE_DEV_ROOT"]
+if options[:dev_mode] && dev_root.nil?
+  possible_roots = [
+    File.expand_path("../..", __FILE__),
+    File.expand_path("../../..", __FILE__),
+    Dir.pwd,
+  ]
+  dev_root = possible_roots.find { |p| File.exist?(File.join(p, "ast-merge.gemspec")) }
+end
+
+# Load dependencies via bundler/inline
+gemfile do
+  source "https://gem.coop"
+
+  if options[:dev_mode] && dev_root
+    # Development mode - use local gems
+    gem "ast-merge", path: dev_root
+    gem "tree_haver", path: File.join(dev_root, "vendor/tree_haver")
+
+    # Load the format-specific gem
+    case options[:format]
+    when :yaml
+      gem("psych-merge", path: File.join(dev_root, "vendor/psych-merge"))
+    when :json
+      gem("json-merge", path: File.join(dev_root, "vendor/json-merge"))
+    when :ruby
+      gem("prism-merge", path: File.join(dev_root, "vendor/prism-merge"))
+    when :markdown
+      gem("markdown-merge", path: File.join(dev_root, "vendor/markdown-merge"))
+      gem("markly-merge", path: File.join(dev_root, "vendor/markly-merge"))
+    when :toml
+      gem("toml-merge", path: File.join(dev_root, "vendor/toml-merge"))
+    when :dotenv
+      gem("dotenv-merge", path: File.join(dev_root, "vendor/dotenv-merge"))
+    when :bash
+      gem("bash-merge", path: File.join(dev_root, "vendor/bash-merge"))
+    when :rbs
+      gem("rbs-merge", path: File.join(dev_root, "vendor/rbs-merge"))
+    end
+  else
+    # Production mode - use released gems
+    gem "ast-merge"
+
+    if options[:format]
+      gem_name = FORMAT_TO_GEM[options[:format]]
+      gem gem_name if gem_name
+    end
+  end
+end
+
+# Now load the actual libraries
+require "ast-merge"
+
+# Load format-specific library
+if options[:format]
+  require_path = FORMAT_TO_REQUIRE[options[:format]]
+  require require_path if require_path
+end
+
+# Handle version flag after loading gems
+if options[:show_version]
+  puts "ast-merge-diff #{Ast::Merge::VERSION}"
+  exit(0)
+end
+
+# ANSI color helpers
+module Colors
+  class << self
+    def green(str) = "\e[32m#{str}\e[0m"
+    def red(str) = "\e[31m#{str}\e[0m"
+    def yellow(str) = "\e[33m#{str}\e[0m"
+    def cyan(str) = "\e[36m#{str}\e[0m"
+    def bold(str) = "\e[1m#{str}\e[0m"
+    def dim(str) = "\e[2m#{str}\e[0m"
+  end
+end
+
+# Main execution class
+class AstMergeDiffCLI
+  def initialize(options)
+    @options = options
+  end
+
+  def run
+    validate_options!
+    execute_diff_merge
+  rescue => e
+    $stderr.puts Colors.red("ERROR: #{e.message}")
+    $stderr.puts e.backtrace.first(10).join("\n") if @options[:verbose]
+    exit(1)
+  end
+
+  private
+
+  def validate_options!
+    unless @options[:original_file]
+      $stderr.puts Colors.red("ERROR: --original is required")
+      exit(1)
+    end
+
+    unless File.exist?(@options[:original_file])
+      $stderr.puts Colors.red("ERROR: Original file not found: #{@options[:original_file]}")
+      exit(1)
+    end
+
+    unless @options[:destination_file]
+      $stderr.puts Colors.red("ERROR: --destination is required")
+      exit(1)
+    end
+
+    unless File.exist?(@options[:destination_file])
+      $stderr.puts Colors.red("ERROR: Destination file not found: #{@options[:destination_file]}")
+      exit(1)
+    end
+
+    if @options[:add_only] && @options[:remove_only]
+      $stderr.puts Colors.red("ERROR: Cannot use both --add-only and --remove-only")
+      exit(1)
+    end
+  end
+
+  def execute_diff_merge
+    print_header if @options[:verbose]
+
+    # Read the diff
+    diff_text = read_diff
+    if diff_text.empty?
+      puts Colors.yellow("No diff content provided. Nothing to do.")
+      exit(0)
+    end
+
+    # Read original and destination content
+    original_content = File.read(@options[:original_file])
+    destination_content = File.read(@options[:destination_file])
+
+    # Get the appropriate classes for this format
+    diff_mapper_class = Object.const_get(FORMAT_TO_DIFF_MAPPER_CLASS[@options[:format]])
+    merger_class = Object.const_get(FORMAT_TO_MERGER_CLASS[@options[:format]])
+
+    # Parse the diff and map to AST paths
+    mapper = diff_mapper_class.new
+    mappings = mapper.map(diff_text, original_content)
+
+    if mappings.empty?
+      puts Colors.yellow("No mappable changes found in diff.")
+      exit(0)
+    end
+
+    print_mappings(mappings) if @options[:verbose]
+
+    # Determine merge options based on diff operations
+    has_additions = mappings.any? { |m| m.operation == :add || m.operation == :modify }
+    has_removals = mappings.any? { |m| m.operation == :remove || m.operation == :modify }
+
+    # Generate a partial template from the diff
+    # For now, we use the entire original file as template and rely on recursive merge
+    # A more sophisticated approach would generate a minimal template from the diff
+    template_content = original_content
+
+    # Determine merge options
+    merge_options = {
+      recursive: true,
+      preference: :destination,
+    }
+
+    if @options[:add_only]
+      merge_options[:add_template_only_nodes] = true
+      merge_options[:remove_template_missing_nodes] = false
+    elsif @options[:remove_only]
+      merge_options[:add_template_only_nodes] = false
+      merge_options[:remove_template_missing_nodes] = true
+    else
+      # Default: apply both additions and removals
+      merge_options[:add_template_only_nodes] = has_additions
+      merge_options[:remove_template_missing_nodes] = has_removals
+    end
+
+    # Perform the merge
+    merger = merger_class.new(template_content, destination_content, **merge_options)
+    result = merger.merge
+
+    if @options[:dry_run]
+      print_dry_run_result(destination_content, result)
+    else
+      write_result(result)
+      puts Colors.green("Successfully merged changes into #{@options[:destination_file]}")
+    end
+  end
+
+  def read_diff
+    if @options[:diff_file].nil? || @options[:diff_file] == "-"
+      # Read from stdin
+      if $stdin.tty?
+        $stderr.puts Colors.yellow("Reading diff from stdin (press Ctrl+D when done)...")
+      end
+      $stdin.read
+    else
+      unless File.exist?(@options[:diff_file])
+        $stderr.puts Colors.red("ERROR: Diff file not found: #{@options[:diff_file]}")
+        exit(1)
+      end
+      File.read(@options[:diff_file])
+    end
+  end
+
+  def print_header
+    puts Colors.bold("=" * 70)
+    puts Colors.bold("AST Merge Diff Tool")
+    puts Colors.bold("=" * 70)
+    puts
+    puts "Format:      #{@options[:format]}"
+    puts "Original:    #{@options[:original_file]}"
+    puts "Destination: #{@options[:destination_file]}"
+    puts "Dry run:     #{@options[:dry_run]}"
+    puts
+  end
+
+  def print_mappings(mappings)
+    puts Colors.cyan("Found #{mappings.length} change(s):")
+    mappings.each do |mapping|
+      op_color = case mapping.operation
+      when :add then Colors.green("+")
+      when :remove then Colors.red("-")
+      else Colors.yellow("~")
+      end
+      puts "  #{op_color} #{mapping.path.join(".")}"
+    end
+    puts
+  end
+
+  def print_dry_run_result(original, result)
+    puts Colors.cyan("--- Dry Run Result ---")
+    puts
+
+    if original == result
+      puts Colors.yellow("No changes would be made.")
+    else
+      puts Colors.green("Changes would be applied:")
+      puts
+
+      # Simple diff display
+      original_lines = original.lines
+      result_lines = result.lines
+
+      # Find differences (simple line-by-line comparison)
+      max_lines = [original_lines.length, result_lines.length].max
+      changes_shown = 0
+
+      max_lines.times do |i|
+        orig = original_lines[i]
+        new_line = result_lines[i]
+
+        if orig != new_line
+          if orig && new_line
+            puts Colors.red("-#{orig.chomp}")
+            puts Colors.green("+#{new_line.chomp}")
+          elsif orig
+            puts Colors.red("-#{orig.chomp}")
+          else
+            puts Colors.green("+#{new_line.chomp}")
+          end
+          changes_shown += 1
+        end
+
+        # Limit output
+        if changes_shown > 50
+          puts Colors.dim("... (#{max_lines - i - 1} more lines)")
+          break
+        end
+      end
+    end
+  end
+
+  def write_result(result)
+    File.write(@options[:destination_file], result)
+  end
+end
+
+# Run the CLI
+AstMergeDiffCLI.new(options).run

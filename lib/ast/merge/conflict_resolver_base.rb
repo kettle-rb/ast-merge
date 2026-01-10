@@ -118,6 +118,15 @@ module Ast
       # @return [Boolean] Whether to add template-only nodes (batch strategy)
       attr_reader :add_template_only_nodes
 
+      # @return [Boolean] Whether to remove destination nodes not in template (batch strategy)
+      attr_reader :remove_template_missing_nodes
+
+      # @return [Boolean, Integer] Whether to merge nested structures recursively
+      #   - true: unlimited depth (default)
+      #   - false: disabled
+      #   - Integer > 0: max depth
+      attr_reader :recursive
+
       # @return [Object, nil] Match refiner for fuzzy matching
       attr_reader :match_refiner
 
@@ -132,20 +141,29 @@ module Ast
       # @param template_analysis [Object] Analysis of the template file
       # @param dest_analysis [Object] Analysis of the destination file
       # @param add_template_only_nodes [Boolean] Whether to add nodes only in template (batch/boundary strategy)
+      # @param remove_template_missing_nodes [Boolean] Whether to remove destination nodes not in template
+      # @param recursive [Boolean, Integer] Whether to merge nested structures recursively
+      #   - true: unlimited depth (default)
+      #   - false: disabled
+      #   - Integer > 0: max depth
+      #   - 0: invalid, raises ArgumentError
       # @param match_refiner [#call, nil] Optional match refiner for fuzzy matching
       # @param options [Hash] Additional options for forward compatibility
-      def initialize(strategy:, preference:, template_analysis:, dest_analysis:, add_template_only_nodes: false, match_refiner: nil, **options)
+      def initialize(strategy:, preference:, template_analysis:, dest_analysis:, add_template_only_nodes: false, remove_template_missing_nodes: false, recursive: true, match_refiner: nil, **options)
         unless %i[node batch boundary].include?(strategy)
           raise ArgumentError, "Invalid strategy: #{strategy}. Must be :node, :batch, or :boundary"
         end
 
         validate_preference!(preference)
+        validate_recursive!(recursive)
 
         @strategy = strategy
         @preference = preference
         @template_analysis = template_analysis
         @dest_analysis = dest_analysis
         @add_template_only_nodes = add_template_only_nodes
+        @remove_template_missing_nodes = remove_template_missing_nodes
+        @recursive = recursive
         @match_refiner = match_refiner
         # **options captured for forward compatibility - subclasses may use additional options
       end
@@ -400,6 +418,34 @@ module Ast
                 "got #{value.inspect} for key #{key.inspect}"
           end
         end
+      end
+
+      # Validate the recursive parameter.
+      #
+      # @param recursive [Boolean, Integer] The recursive value to validate
+      # @raise [ArgumentError] If recursive is invalid
+      def validate_recursive!(recursive)
+        return if recursive == true || recursive == false
+        return if recursive.is_a?(Integer) && recursive > 0
+
+        if recursive == 0
+          raise ArgumentError, "recursive: 0 is invalid, use false to disable recursive merging"
+        end
+
+        raise ArgumentError,
+          "Invalid recursive: #{recursive.inspect}. Must be true, false, or a positive Integer"
+      end
+
+      # Check if recursive merging should be applied at a given depth.
+      #
+      # @param current_depth [Integer] Current recursion depth (0 = root level)
+      # @return [Boolean] Whether to continue recursive merging
+      def should_recurse?(current_depth)
+        return false if @recursive == false
+        return true if @recursive == true
+
+        # @recursive is a positive Integer representing max depth
+        current_depth < @recursive
       end
     end
   end

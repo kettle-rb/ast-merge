@@ -20,6 +20,36 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- `Ast::Merge::DiffMapperBase` - Abstract base class for mapping unified git diffs to AST node paths
+  - `DiffHunk` struct for representing diff hunks with line numbers and content
+  - `DiffLine` struct for individual diff lines with type (`:context`, `:addition`, `:removal`)
+  - `DiffMapping` struct for mapping changes to AST paths with operation type
+  - `DiffParseResult` struct for parsed diff with file paths and hunks
+  - `#parse_diff(diff_text)` - Parse unified git diff format into structured hunks
+  - `#determine_operation(hunk)` - Detect `:add`, `:remove`, or `:modify` from hunk content
+  - Abstract `#map_hunk_to_paths` for format-specific implementations
+  - Abstract `#create_analysis` for format-specific file analysis
+- `Ast::Merge::ConflictResolverBase` - New options for advanced merge control:
+  - `recursive: true | false | Integer` - Control recursive merging of nested structures
+    - `true` (default): Unlimited depth recursive merging
+    - `false`: Disabled, replace entire matched nodes
+    - `Integer > 0`: Maximum recursion depth
+    - `0`: Invalid, raises `ArgumentError`
+  - `remove_template_missing_nodes: false` - When `true`, removes destination nodes not present in template
+  - `#should_recurse?(depth)` - Helper to check if recursion should continue at given depth
+  - `#validate_recursive!` - Validation for recursive parameter
+- `exe/ast-merge-diff` - CLI executable for applying git diffs via AST-aware merging
+  - Auto-detects format from file extension (`.yml`, `.yaml`, `.json`, `.rb`, etc.)
+  - `--diff FILE` - Path to unified diff file (use `-` for stdin, default: stdin)
+  - `--original FILE` - Original file for AST path mapping (required)
+  - `--destination FILE` - Destination file to merge into (required)
+  - `--format FORMAT` - Override format auto-detection
+  - `--dry-run` - Preview changes without writing
+  - `--verbose` - Detailed output
+  - `--add-only` - Only apply additions from diff
+  - `--remove-only` - Only apply removals from diff
+  - Uses bundler/inline with dynamic gem loading based on detected format
+
 ### Changed
 
 ### Deprecated

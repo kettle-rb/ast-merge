@@ -142,6 +142,7 @@ module Ast
     autoload :ConflictResolverBase, "ast/merge/conflict_resolver_base"
     autoload :ContentMatchRefiner, "ast/merge/content_match_refiner"
     autoload :DebugLogger, "ast/merge/debug_logger"
+    autoload :DiffMapperBase, "ast/merge/diff_mapper_base"
     autoload :EmitterBase, "ast/merge/emitter_base"
     autoload :FileAnalyzable, "ast/merge/file_analyzable"
     autoload :Freezable, "ast/merge/freezable"

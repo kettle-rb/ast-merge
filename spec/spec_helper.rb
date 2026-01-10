@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# External gems
+require "ostruct"
+
 # External RSpec & related config
 require "kettle/test/rspec"
 

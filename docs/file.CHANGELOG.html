@@ -72,6 +72,76 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <h3 id="added">Added</h3>
 
+<ul>
+  <li>
+<code>Ast::Merge::DiffMapperBase</code> - Abstract base class for mapping unified git diffs to AST node paths
+    <ul>
+      <li>
+<code>DiffHunk</code> struct for representing diff hunks with line numbers and content</li>
+      <li>
+<code>DiffLine</code> struct for individual diff lines with type (<code>:context</code>, <code>:addition</code>, <code>:removal</code>)</li>
+      <li>
+<code>DiffMapping</code> struct for mapping changes to AST paths with operation type</li>
+      <li>
+<code>DiffParseResult</code> struct for parsed diff with file paths and hunks</li>
+      <li>
+<code>#parse_diff(diff_text)</code> - Parse unified git diff format into structured hunks</li>
+      <li>
+<code>#determine_operation(hunk)</code> - Detect <code>:add</code>, <code>:remove</code>, or <code>:modify</code> from hunk content</li>
+      <li>Abstract <code>#map_hunk_to_paths</code> for format-specific implementations</li>
+      <li>Abstract <code>#create_analysis</code> for format-specific file analysis</li>
+    </ul>
+  </li>
+  <li>
+<code>Ast::Merge::ConflictResolverBase</code> - New options for advanced merge control:
+    <ul>
+      <li>
+<code>recursive: true | false | Integer</code> - Control recursive merging of nested structures
+        <ul>
+          <li>
+<code>true</code> (default): Unlimited depth recursive merging</li>
+          <li>
+<code>false</code>: Disabled, replace entire matched nodes</li>
+          <li>
+<code>Integer &gt; 0</code>: Maximum recursion depth</li>
+          <li>
+<code>0</code>: Invalid, raises <code>ArgumentError</code>
+</li>
+        </ul>
+      </li>
+      <li>
+<code>remove_template_missing_nodes: false</code> - When <code>true</code>, removes destination nodes not present in template</li>
+      <li>
+<code>#should_recurse?(depth)</code> - Helper to check if recursion should continue at given depth</li>
+      <li>
+<code>#validate_recursive!</code> - Validation for recursive parameter</li>
+    </ul>
+  </li>
+  <li>
+<code>exe/ast-merge-diff</code> - CLI executable for applying git diffs via AST-aware merging
+    <ul>
+      <li>Auto-detects format from file extension (<code>.yml</code>, <code>.yaml</code>, <code>.json</code>, <code>.rb</code>, etc.)</li>
+      <li>
+<code>--diff FILE</code> - Path to unified diff file (use <code>-</code> for stdin, default: stdin)</li>
+      <li>
+<code>--original FILE</code> - Original file for AST path mapping (required)</li>
+      <li>
+<code>--destination FILE</code> - Destination file to merge into (required)</li>
+      <li>
+<code>--format FORMAT</code> - Override format auto-detection</li>
+      <li>
+<code>--dry-run</code> - Preview changes without writing</li>
+      <li>
+<code>--verbose</code> - Detailed output</li>
+      <li>
+<code>--add-only</code> - Only apply additions from diff</li>
+      <li>
+<code>--remove-only</code> - Only apply removals from diff</li>
+      <li>Uses bundler/inline with dynamic gem loading based on detected format</li>
+    </ul>
+  </li>
+</ul>
+
 <h3 id="changed">Changed</h3>
 
 <h3 id="deprecated">Deprecated</h3>
@@ -952,7 +1022,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 </div></div>
 
       <div id="footer">
-  Generated on Thu Jan  8 04:50:50 2026 by
+  Generated on Fri Jan  9 21:37:07 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>
