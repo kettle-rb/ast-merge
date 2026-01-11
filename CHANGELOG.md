@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [4.0.0] - 2026-01-11
+
+- TAG: [v4.0.0][4.0.0t]
+- COVERAGE: 96.52% -- 2555/2647 lines in 51 files
+- BRANCH COVERAGE: 87.62% -- 814/929 branches in 51 files
+- 98.80% documented
+
+### Added
+
 - `Recipe::Preset#normalize_whitespace` - option to collapse excessive blank lines in merged output
 - `Recipe::Preset#rehydrate_link_references` - option to convert inline links to reference style
 - `Recipe::Runner::Result#problems` - access document problems found during merge
@@ -70,16 +89,10 @@ Please file a bug if you notice a violation of semantic versioning.
   - Reports duplicate link definitions, link ref spacing fixes, and other problems from `MergeResult#problems`
   - Removed custom regex-based link rehydration and whitespace normalization
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - `Ast::Merge::PartialTemplateMergerBase#normalize_matcher` now preserves `same_or_shallower` key from boundary config
 - `Ast::Merge::PartialTemplateMergerBase#merge` now passes `boundary_same_or_shallower` to `InjectionPointFinder#find`
-
-### Security
 
 ## [3.1.0] - 2026-01-08
 
@@ -584,7 +597,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/kettle-rb/ast-merge/compare/v3.1.0...v4.0.0
+[4.0.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.0
 [3.1.0]: https://github.com/kettle-rb/ast-merge/compare/v3.0.0...v3.1.0
 [3.1.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v3.1.0
 [3.0.0]: https://github.com/kettle-rb/ast-merge/compare/v2.0.10...v3.0.0
