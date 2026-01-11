@@ -155,12 +155,15 @@ RSpec.describe "Gem Family Section Merge Integration", :aggregate_failures do
           expect(after_quickstart).not_to include("tree_haver supports multiple parsing backends")
         end
 
-        it "does not have excessive blank lines (4+ consecutive newlines)" do
-          # Markdown typically uses at most 2 consecutive newlines (one blank line)
-          # Having 4+ newlines (3+ blank lines) indicates a merge issue
-          excessive_matches = merged_content.scan(/\n{4,}/)
-          expect(excessive_matches).to be_empty,
-            "Found #{excessive_matches.length} occurrence(s) of excessive blank lines (4+ consecutive newlines)"
+        it "does not have double blank lines (3+ consecutive newlines)" do
+          # The original README has no double blank lines.
+          # A single blank line = 2 newlines (\n\n)
+          # A double blank line = 3 newlines (\n\n\n) - THIS IS A BUG
+          # This is a regression test for the node_to_text double-newline bug
+          double_blank_matches = merged_content.scan(/\n{3,}/)
+          expect(double_blank_matches).to be_empty,
+            "Found #{double_blank_matches.length} occurrence(s) of double+ blank lines (3+ consecutive newlines). " \
+              "This indicates the node_to_text method is adding extra newlines."
         end
       end
 

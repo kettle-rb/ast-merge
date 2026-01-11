@@ -4,7 +4,7 @@
 # Update the Gem Family section in all README files that contain it.
 #
 # This is a convenience wrapper around exe/ast-merge-recipe that runs
-# the gem_family_section recipe.
+# the gem_family_section recipe, then fixes any formatting issues.
 #
 # Usage: bin/update_gem_family_section [options]
 #
@@ -17,17 +17,38 @@
 script_dir = File.expand_path("..", __dir__)
 exe_path = File.join(script_dir, "exe", "ast-merge-recipe")
 recipe_path = File.join(script_dir, ".merge-recipes", "gem_family_section.yml")
+fix_script = File.join(script_dir, "bin", "fix_readme_formatting")
 
 # Validate paths exist
 unless File.exist?(exe_path)
-  $stderr.puts "ERROR: exe/ast-merge-recipe not found at #{exe_path}"
+  warn "ERROR: exe/ast-merge-recipe not found at #{exe_path}"
   exit 1
 end
 
 unless File.exist?(recipe_path)
-  $stderr.puts "ERROR: Recipe not found at #{recipe_path}"
+  warn "ERROR: Recipe not found at #{recipe_path}"
   exit 1
 end
 
+# Check for dry-run flag to pass to fix script
+dry_run = ARGV.include?("-n") || ARGV.include?("--dry-run")
+verbose = ARGV.include?("-v") || ARGV.include?("--verbose")
+
 # Execute the recipe runner with all arguments passed through
-exec(exe_path, recipe_path, *ARGV)
+system(exe_path, recipe_path, *ARGV)
+merge_status = $?.exitstatus
+
+# Run the formatting fix script if merge succeeded and fix script exists
+if merge_status == 0 && File.exist?(fix_script)
+  fix_args = []
+  fix_args << "-n" if dry_run
+  fix_args << "-v" if verbose
+  # Fix ast-merge README and all vendor READMEs
+  fix_args << "README.md"
+  fix_args.concat(Dir.glob("vendor/*/README.md"))
+
+  puts "\nFixing README formatting..." if verbose
+  system(fix_script, *fix_args)
+end
+
+exit merge_status

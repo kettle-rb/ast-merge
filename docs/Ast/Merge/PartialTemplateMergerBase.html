@@ -1433,7 +1433,8 @@
 146
 147
 148
-149</pre>
+149
+150</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'lib/ast/merge/partial_template_merger_base.rb', line 129</span>
@@ -1441,15 +1442,16 @@
 <span class='kw'>def</span> <span class='id identifier rubyid_merge'>merge</span>
   <span class='comment'># Parse destination and find injection point
 </span>  <span class='id identifier rubyid_d_analysis'>d_analysis</span> <span class='op'>=</span> <span class='id identifier rubyid_create_analysis'>create_analysis</span><span class='lparen'>(</span><span class='id identifier rubyid_destination'>destination</span><span class='rparen'>)</span>
-  <span class='id identifier rubyid_d_statements'>d_statements</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="NavigableStatement.html" title="Ast::Merge::NavigableStatement (class)">NavigableStatement</a></span></span><span class='period'>.</span><span class='id identifier rubyid_build_list'><span class='object_link'><a href="NavigableStatement.html#build_list-class_method" title="Ast::Merge::NavigableStatement.build_list (method)">build_list</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_d_analysis'>d_analysis</span><span class='period'>.</span><span class='id identifier rubyid_statements'>statements</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_d_statements'>d_statements</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="Navigable.html" title="Ast::Merge::Navigable (module)">Navigable</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Navigable/Statement.html" title="Ast::Merge::Navigable::Statement (class)">Statement</a></span></span><span class='period'>.</span><span class='id identifier rubyid_build_list'><span class='object_link'><a href="Navigable/Statement.html#build_list-class_method" title="Ast::Merge::Navigable::Statement.build_list (method)">build_list</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_d_analysis'>d_analysis</span><span class='period'>.</span><span class='id identifier rubyid_statements'>statements</span><span class='rparen'>)</span>
 
-  <span class='id identifier rubyid_finder'>finder</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="InjectionPointFinder.html" title="Ast::Merge::InjectionPointFinder (class)">InjectionPointFinder</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="InjectionPointFinder.html#initialize-instance_method" title="Ast::Merge::InjectionPointFinder#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_d_statements'>d_statements</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_finder'>finder</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="Navigable.html" title="Ast::Merge::Navigable (module)">Navigable</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Navigable/InjectionPointFinder.html" title="Ast::Merge::Navigable::InjectionPointFinder (class)">InjectionPointFinder</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Navigable/InjectionPointFinder.html#initialize-instance_method" title="Ast::Merge::Navigable::InjectionPointFinder#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_d_statements'>d_statements</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_injection_point'>injection_point</span> <span class='op'>=</span> <span class='id identifier rubyid_finder'>finder</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span>
     <span class='label'>type:</span> <span class='id identifier rubyid_anchor'>anchor</span><span class='lbracket'>[</span><span class='symbol'>:type</span><span class='rbracket'>]</span><span class='comma'>,</span>
     <span class='label'>text:</span> <span class='id identifier rubyid_anchor'>anchor</span><span class='lbracket'>[</span><span class='symbol'>:text</span><span class='rbracket'>]</span><span class='comma'>,</span>
     <span class='label'>position:</span> <span class='symbol'>:replace</span><span class='comma'>,</span>
     <span class='label'>boundary_type:</span> <span class='id identifier rubyid_boundary'>boundary</span><span class='op'>&amp;.</span><span class='id identifier rubyid_dig'>dig</span><span class='lparen'>(</span><span class='symbol'>:type</span><span class='rparen'>)</span><span class='comma'>,</span>
     <span class='label'>boundary_text:</span> <span class='id identifier rubyid_boundary'>boundary</span><span class='op'>&amp;.</span><span class='id identifier rubyid_dig'>dig</span><span class='lparen'>(</span><span class='symbol'>:text</span><span class='rparen'>)</span><span class='comma'>,</span>
+    <span class='label'>boundary_same_or_shallower:</span> <span class='id identifier rubyid_boundary'>boundary</span><span class='op'>&amp;.</span><span class='id identifier rubyid_dig'>dig</span><span class='lparen'>(</span><span class='symbol'>:same_or_shallower</span><span class='rparen'>)</span> <span class='op'>||</span> <span class='kw'>false</span><span class='comma'>,</span>
   <span class='rparen'>)</span>
 
   <span class='kw'>if</span> <span class='id identifier rubyid_injection_point'>injection_point</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
@@ -1469,7 +1471,7 @@
 </div>
 
       <div id="footer">
-  Generated on Fri Jan  9 21:37:10 2026 by
+  Generated on Sun Jan 11 04:45:16 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::InjectionPointFinder do
+RSpec.describe Ast::Merge::Navigable::InjectionPointFinder do
   let(:nodes) do
     TestableNode.create_list(
       {type: :class, text: "class Foo\nend", start_line: 1},
@@ -9,13 +9,13 @@ RSpec.describe Ast::Merge::InjectionPointFinder do
     )
   end
 
-  let(:statements) { Ast::Merge::NavigableStatement.build_list(nodes) }
+  let(:statements) { Ast::Merge::Navigable::Statement.build_list(nodes) }
   let(:finder) { described_class.new(statements) }
 
   describe "#find" do
     it "finds injection point by type" do
       point = finder.find(type: :class, position: :first_child)
-      expect(point).to be_a(Ast::Merge::InjectionPoint)
+      expect(point).to be_a(Ast::Merge::Navigable::InjectionPoint)
       expect(point.anchor.type).to eq("class")
       expect(point.position).to eq(:first_child)
     end
@@ -106,7 +106,7 @@ RSpec.describe Ast::Merge::InjectionPointFinder do
         [child, deeper, sibling]
       end
 
-      let(:statements) { Ast::Merge::NavigableStatement.build_list(nested_nodes) }
+      let(:statements) { Ast::Merge::Navigable::Statement.build_list(nested_nodes) }
       let(:finder) { described_class.new(statements) }
 
       it "finds boundary at same or shallower depth" do
@@ -139,13 +139,13 @@ RSpec.describe Ast::Merge::InjectionPointFinder do
       )
     end
 
-    let(:statements) { Ast::Merge::NavigableStatement.build_list(nodes_with_duplicates) }
+    let(:statements) { Ast::Merge::Navigable::Statement.build_list(nodes_with_duplicates) }
     let(:finder) { described_class.new(statements) }
 
     it "finds all matching injection points" do
       points = finder.find_all(type: :constant, position: :replace)
       expect(points.size).to eq(3)
-      expect(points).to all(be_a(Ast::Merge::InjectionPoint))
+      expect(points).to all(be_a(Ast::Merge::Navigable::InjectionPoint))
     end
   end
 end

@@ -185,6 +185,10 @@ class AstMergeRecipeCLI
         @options[:verbose] = true
       end
 
+      opts.on("--show-problems", "Show document problems found during merge") do
+        @options[:show_problems] = true
+      end
+
       opts.on(
         "-p",
         "--parser=PARSER",
@@ -316,6 +320,22 @@ class AstMergeRecipeCLI
 
     if @options[:verbose] && result.stats
       puts Colors.dim("      Stats: #{result.stats.inspect}")
+    end
+
+    # Show problems if --show-problems or --verbose
+    if (@options[:show_problems] || @options[:verbose]) && result.problems&.any?
+      puts Colors.yellow("      Problems:")
+      result.problems.each do |problem|
+        severity_color = case problem[:severity]
+        when :error then :red
+        when :warning then :yellow
+        else :dim
+        end
+        msg = "        [#{problem[:severity]}] #{problem[:category]}"
+        details = problem.reject { |k, _| [:category, :severity].include?(k) }
+        msg += ": #{details.inspect}" unless details.empty?
+        puts Colors.send(severity_color, msg)
+      end
     end
 
     if result.error && @options[:verbose]

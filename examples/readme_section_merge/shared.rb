@@ -11,7 +11,7 @@
 require "bundler/inline"
 
 gemfile do
-  source "https://rubygems.org"
+  source "https://gem.coop"
   gem "ast-merge", path: File.expand_path("../..", __dir__)
   gem "tree_haver", path: File.expand_path("../../vendor/tree_haver", __dir__)
   gem "markdown-merge", path: File.expand_path("../../vendor/markdown-merge", __dir__)

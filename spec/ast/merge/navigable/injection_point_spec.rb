@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::InjectionPoint do
+RSpec.describe Ast::Merge::Navigable::InjectionPoint do
   let(:mock_node) do
     node = Object.new
     allow(node).to receive_messages(
@@ -11,7 +11,7 @@ RSpec.describe Ast::Merge::InjectionPoint do
     node
   end
 
-  let(:anchor) { Ast::Merge::NavigableStatement.new(mock_node, index: 0) }
+  let(:anchor) { Ast::Merge::Navigable::Statement.new(mock_node, index: 0) }
 
   describe "#initialize" do
     it "creates with valid position" do
@@ -27,14 +27,14 @@ RSpec.describe Ast::Merge::InjectionPoint do
     end
 
     it "raises for boundary with non-replace position" do
-      boundary = Ast::Merge::NavigableStatement.new(mock_node, index: 1)
+      boundary = Ast::Merge::Navigable::Statement.new(mock_node, index: 1)
       expect {
         described_class.new(anchor: anchor, position: :before, boundary: boundary)
       }.to raise_error(ArgumentError, /boundary is only valid/)
     end
 
     it "allows boundary with replace position" do
-      boundary = Ast::Merge::NavigableStatement.new(mock_node, index: 1)
+      boundary = Ast::Merge::Navigable::Statement.new(mock_node, index: 1)
       point = described_class.new(anchor: anchor, position: :replace, boundary: boundary)
       expect(point.boundary).to eq(boundary)
     end
@@ -87,7 +87,7 @@ RSpec.describe Ast::Merge::InjectionPoint do
       end
     end
 
-    let(:statements) { Ast::Merge::NavigableStatement.build_list(nodes) }
+    let(:statements) { Ast::Merge::Navigable::Statement.build_list(nodes) }
 
     it "returns empty for non-replacement" do
       point = described_class.new(anchor: statements[0], position: :before)
@@ -122,7 +122,7 @@ RSpec.describe Ast::Merge::InjectionPoint do
       end
     end
 
-    let(:statements) { Ast::Merge::NavigableStatement.build_list(nodes) }
+    let(:statements) { Ast::Merge::Navigable::Statement.build_list(nodes) }
 
     it "returns anchor start line" do
       point = described_class.new(anchor: statements[1], position: :replace)
@@ -143,7 +143,7 @@ RSpec.describe Ast::Merge::InjectionPoint do
       end
     end
 
-    let(:statements) { Ast::Merge::NavigableStatement.build_list(nodes) }
+    let(:statements) { Ast::Merge::Navigable::Statement.build_list(nodes) }
 
     it "returns anchor end line when no boundary" do
       point = described_class.new(anchor: statements[1], position: :replace)
@@ -173,11 +173,11 @@ RSpec.describe Ast::Merge::InjectionPoint do
       end
     end
 
-    let(:statements) { Ast::Merge::NavigableStatement.build_list(nodes) }
+    let(:statements) { Ast::Merge::Navigable::Statement.build_list(nodes) }
 
     it "returns readable representation without boundary" do
       point = described_class.new(anchor: statements[0], position: :before)
-      expect(point.inspect).to eq("#<InjectionPoint position=before anchor=0>")
+      expect(point.inspect).to eq("#<Navigable::InjectionPoint position=before anchor=0>")
     end
 
     it "returns readable representation with boundary" do
@@ -186,7 +186,7 @@ RSpec.describe Ast::Merge::InjectionPoint do
         position: :replace,
         boundary: statements[1],
       )
-      expect(point.inspect).to eq("#<InjectionPoint position=replace anchor=0 to 1>")
+      expect(point.inspect).to eq("#<Navigable::InjectionPoint position=replace anchor=0 to 1>")
     end
   end
 end

@@ -135,6 +135,20 @@ module Ast
           script_loader.load_callable(value)
         end
 
+        # Get the normalize_whitespace setting.
+        #
+        # @return [Boolean] Whether to collapse excessive blank lines
+        def normalize_whitespace
+          merge_config[:normalize_whitespace] == true
+        end
+
+        # Get the rehydrate_link_references setting.
+        #
+        # @return [Boolean] Whether to convert inline links to reference style
+        def rehydrate_link_references
+          merge_config[:rehydrate_link_references] == true
+        end
+
         # Convert preset to a hash suitable for SmartMerger options.
         #
         # @return [Hash]
@@ -146,6 +160,8 @@ module Ast
             node_typing: node_typing,
             match_refiner: match_refiner,
             freeze_token: freeze_token,
+            normalize_whitespace: normalize_whitespace,
+            rehydrate_link_references: rehydrate_link_references,
           }.compact
         end
 
@@ -168,6 +184,8 @@ module Ast
             signature_generator: config["signature_generator"],
             node_typing: config["node_typing"],
             match_refiner: config["match_refiner"],
+            normalize_whitespace: config["normalize_whitespace"] == true,
+            rehydrate_link_references: config["rehydrate_link_references"] == true,
           }
         end
 

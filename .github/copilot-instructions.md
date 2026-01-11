@@ -126,7 +126,7 @@ end
 
 **Applies to**:
 - `FileAnalysis#initialize` in all gems
-- `SmartMerger#initialize` in all gems  
+- `SmartMerger#initialize` in all gems
 - Any method that accepts a variable set of options
 
 ### SmartMergerBase API
@@ -414,7 +414,7 @@ bin/rake coverage
 bin/rspec
 ```
 
-**Why**: 
+**Why**:
 - You cannot predict how much output a test run will produce
 - Your predictions are ALWAYS wrong
 - You cannot see terminal output anyway - the user will copy relevant portions for you

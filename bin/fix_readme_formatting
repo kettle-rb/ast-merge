@@ -1,0 +1,123 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Fix README files that have been corrupted by previous merge operations:
+# 1. Collapse excessive duplicate blank lines (via normalize_whitespace)
+# 2. Remove blank lines between consecutive link reference definitions (via normalize_whitespace: :link_refs)
+# 3. Restore link references (rehydrate inline URLs to use link refs)
+#
+# Uses SmartMerger with an empty template to apply cleanup transformations
+# to the destination file while preserving all content.
+#
+# Usage: bin/fix_readme_formatting [files...]
+#
+# If no files specified, fixes all vendor/*/README.md files.
+#
+# Options:
+#   -n, --dry-run    Show what would be changed without writing files
+#   -v, --verbose    Show detailed information
+#   -h, --help       Show this help message
+
+require "optparse"
+require "bundler/setup"
+require "markly/merge"
+
+options = {
+  dry_run: false,
+  verbose: false,
+}
+
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: #{$PROGRAM_NAME} [options] [files...]"
+
+  opts.on("-n", "--dry-run", "Show what would be changed without writing files") do
+    options[:dry_run] = true
+  end
+
+  opts.on("-v", "--verbose", "Show detailed information") do
+    options[:verbose] = true
+  end
+
+  opts.on("-h", "--help", "Show this help message") do
+    puts opts
+    exit
+  end
+end
+
+parser.parse!
+
+# Determine which files to process
+files = if ARGV.empty?
+  Dir.glob("vendor/*/README.md")
+else
+  ARGV
+end
+
+if files.empty?
+  warn "No README files found to process"
+  exit 1
+end
+
+# Process each file using SmartMerger with cleanup options
+files.each do |file|
+  unless File.exist?(file)
+    warn "WARNING: File not found: #{file}"
+    next
+  end
+
+  content = File.read(file)
+  original_content = content.dup
+
+  # Use SmartMerger with empty template to apply cleanup transformations
+  # - preference: :destination keeps all destination content
+  # - normalize_whitespace: :link_refs collapses excessive blank lines AND
+  #   removes blank lines between consecutive link reference definitions
+  # - rehydrate_link_references: converts inline URLs to link refs
+  merger = Markdown::Merge::SmartMerger.new(
+    "",  # Empty template
+    content,
+    backend: :markly,
+    preference: :destination,
+    add_template_only_nodes: false,
+    normalize_whitespace: :link_refs,
+    rehydrate_link_references: true,
+  )
+
+  result = merger.merge_result
+  new_content = result.content
+
+  if new_content == original_content
+    puts "#{file}: No changes needed" if options[:verbose]
+    next
+  end
+
+  # Calculate statistics
+  original_lines = original_content.lines.count
+  new_lines = new_content.lines.count
+  lines_removed = original_lines - new_lines
+
+  stats = []
+  stats << "removed #{lines_removed} lines" if lines_removed > 0
+
+  # Report problems found
+  if result.problems && !result.problems.empty?
+    whitespace_fixes = result.problems.all.count { |p| p[:category] == :excessive_whitespace }
+    link_ref_spacing = result.problems.all.count { |p| p[:category] == :link_ref_spacing }
+    duplicates = result.problems.all.count { |p| p[:category] == :duplicate_link_definition }
+    link_titles = result.problems.all.count { |p| p[:category] == :link_has_title }
+    image_titles = result.problems.all.count { |p| p[:category] == :image_has_title }
+
+    stats << "fixed #{whitespace_fixes} whitespace issues" if whitespace_fixes > 0
+    stats << "fixed #{link_ref_spacing} link ref spacing issues" if link_ref_spacing > 0
+    stats << "found #{duplicates} duplicate link defs" if duplicates > 0
+    stats << "#{link_titles} links with titles skipped" if link_titles > 0 && options[:verbose]
+    stats << "#{image_titles} images with titles skipped" if image_titles > 0 && options[:verbose]
+  end
+
+  if options[:dry_run]
+    puts "#{file}: Would fix (#{stats.join(", ")}) (#{original_lines} -> #{new_lines} lines)"
+  else
+    File.write(file, new_content)
+    puts "#{file}: Fixed (#{stats.join(", ")}) (#{original_lines} -> #{new_lines} lines)"
+  end
+end

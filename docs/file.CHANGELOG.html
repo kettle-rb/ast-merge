@@ -74,6 +74,14 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <ul>
   <li>
+<code>Recipe::Preset#normalize_whitespace</code> - option to collapse excessive blank lines in merged output</li>
+  <li>
+<code>Recipe::Preset#rehydrate_link_references</code> - option to convert inline links to reference style</li>
+  <li>
+<code>Recipe::Runner::Result#problems</code> - access document problems found during merge</li>
+  <li>
+<code>exe/ast-merge-recipe --show-problems</code> - flag to display document problems in CLI output</li>
+  <li>
 <code>Ast::Merge::DiffMapperBase</code> - Abstract base class for mapping unified git diffs to AST node paths
     <ul>
       <li>
@@ -144,11 +152,54 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <h3 id="changed">Changed</h3>
 
+<ul>
+  <li>
+<strong>BREAKING</strong>: Upgrade to <a href="https://github.com/kettle-rb/tree_haver/releases/tag/v5.0.0">tree_haver v5.0.0</a>
+</li>
+  <li>
+<strong>BREAKING</strong>: Refactored navigation classes into <code>Ast::Merge::Navigable</code> namespace
+    <ul>
+      <li>
+<code>Ast::Merge::NavigableStatement</code> → <code>Ast::Merge::Navigable::Statement</code>
+</li>
+      <li>
+<code>Ast::Merge::InjectionPoint</code> → <code>Ast::Merge::Navigable::InjectionPoint</code>
+</li>
+      <li>
+<code>Ast::Merge::InjectionPointFinder</code> → <code>Ast::Merge::Navigable::InjectionPointFinder</code>
+</li>
+      <li>Each class is now in its own file under <code>lib/ast/merge/navigable/</code>
+</li>
+      <li>Uses autoload for lazy loading</li>
+    </ul>
+  </li>
+  <li>
+<code>bin/fix_readme_formatting</code> - Rewritten to use SmartMerger API
+    <ul>
+      <li>Now uses <code>Markdown::Merge::SmartMerger</code> with <code>normalize_whitespace: :link_refs</code> and <code>rehydrate_link_references: true</code>
+</li>
+      <li>The <code>:link_refs</code> mode collapses excessive blank lines AND removes blank lines between consecutive link reference definitions</li>
+      <li>Merges empty template with destination to apply cleanup transformations</li>
+      <li>Reports duplicate link definitions, link ref spacing fixes, and other problems from <code>MergeResult#problems</code>
+</li>
+      <li>Removed custom regex-based link rehydration and whitespace normalization</li>
+    </ul>
+  </li>
+</ul>
+
 <h3 id="deprecated">Deprecated</h3>
 
 <h3 id="removed">Removed</h3>
 
 <h3 id="fixed">Fixed</h3>
+
+<ul>
+  <li>
+<code>Ast::Merge::PartialTemplateMergerBase#normalize_matcher</code> now preserves <code>same_or_shallower</code> key from boundary config</li>
+  <li>
+<code>Ast::Merge::PartialTemplateMergerBase#merge</code> now passes <code>boundary_same_or_shallower</code> to <code>InjectionPointFinder#find</code>
+</li>
+</ul>
 
 <h3 id="security">Security</h3>
 
@@ -1022,7 +1073,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 </div></div>
 
       <div id="footer">
-  Generated on Fri Jan  9 21:37:07 2026 by
+  Generated on Sun Jan 11 04:45:14 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

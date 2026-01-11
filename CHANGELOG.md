@@ -20,6 +20,10 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- `Recipe::Preset#normalize_whitespace` - option to collapse excessive blank lines in merged output
+- `Recipe::Preset#rehydrate_link_references` - option to convert inline links to reference style
+- `Recipe::Runner::Result#problems` - access document problems found during merge
+- `exe/ast-merge-recipe --show-problems` - flag to display document problems in CLI output
 - `Ast::Merge::DiffMapperBase` - Abstract base class for mapping unified git diffs to AST node paths
   - `DiffHunk` struct for representing diff hunks with line numbers and content
   - `DiffLine` struct for individual diff lines with type (`:context`, `:addition`, `:removal`)
@@ -52,11 +56,28 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Changed
 
+- **BREAKING**: Upgrade to [tree_haver v5.0.0](https://github.com/kettle-rb/tree_haver/releases/tag/v5.0.0)
+- **BREAKING**: Refactored navigation classes into `Ast::Merge::Navigable` namespace
+  - `Ast::Merge::NavigableStatement` → `Ast::Merge::Navigable::Statement`
+  - `Ast::Merge::InjectionPoint` → `Ast::Merge::Navigable::InjectionPoint`
+  - `Ast::Merge::InjectionPointFinder` → `Ast::Merge::Navigable::InjectionPointFinder`
+  - Each class is now in its own file under `lib/ast/merge/navigable/`
+  - Uses autoload for lazy loading
+- `bin/fix_readme_formatting` - Rewritten to use SmartMerger API
+  - Now uses `Markdown::Merge::SmartMerger` with `normalize_whitespace: :link_refs` and `rehydrate_link_references: true`
+  - The `:link_refs` mode collapses excessive blank lines AND removes blank lines between consecutive link reference definitions
+  - Merges empty template with destination to apply cleanup transformations
+  - Reports duplicate link definitions, link ref spacing fixes, and other problems from `MergeResult#problems`
+  - Removed custom regex-based link rehydration and whitespace normalization
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- `Ast::Merge::PartialTemplateMergerBase#normalize_matcher` now preserves `same_or_shallower` key from boundary config
+- `Ast::Merge::PartialTemplateMergerBase#merge` now passes `boundary_same_or_shallower` to `InjectionPointFinder#find`
 
 ### Security
 

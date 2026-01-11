@@ -26,7 +26,7 @@ module Ast
       #
       class Runner
         # Result of processing a single file
-        Result = Struct.new(:path, :relative_path, :status, :changed, :has_anchor, :message, :stats, :error, keyword_init: true)
+        Result = Struct.new(:path, :relative_path, :status, :changed, :has_anchor, :message, :stats, :problems, :error, keyword_init: true)
 
         # @return [Config] The recipe being executed
         attr_reader :recipe
@@ -157,6 +157,8 @@ module Ast
               signature_generator: recipe.signature_generator,
               node_typing: recipe.node_typing,
               match_refiner: recipe.match_refiner,
+              normalize_whitespace: recipe.normalize_whitespace,
+              rehydrate_link_references: recipe.rehydrate_link_references,
             )
 
             result = merger.merge
@@ -202,6 +204,9 @@ module Ast
         def create_result_from_merge(target_path, relative_path, _destination_content, merge_result)
           changed = merge_result.changed
 
+          # Extract problems from stats if present (PartialTemplateMerger stores them there)
+          problems = merge_result.stats[:problems] if merge_result.stats.is_a?(Hash)
+
           if changed
             unless dry_run
               File.write(target_path, merge_result.content)
@@ -215,6 +220,7 @@ module Ast
               has_anchor: true,
               message: dry_run ? "Would update" : "Updated",
               stats: merge_result.stats,
+              problems: problems,
             )
           else
             Result.new(
@@ -225,6 +231,7 @@ module Ast
               has_anchor: true,
               message: "No changes needed",
               stats: merge_result.stats,
+              problems: problems,
             )
           end
         end

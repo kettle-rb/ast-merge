@@ -493,6 +493,29 @@ for standalone recipe execution.</p>
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#normalize_whitespace-instance_method" title="#normalize_whitespace (instance method)">#<strong>normalize_whitespace</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the normalize_whitespace setting.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#preference-instance_method" title="#preference (instance method)">#<strong>preference</strong>  &#x21d2; Symbol, Hash </a>
     
 
@@ -508,6 +531,29 @@ for standalone recipe execution.</p>
 
   
     <span class="summary_desc"><div class='inline'><p>Get the merge preference setting.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#rehydrate_link_references-instance_method" title="#rehydrate_link_references (instance method)">#<strong>rehydrate_link_references</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the rehydrate_link_references setting.</p>
 </div></span>
   
 </li>
@@ -1394,6 +1440,63 @@ for standalone recipe execution.</p>
 </div>
     
       <div class="method_details ">
+  <h3 class="signature " id="normalize_whitespace-instance_method">
+  
+    #<strong>normalize_whitespace</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the normalize_whitespace setting.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Whether to collapse excessive blank lines</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+141
+142
+143</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 141</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_normalize_whitespace'>normalize_whitespace</span>
+  <span class='id identifier rubyid_merge_config'>merge_config</span><span class='lbracket'>[</span><span class='symbol'>:normalize_whitespace</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='kw'>true</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
   <h3 class="signature " id="preference-instance_method">
   
     #<strong>preference</strong>  &#x21d2; <tt>Symbol</tt>, <tt>Hash</tt> 
@@ -1451,6 +1554,63 @@ for standalone recipe execution.</p>
 </div>
     
       <div class="method_details ">
+  <h3 class="signature " id="rehydrate_link_references-instance_method">
+  
+    #<strong>rehydrate_link_references</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the rehydrate_link_references setting.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Whether to convert inline links to reference style</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+148
+149
+150</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 148</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_rehydrate_link_references'>rehydrate_link_references</span>
+  <span class='id identifier rubyid_merge_config'>merge_config</span><span class='lbracket'>[</span><span class='symbol'>:rehydrate_link_references</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='kw'>true</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
   <h3 class="signature " id="script_loader-instance_method">
   
     #<strong>script_loader</strong>  &#x21d2; <tt><span class='object_link'><a href="ScriptLoader.html" title="Ast::Merge::Recipe::ScriptLoader (class)">ScriptLoader</a></span></tt> 
@@ -1488,12 +1648,12 @@ for standalone recipe execution.</p>
       <pre class="lines">
 
 
-155
-156
-157</pre>
+171
+172
+173</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 155</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 171</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_script_loader'>script_loader</span>
   <span class='ivar'>@script_loader</span> <span class='op'>||=</span> <span class='const'><span class='object_link'><a href="ScriptLoader.html" title="Ast::Merge::Recipe::ScriptLoader (class)">ScriptLoader</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="ScriptLoader.html#initialize-instance_method" title="Ast::Merge::Recipe::ScriptLoader#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>recipe_path:</span> <span class='id identifier rubyid_preset_path'>preset_path</span><span class='rparen'>)</span>
@@ -1606,19 +1766,21 @@ for standalone recipe execution.</p>
       <pre class="lines">
 
 
-141
-142
-143
-144
-145
-146
-147
-148
-149
-150</pre>
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 141</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/preset.rb', line 155</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_to_h'>to_h</span>
   <span class='lbrace'>{</span>
@@ -1628,6 +1790,8 @@ for standalone recipe execution.</p>
     <span class='label'>node_typing:</span> <span class='id identifier rubyid_node_typing'>node_typing</span><span class='comma'>,</span>
     <span class='label'>match_refiner:</span> <span class='id identifier rubyid_match_refiner'>match_refiner</span><span class='comma'>,</span>
     <span class='label'>freeze_token:</span> <span class='id identifier rubyid_freeze_token'>freeze_token</span><span class='comma'>,</span>
+    <span class='label'>normalize_whitespace:</span> <span class='id identifier rubyid_normalize_whitespace'>normalize_whitespace</span><span class='comma'>,</span>
+    <span class='label'>rehydrate_link_references:</span> <span class='id identifier rubyid_rehydrate_link_references'>rehydrate_link_references</span><span class='comma'>,</span>
   <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_compact'>compact</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -1640,7 +1804,7 @@ for standalone recipe execution.</p>
 </div>
 
       <div id="footer">
-  Generated on Fri Jan  9 21:37:08 2026 by
+  Generated on Sun Jan 11 04:45:15 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

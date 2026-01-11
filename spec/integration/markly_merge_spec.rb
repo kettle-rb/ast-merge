@@ -108,7 +108,7 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
 
       it "includes the injection point in result" do
         result = merger.merge
-        expect(result.injection_point).to be_a(Ast::Merge::InjectionPoint)
+        expect(result.injection_point).to be_a(Ast::Merge::Navigable::InjectionPoint)
       end
     end
 
@@ -351,7 +351,7 @@ RSpec.describe "Markly partial template merge integration", :markly_merge do
       end
 
       let(:injection_point) do
-        Ast::Merge::InjectionPoint.new(anchor: mock_anchor, position: :replace)
+        Ast::Merge::Navigable::InjectionPoint.new(anchor: mock_anchor, position: :replace)
       end
 
       let(:result_with_injection) do

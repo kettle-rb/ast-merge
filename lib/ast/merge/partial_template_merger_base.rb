@@ -129,15 +129,16 @@ module Ast
       def merge
         # Parse destination and find injection point
         d_analysis = create_analysis(destination)
-        d_statements = NavigableStatement.build_list(d_analysis.statements)
+        d_statements = Navigable::Statement.build_list(d_analysis.statements)
 
-        finder = InjectionPointFinder.new(d_statements)
+        finder = Navigable::InjectionPointFinder.new(d_statements)
         injection_point = finder.find(
           type: anchor[:type],
           text: anchor[:text],
           position: :replace,
           boundary_type: boundary&.dig(:type),
           boundary_text: boundary&.dig(:text),
+          boundary_same_or_shallower: boundary&.dig(:same_or_shallower) || false,
         )
 
         if injection_point.nil?
@@ -200,6 +201,7 @@ module Ast
         result[:level] = matcher[:level] if matcher[:level]
         result[:level_lte] = matcher[:level_lte] if matcher[:level_lte]
         result[:level_gte] = matcher[:level_gte] if matcher[:level_gte]
+        result[:same_or_shallower] = matcher[:same_or_shallower] if matcher.key?(:same_or_shallower)
         result.compact
       end
 

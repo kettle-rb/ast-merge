@@ -44,8 +44,8 @@ RSpec.describe "Table Formatting Preservation", :commonmarker_merge, :markly_mer
       it "preserves table padding when using source_range" do
         analysis = analysis_class.new(markdown_with_padded_table)
 
-        # Build NavigableStatements
-        statements = Ast::Merge::NavigableStatement.build_list(analysis.statements)
+        # Build Navigable::Statements
+        statements = Ast::Merge::Navigable::Statement.build_list(analysis.statements)
 
         # Find the table
         table_stmt = statements.find { |s| s.type.to_s == "table" }

@@ -34,8 +34,8 @@ RSpec.describe "Link Reference Preservation", :commonmarker_merge, :markly_merge
       it "preserves link reference syntax when using source_range" do
         analysis = analysis_class.new(markdown_with_link_refs)
 
-        # Build NavigableStatements
-        statements = Ast::Merge::NavigableStatement.build_list(analysis.statements)
+        # Build Navigable::Statements
+        statements = Ast::Merge::Navigable::Statement.build_list(analysis.statements)
 
         # Find a paragraph with link references
         para_stmt = statements.find { |s| s.type.to_s == "paragraph" }
