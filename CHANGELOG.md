@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [4.0.2] - 2026-01-12
+
+- TAG: [v4.0.2][4.0.2t]
+- COVERAGE: 97.30% -- 2739/2815 lines in 53 files
+- BRANCH COVERAGE: 89.84% -- 893/994 branches in 53 files
+- 98.81% documented
+
+### Added
+
 - **`Recipe::Runner` target file override**: Accept `target_files` parameter to override recipe targets
   - `Runner.new(recipe, target_files: ["file1.md", "file2.md"])` - Process only specified files
   - Paths are expanded relative to `base_dir`
@@ -37,14 +56,6 @@ Please file a bug if you notice a violation of semantic versioning.
 - **`bin/update_gem_family_section`**: Refactored to use `OptionParser` for clean option handling
   - Consistent with `bin/fix_readme_formatting` style
   - Properly separates options from file arguments
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [4.0.1] - 2026-01-11
 
@@ -653,7 +664,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.1...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.2...HEAD
+[4.0.2]: https://github.com/kettle-rb/ast-merge/compare/v4.0.1...v4.0.2
+[4.0.2t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.2
 [4.0.1]: https://github.com/kettle-rb/ast-merge/compare/v4.0.0...v4.0.1
 [4.0.1t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.1
 [4.0.0]: https://github.com/kettle-rb/ast-merge/compare/v3.1.0...v4.0.0
