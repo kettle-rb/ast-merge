@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [4.0.1] - 2026-01-11
+
+- TAG: [v4.0.1][4.0.1t]
+- COVERAGE: 96.45% -- 2553/2647 lines in 51 files
+- BRANCH COVERAGE: 87.41% -- 812/929 branches in 51 files
+- 98.80% documented
+
+### Added
+
 - **`Ast::Merge::RSpec::MergeGemRegistry`** - Fully dynamic merge gem registration for RSpec dependency tags
   - `register(tag_name, require_path:, merger_class:, test_source:, category:)` - Register a merge gem
   - `available?(tag_name)` - Check if a merge gem is available and functional
@@ -50,14 +69,6 @@ Please file a bug if you notice a violation of semantic versioning.
 - `spec/ast/merge/node_wrapper_base_spec.rb` refactored to use `TestableNode` instead of mocks
   - Real TreeHaver::Node behavior for most tests
   - Mocks only retained for edge case testing (e.g., invalid end_line before start_line)
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [4.0.0] - 2026-01-11
 
@@ -626,7 +637,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.1...HEAD
+[4.0.1]: https://github.com/kettle-rb/ast-merge/compare/v4.0.0...v4.0.1
+[4.0.1t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.1
 [4.0.0]: https://github.com/kettle-rb/ast-merge/compare/v3.1.0...v4.0.0
 [4.0.0t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.0
 [3.1.0]: https://github.com/kettle-rb/ast-merge/compare/v3.0.0...v3.1.0

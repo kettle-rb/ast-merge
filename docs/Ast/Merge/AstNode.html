@@ -69,10 +69,12 @@
   <dl>
     <dt>Inherits:</dt>
     <dd>
-      <span class="inheritName">Object</span>
+      <span class="inheritName">TreeHaver::Base::Node</span>
       
         <ul class="fullTree">
           <li>Object</li>
+          
+            <li class="next">TreeHaver::Base::Node</li>
           
             <li class="next">Ast::Merge::AstNode</li>
           
@@ -86,11 +88,6 @@
   
   
   
-  
-  <dl>
-      <dt>Includes:</dt>
-      <dd>Comparable</dd>
-  </dl>
   
   
 
@@ -112,9 +109,9 @@
 created by ast-merge for representing content that doesn’t have a native<br />
 AST (comments, text lines, env file entries, etc.).</p>
 
-<p>This class implements the TreeHaver::Node protocol, making it compatible<br />
-with all code that expects TreeHaver nodes. This allows synthetic nodes<br />
-to be used interchangeably with parser-backed nodes in merge operations.</p>
+<p>This class inherits from TreeHaver::Base::Node, ensuring it stays in sync<br />
+with the canonical Node API. This allows synthetic nodes to be used<br />
+interchangeably with parser-backed nodes in merge operations.</p>
 
 <p>Implements the TreeHaver::Node protocol:</p>
 <ul>
@@ -161,7 +158,7 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
   <p class="tag_title">See Also:</p>
   <ul class="see">
     
-      <li>The protocol this class implements</li>
+      <li>The base class defining the canonical Node API</li>
     
       <li><span class='object_link'><a href="Comment/Line.html" title="Ast::Merge::Comment::Line (class)">Example synthetic node for comments</a></span></li>
     
@@ -246,34 +243,6 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
 </li>
 
     
-      <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#source-instance_method" title="#source (instance method)">#<strong>source</strong>  &#x21d2; String<sup>?</sup> </a>
-    
-
-    
-  </span>
-  
-  
-  
-    
-      <span class="note title readonly">readonly</span>
-    
-    
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>The full source text (for text extraction).</p>
-</div></span>
-  
-</li>
-
-    
   </ul>
 
 
@@ -304,7 +273,7 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Comparable: compare nodes by position.</p>
+    <span class="summary_desc"><div class='inline'><p>Comparable: compare nodes by position Note: Inherits Comparable from TreeHaver::Base::Node.</p>
 </div></span>
   
 </li>
@@ -499,29 +468,6 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#inner_node-instance_method" title="#inner_node (instance method)">#<strong>inner_node</strong>  &#x21d2; AstNode </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'><p>TreeHaver::Node protocol: inner_node For synthetic nodes, this returns self (no wrapping layer).</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
       <a href="#inspect-instance_method" title="#inspect (instance method)">#<strong>inspect</strong>  &#x21d2; String </a>
     
 
@@ -629,6 +575,29 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
 
   
     <span class="summary_desc"><div class='inline'><p>Generate a signature for this node for matching purposes.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#source-instance_method" title="#source (instance method)">#<strong>source</strong>  &#x21d2; String<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Override source to return stored value (not parent’s).</p>
 </div></span>
   
 </li>
@@ -880,19 +849,21 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
       <pre class="lines">
 
 
-94
-95
-96
-97
-98</pre>
+89
+90
+91
+92
+93
+94</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 94</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 89</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='label'>slice:</span><span class='comma'>,</span> <span class='label'>location:</span><span class='comma'>,</span> <span class='label'>source:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
   <span class='ivar'>@slice</span> <span class='op'>=</span> <span class='id identifier rubyid_slice'>slice</span>
   <span class='ivar'>@location</span> <span class='op'>=</span> <span class='id identifier rubyid_location'>location</span>
-  <span class='ivar'>@source</span> <span class='op'>=</span> <span class='id identifier rubyid_source'>source</span>
+  <span class='comment'># Call parent constructor with self as inner_node
+</span>  <span class='kw'>super</span><span class='lparen'>(</span><span class='kw'>self</span><span class='comma'>,</span> <span class='label'>source:</span> <span class='id identifier rubyid_source'>source</span><span class='rparen'>)</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -948,12 +919,12 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
       <pre class="lines">
 
 
-81
-82
-83</pre>
+79
+80
+81</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 81</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 79</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_location'>location</span>
   <span class='ivar'>@location</span>
@@ -1007,74 +978,15 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
       <pre class="lines">
 
 
-84
-85
-86</pre>
+82
+83
+84</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 84</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 82</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_slice'>slice</span>
   <span class='ivar'>@slice</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      
-      <span id=""></span>
-      <div class="method_details ">
-  <h3 class="signature " id="source-instance_method">
-  
-    #<strong>source</strong>  &#x21d2; <tt>String</tt><sup>?</sup>  <span class="extras">(readonly)</span>
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    <p>Returns The full source text (for text extraction).</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>The full source text (for text extraction)</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-87
-88
-89</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 87</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_source'>source</span>
-  <span class='ivar'>@source</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1099,7 +1011,8 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Comparable: compare nodes by position</p>
+    <p>Comparable: compare nodes by position<br />
+Note: Inherits Comparable from TreeHaver::Base::Node</p>
 
 
   </div>
@@ -1149,17 +1062,17 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
       <pre class="lines">
 
 
+251
+252
+253
+254
 255
 256
 257
-258
-259
-260
-261
-262</pre>
+258</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 255</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 251</span>
 
 <span class='kw'>def</span> <span class='op'>&lt;=&gt;</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>unless</span> <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:start_byte</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:end_byte</span><span class='rparen'>)</span>
@@ -1235,12 +1148,12 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
       <pre class="lines">
 
 
-190
-191
-192</pre>
+185
+186
+187</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 190</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 185</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_child'>child</span><span class='lparen'>(</span><span class='id identifier rubyid_index'>index</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_children'>children</span><span class='lbracket'>[</span><span class='id identifier rubyid_index'>index</span><span class='rbracket'>]</span>
@@ -1292,12 +1205,12 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
       <pre class="lines">
 
 
-183
-184
-185</pre>
+178
+179
+180</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 183</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 178</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_child_count'>child_count</span>
   <span class='id identifier rubyid_children'>children</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span>
@@ -1349,12 +1262,12 @@ to be used interchangeably with parser-backed nodes in merge operations.</p>
       <pre class="lines">
 
 
-177
-178
-179</pre>
+172
+173
+174</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 177</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 172</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_children'>children</span>
   <span class='lbracket'>[</span><span class='rbracket'>]</span>
@@ -1420,13 +1333,13 @@ Iterate over children</p>
       <pre class="lines">
 
 
-231
-232
-233
-234</pre>
+226
+227
+228
+229</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 231</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 226</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='id identifier rubyid_to_enum'>to_enum</span><span class='lparen'>(</span><span class='id identifier rubyid___method__'>__method__</span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
@@ -1479,12 +1392,12 @@ Iterate over children</p>
       <pre class="lines">
 
 
-149
-150
-151</pre>
+144
+145
+146</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 149</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 144</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_end_byte'>end_byte</span>
   <span class='id identifier rubyid_start_byte'>start_byte</span> <span class='op'>+</span> <span class='id identifier rubyid_slice'>slice</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='period'>.</span><span class='id identifier rubyid_bytesize'>bytesize</span>
@@ -1537,15 +1450,15 @@ Returns a Point with row (0-based) and column</p>
       <pre class="lines">
 
 
-168
-169
-170
-171
-172
-173</pre>
+163
+164
+165
+166
+167
+168</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 168</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 163</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_end_point'>end_point</span>
   <span class='const'><span class='object_link'><a href="AstNode/Point.html" title="Ast::Merge::AstNode::Point (class)">Point</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="#initialize-instance_method" title="Ast::Merge::AstNode#initialize (method)">new</a></span></span><span class='lparen'>(</span>
@@ -1601,73 +1514,15 @@ Synthetic nodes don’t have parse errors</p>
       <pre class="lines">
 
 
-214
-215
-216</pre>
+209
+210
+211</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 214</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 209</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_has_error?'>has_error?</span>
   <span class='kw'>false</span>
-<span class='kw'>end</span></pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <h3 class="signature " id="inner_node-instance_method">
-  
-    #<strong>inner_node</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Ast::Merge::AstNode (class)">AstNode</a></span></tt> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    <p>TreeHaver::Node protocol: inner_node<br />
-For synthetic nodes, this returns self (no wrapping layer)</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Ast::Merge::AstNode (class)">AstNode</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'><p>self</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-104
-105
-106</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 104</span>
-
-<span class='kw'>def</span> <span class='id identifier rubyid_inner_node'>inner_node</span>
-  <span class='kw'>self</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -1716,12 +1571,12 @@ For synthetic nodes, this returns self (no wrapping layer)</p>
       <pre class="lines">
 
 
-265
-266
-267</pre>
+261
+262
+263</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 265</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 261</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_inspect'>inspect</span>
   <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>#&lt;</span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_content'> type=</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_type'>type</span><span class='embexpr_end'>}</span><span class='tstring_content'> lines=</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_location'>location</span><span class='op'>&amp;.</span><span class='id identifier rubyid_start_line'>start_line</span><span class='embexpr_end'>}</span><span class='tstring_content'>..</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_location'>location</span><span class='op'>&amp;.</span><span class='id identifier rubyid_end_line'>end_line</span><span class='embexpr_end'>}</span><span class='tstring_content'>&gt;</span><span class='tstring_end'>&quot;</span></span>
@@ -1774,12 +1629,12 @@ Synthetic nodes are never “missing”</p>
       <pre class="lines">
 
 
-222
-223
-224</pre>
+217
+218
+219</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 222</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 217</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_missing?'>missing?</span>
   <span class='kw'>false</span>
@@ -1832,12 +1687,12 @@ Synthetic nodes are always “named” (structural) nodes</p>
       <pre class="lines">
 
 
-198
-199
-200</pre>
+193
+194
+195</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 198</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 193</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_named?'>named?</span>
   <span class='kw'>true</span>
@@ -1889,12 +1744,12 @@ Synthetic nodes are always “named” (structural) nodes</p>
       <pre class="lines">
 
 
-247
-248
-249</pre>
+242
+243
+244</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 247</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 242</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_normalized_content'>normalized_content</span>
   <span class='id identifier rubyid_slice'>slice</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='period'>.</span><span class='id identifier rubyid_strip'>strip</span>
@@ -1949,15 +1804,72 @@ Default returns the node type and a normalized form of the slice.</p>
       <pre class="lines">
 
 
-242
-243
-244</pre>
+237
+238
+239</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 242</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 237</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_signature'>signature</span>
   <span class='lbracket'>[</span><span class='id identifier rubyid_type'>type</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='comma'>,</span> <span class='id identifier rubyid_normalized_content'>normalized_content</span><span class='rbracket'>]</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="source-instance_method">
+  
+    #<strong>source</strong>  &#x21d2; <tt>String</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Override source to return stored value (not parent’s)</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The full source text (for text extraction)</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+98
+99
+100</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 98</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_source'>source</span>
+  <span class='ivar'>@source</span> <span class='op'>||</span> <span class='kw'>super</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -2007,26 +1919,28 @@ Calculates byte offset from source if available, otherwise estimates from lines<
       <pre class="lines">
 
 
+128
+129
+130
+131
+132
+133
 134
 135
 136
 137
 138
-139
-140
-141
-142
-143
-144</pre>
+139</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 134</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 128</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_start_byte'>start_byte</span>
-  <span class='kw'>return</span> <span class='int'>0</span> <span class='kw'>unless</span> <span class='id identifier rubyid_source'>source</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_location'>location</span>
+  <span class='id identifier rubyid_src'>src</span> <span class='op'>=</span> <span class='id identifier rubyid_source'>source</span>
+  <span class='kw'>return</span> <span class='int'>0</span> <span class='kw'>unless</span> <span class='id identifier rubyid_src'>src</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_location'>location</span>
 
   <span class='comment'># Calculate byte offset from line/column
-</span>  <span class='id identifier rubyid_lines'>lines</span> <span class='op'>=</span> <span class='id identifier rubyid_source'>source</span><span class='period'>.</span><span class='id identifier rubyid_lines'>lines</span>
+</span>  <span class='id identifier rubyid_lines'>lines</span> <span class='op'>=</span> <span class='id identifier rubyid_src'>src</span><span class='period'>.</span><span class='id identifier rubyid_lines'>lines</span>
   <span class='id identifier rubyid_byte_offset'>byte_offset</span> <span class='op'>=</span> <span class='int'>0</span>
   <span class='lparen'>(</span><span class='int'>0</span><span class='op'>...</span><span class='lparen'>(</span><span class='id identifier rubyid_location'>location</span><span class='period'>.</span><span class='id identifier rubyid_start_line'>start_line</span> <span class='op'>-</span> <span class='int'>1</span><span class='rparen'>)</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_i'>i</span><span class='op'>|</span>
     <span class='id identifier rubyid_byte_offset'>byte_offset</span> <span class='op'>+=</span> <span class='id identifier rubyid_lines'>lines</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span><span class='rbracket'>]</span><span class='op'>&amp;.</span><span class='id identifier rubyid_bytesize'>bytesize</span> <span class='op'>||</span> <span class='int'>0</span>
@@ -2081,15 +1995,15 @@ Returns a Point with row (0-based) and column</p>
       <pre class="lines">
 
 
-157
-158
-159
-160
-161
-162</pre>
+152
+153
+154
+155
+156
+157</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 157</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 152</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_start_point'>start_point</span>
   <span class='const'><span class='object_link'><a href="AstNode/Point.html" title="Ast::Merge::AstNode::Point (class)">Point</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="#initialize-instance_method" title="Ast::Merge::AstNode#initialize (method)">new</a></span></span><span class='lparen'>(</span>
@@ -2145,12 +2059,12 @@ Synthetic nodes are always structural</p>
       <pre class="lines">
 
 
-206
-207
-208</pre>
+201
+202
+203</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 206</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 201</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_structural?'>structural?</span>
   <span class='kw'>true</span>
@@ -2202,12 +2116,12 @@ Synthetic nodes are always structural</p>
       <pre class="lines">
 
 
-126
-127
-128</pre>
+120
+121
+122</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 126</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 120</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_text'>text</span>
   <span class='id identifier rubyid_slice'>slice</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
@@ -2259,12 +2173,12 @@ Synthetic nodes are always structural</p>
       <pre class="lines">
 
 
-270
-271
-272</pre>
+266
+267
+268</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 270</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 266</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_to_s'>to_s</span>
   <span class='id identifier rubyid_slice'>slice</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
@@ -2322,16 +2236,16 @@ Subclasses should override this with specific type names.</p>
       <pre class="lines">
 
 
-113
-114
-115
-116
-117
-118
-119</pre>
+107
+108
+109
+110
+111
+112
+113</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 113</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 107</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_type'>type</span>
   <span class='comment'># Default: derive from class name (MyNode → &quot;my_node&quot;)
@@ -2387,12 +2301,12 @@ Subclasses should override this with specific type names.</p>
       <pre class="lines">
 
 
-276
-277
-278</pre>
+272
+273
+274</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 276</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/ast_node.rb', line 272</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_unwrap'>unwrap</span>
   <span class='kw'>self</span>
@@ -2407,7 +2321,7 @@ Subclasses should override this with specific type names.</p>
 </div>
 
       <div id="footer">
-  Generated on Sun Jan 11 04:56:56 2026 by
+  Generated on Sun Jan 11 22:10:09 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

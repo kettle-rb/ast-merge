@@ -68,7 +68,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 and <a href="https://tom.preston-werner.com/2022/05/23/major-version-numbers-are-not-sacred.html">yes</a>, platform and engine support are part of the <a href="https://github.com/semver/semver/issues/716#issuecomment-869336139">public API</a>.<br>
 Please file a bug if you notice a violation of semantic versioning.</p>
 
-<h2 id="unreleased"><a href="https://github.com/kettle-rb/ast-merge/compare/v4.0.0...HEAD">Unreleased</a></h2>
+<h2 id="unreleased"><a href="https://github.com/kettle-rb/ast-merge/compare/v4.0.1...HEAD">Unreleased</a></h2>
 
 <h3 id="added">Added</h3>
 
@@ -82,6 +82,83 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <h3 id="security">Security</h3>
 
+<h2 id="401---2026-01-11">
+<a href="https://github.com/kettle-rb/ast-merge/compare/v4.0.0...v4.0.1">4.0.1</a> - 2026-01-11</h2>
+
+<ul>
+  <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.1">v4.0.1</a>
+</li>
+  <li>COVERAGE: 96.45% – 2553/2647 lines in 51 files</li>
+  <li>BRANCH COVERAGE: 87.41% – 812/929 branches in 51 files</li>
+  <li>98.80% documented</li>
+</ul>
+
+<h3 id="added-1">Added</h3>
+
+<ul>
+  <li>
+<strong><code>Ast::Merge::RSpec::MergeGemRegistry</code></strong> - Fully dynamic merge gem registration for RSpec dependency tags
+    <ul>
+      <li>
+<code>register(tag_name, require_path:, merger_class:, test_source:, category:)</code> - Register a merge gem</li>
+      <li>
+<code>available?(tag_name)</code> - Check if a merge gem is available and functional</li>
+      <li>
+<code>registered_gems</code> - Get all registered gem tag names</li>
+      <li>
+<code>gems_by_category(category)</code> - Filter gems by category (:markdown, :data, :code, :config, :other)</li>
+      <li>
+<code>summary</code> - Get availability status of all registered gems</li>
+      <li>Automatically defines <code>*_available?</code> methods on <code>DependencyTags</code> at registration time</li>
+      <li>External merge gems can now get full RSpec tag support without modifying ast-merge</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="changed-1">Changed</h3>
+
+<ul>
+  <li>Upgrade to <a href="https://github.com/kettle-rb/tree_haver/releases/tag/v5.0.1">tree_haver v5.0.1</a>
+</li>
+  <li>
+<strong><code>Ast::Merge::AstNode</code> now inherits from <code>TreeHaver::Base::Node</code></strong>
+    <ul>
+      <li>Ensures synthetic nodes stay in sync with the canonical Node API</li>
+      <li>Inherits <code>Comparable</code>, <code>Enumerable</code> from base class</li>
+      <li>Retains all existing methods and behavior (Point, Location, signature, etc.)</li>
+      <li>Constructor calls <code>super(self, source: source)</code> to properly initialize base class</li>
+    </ul>
+  </li>
+  <li>
+<strong>RSpec Dependency Tags refactored to use MergeGemRegistry</strong>
+    <ul>
+      <li>Removed hardcoded merge gem availability checks</li>
+      <li>Removed <code>MERGE_GEM_TEST_SOURCES</code> constant</li>
+      <li>
+<code>*_available?</code> methods are now defined dynamically when gems register</li>
+      <li>
+<code>any_markdown_merge_available?</code> now queries registry by category</li>
+      <li>RSpec exclusion filters are configured dynamically from registry</li>
+    </ul>
+  </li>
+  <li>
+<code>Ast::Merge::Testing::TestableNode</code> now delegates to <code>TreeHaver::RSpec::TestableNode</code>
+    <ul>
+      <li>The TestableNode implementation has been moved to tree_haver for sharing across all merge gems</li>
+      <li>
+<code>spec/support/testable_node.rb</code> now requires and re-exports the tree_haver version</li>
+      <li>Backward compatible: existing tests continue to work unchanged</li>
+    </ul>
+  </li>
+  <li>
+<code>spec/ast/merge/node_wrapper_base_spec.rb</code> refactored to use <code>TestableNode</code> instead of mocks
+    <ul>
+      <li>Real TreeHaver::Node behavior for most tests</li>
+      <li>Mocks only retained for edge case testing (e.g., invalid end_line before start_line)</li>
+    </ul>
+  </li>
+</ul>
+
 <h2 id="400---2026-01-11">
 <a href="https://github.com/kettle-rb/ast-merge/compare/v3.1.0...v4.0.0">4.0.0</a> - 2026-01-11</h2>
 
@@ -93,7 +170,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>98.80% documented</li>
 </ul>
 
-<h3 id="added-1">Added</h3>
+<h3 id="added-2">Added</h3>
 
 <ul>
   <li>
@@ -173,7 +250,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-1">Changed</h3>
+<h3 id="changed-2">Changed</h3>
 
 <ul>
   <li>
@@ -231,7 +308,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>98.75% documented</li>
 </ul>
 
-<h3 id="added-2">Added</h3>
+<h3 id="added-3">Added</h3>
 
 <ul>
   <li>
@@ -259,7 +336,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-2">Changed</h3>
+<h3 id="changed-3">Changed</h3>
 
 <ul>
   <li>tree_haver v4.0.0</li>
@@ -276,7 +353,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   <li>98.72% documented</li>
 </ul>
 
-<h3 id="added-3">Added</h3>
+<h3 id="added-4">Added</h3>
 
 <ul>
   <li>
@@ -301,7 +378,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-3">Changed</h3>
+<h3 id="changed-4">Changed</h3>
 
 <ul>
   <li>
@@ -364,14 +441,14 @@ original source text using <code>analysis.source_range</code> instead of <code>t
   <li>98.72% documented</li>
 </ul>
 
-<h3 id="added-4">Added</h3>
+<h3 id="added-5">Added</h3>
 
 <ul>
   <li>Dependency tags for <code>rbs_merge</code> and <code>not_rbs_merge</code>
 </li>
 </ul>
 
-<h3 id="changed-4">Changed</h3>
+<h3 id="changed-5">Changed</h3>
 
 <ul>
   <li>Upgraded to <code>tree_haver</code> v3.2.4 (major new features, and bug fixes, see <a href="https://github.com/kettle-rb/tree_haver/releases/tag/v3.2.4">release notes</a>)</li>
@@ -417,7 +494,7 @@ Now returns an empty array when no criteria are specified.</li>
   <li>98.71% documented</li>
 </ul>
 
-<h3 id="added-5">Added</h3>
+<h3 id="added-6">Added</h3>
 
 <ul>
   <li>
@@ -456,7 +533,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.84% documented</li>
 </ul>
 
-<h3 id="added-6">Added</h3>
+<h3 id="added-7">Added</h3>
 
 <ul>
   <li>
@@ -507,7 +584,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-7">Added</h3>
+<h3 id="added-8">Added</h3>
 
 <ul>
   <li>Comprehensive mocked tests for <code>Ast::Merge::Recipe::Runner</code> (47 new tests):
@@ -537,7 +614,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-8">Added</h3>
+<h3 id="added-9">Added</h3>
 
 <ul>
   <li>Comprehensive tests for <code>Ast::Merge::AstNode</code> and nested structs (Point, Location)</li>
@@ -569,7 +646,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>Tests for <code>Ast::Merge::ContentMatchRefiner</code> filter_nodes with node_types</li>
 </ul>
 
-<h3 id="changed-5">Changed</h3>
+<h3 id="changed-6">Changed</h3>
 
 <ul>
   <li>tree_haver v3.2.1</li>
@@ -587,7 +664,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-9">Added</h3>
+<h3 id="added-10">Added</h3>
 
 <ul>
   <li>Many more tests</li>
@@ -642,7 +719,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-10">Added</h3>
+<h3 id="added-11">Added</h3>
 
 <ul>
   <li>Backend Platform Compatibility section to README and GEM_FAMILY_SECTION.md
@@ -653,7 +730,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-6">Changed</h3>
+<h3 id="changed-7">Changed</h3>
 
 <ul>
   <li>Updated RSpec README documentation for tree_haver dependency tag changes
@@ -679,7 +756,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="changed-7">Changed</h3>
+<h3 id="changed-8">Changed</h3>
 
 <ul>
   <li>Upgraded dependencies
@@ -708,7 +785,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="added-11">Added</h3>
+<h3 id="added-12">Added</h3>
 
 <ul>
   <li>
@@ -929,7 +1006,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-8">Changed</h3>
+<h3 id="changed-9">Changed</h3>
 
 <ul>
   <li>
@@ -982,7 +1059,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.45% documented</li>
 </ul>
 
-<h3 id="added-12">Added</h3>
+<h3 id="added-13">Added</h3>
 
 <ul>
   <li>
@@ -1026,7 +1103,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-9">Changed</h3>
+<h3 id="changed-10">Changed</h3>
 
 <ul>
   <li>
@@ -1081,7 +1158,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>99.29% documented</li>
 </ul>
 
-<h3 id="added-13">Added</h3>
+<h3 id="added-14">Added</h3>
 
 <ul>
   <li>Initial release</li>
@@ -1090,7 +1167,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 </div></div>
 
       <div id="footer">
-  Generated on Sun Jan 11 04:56:55 2026 by
+  Generated on Sun Jan 11 22:10:09 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>
