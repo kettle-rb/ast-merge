@@ -1,8 +1,0 @@
-{
-  "lib/ast/merge/diff_mapper_base.rb:1349425774": [
-    [230, 11, 56, "Style/ComparableBetween: Prefer `line_num.between?(node.start_line, node.end_line)` over logical comparison.", 699104904]
-  ],
-  "spec/ast/merge/diff_mapper_base_spec.rb:917249387": [
-    [11, 9, 10, "Style/OpenStructUse: Avoid using `OpenStruct`; use `Struct`, `Hash`, a class or test doubles instead.", 3414223046]
-  ]
-}

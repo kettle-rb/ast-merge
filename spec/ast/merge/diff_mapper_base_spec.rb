@@ -3,12 +3,18 @@
 require "ast/merge"
 
 RSpec.describe Ast::Merge::DiffMapperBase do
+  before do
+    # Simple struct for mock analysis
+    stub_const("MockAnalysis", Struct.new(:content, :lines, keyword_init: true))
+  end
+
   # Concrete subclass for testing
   let(:test_mapper_class) do
+    mock_analysis_class = MockAnalysis
     Class.new(described_class) do
-      def create_analysis(content)
+      define_method(:create_analysis) do |content|
         # Simple mock analysis
-        OpenStruct.new(content: content, lines: content.lines)
+        mock_analysis_class.new(content: content, lines: content.lines)
       end
 
       def map_hunk_to_paths(hunk, original_analysis)

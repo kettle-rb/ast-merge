@@ -227,7 +227,7 @@ module Ast
           next unless node.respond_to?(:start_line) && node.respond_to?(:end_line)
           next unless node.start_line && node.end_line
 
-          line_num >= node.start_line && line_num <= node.end_line
+          line_num.between?(node.start_line, node.end_line)
         end
       end
 

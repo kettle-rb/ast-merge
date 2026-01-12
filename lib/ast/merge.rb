@@ -3,6 +3,9 @@
 # External gems
 require "version_gem"
 
+# Normalized AST for all languages, parsers, and platforms
+require "tree_haver"
+
 # This gem - only version can be required (never autoloaded)
 require_relative "merge/version"
 

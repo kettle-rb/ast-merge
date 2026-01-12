@@ -86,7 +86,7 @@ Gem::Specification.new do |spec|
 
   # NOTE: Ast::Merge::AstNode implements the TreeHaver::Node protocol.
   # This provides compatibility with all *-merge gems that use tree_haver for parsing.
-  spec.add_dependency("tree_haver", "~> 5.0", ">= 5.0.0")               # ruby >= 3.2.0
+  spec.add_dependency("tree_haver", "~> 5.0", ">= 5.0.1")               # ruby >= 3.2.0
 
   # NOTE: It is preferable to list development dependencies in the gemspec due to increased
   #       visibility and discoverability.

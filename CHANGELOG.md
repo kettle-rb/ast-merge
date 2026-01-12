@@ -20,7 +20,35 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- **`Ast::Merge::RSpec::MergeGemRegistry`** - Fully dynamic merge gem registration for RSpec dependency tags
+  - `register(tag_name, require_path:, merger_class:, test_source:, category:)` - Register a merge gem
+  - `available?(tag_name)` - Check if a merge gem is available and functional
+  - `registered_gems` - Get all registered gem tag names
+  - `gems_by_category(category)` - Filter gems by category (:markdown, :data, :code, :config, :other)
+  - `summary` - Get availability status of all registered gems
+  - Automatically defines `*_available?` methods on `DependencyTags` at registration time
+  - External merge gems can now get full RSpec tag support without modifying ast-merge
+
 ### Changed
+
+- **`Ast::Merge::AstNode` now inherits from `TreeHaver::Base::Node`**
+  - Ensures synthetic nodes stay in sync with the canonical Node API
+  - Inherits `Comparable`, `Enumerable` from base class
+  - Retains all existing methods and behavior (Point, Location, signature, etc.)
+  - Constructor calls `super(self, source: source)` to properly initialize base class
+- **RSpec Dependency Tags refactored to use MergeGemRegistry**
+  - Removed hardcoded merge gem availability checks
+  - Removed `MERGE_GEM_TEST_SOURCES` constant
+  - `*_available?` methods are now defined dynamically when gems register
+  - `any_markdown_merge_available?` now queries registry by category
+  - RSpec exclusion filters are configured dynamically from registry
+- `Ast::Merge::Testing::TestableNode` now delegates to `TreeHaver::RSpec::TestableNode`
+  - The TestableNode implementation has been moved to tree_haver for sharing across all merge gems
+  - `spec/support/testable_node.rb` now requires and re-exports the tree_haver version
+  - Backward compatible: existing tests continue to work unchanged
+- `spec/ast/merge/node_wrapper_base_spec.rb` refactored to use `TestableNode` instead of mocks
+  - Real TreeHaver::Node behavior for most tests
+  - Mocks only retained for edge case testing (e.g., invalid end_line before start_line)
 
 ### Deprecated
 

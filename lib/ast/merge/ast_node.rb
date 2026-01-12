@@ -8,9 +8,9 @@ module Ast
     # created by ast-merge for representing content that doesn't have a native
     # AST (comments, text lines, env file entries, etc.).
     #
-    # This class implements the TreeHaver::Node protocol, making it compatible
-    # with all code that expects TreeHaver nodes. This allows synthetic nodes
-    # to be used interchangeably with parser-backed nodes in merge operations.
+    # This class inherits from TreeHaver::Base::Node, ensuring it stays in sync
+    # with the canonical Node API. This allows synthetic nodes to be used
+    # interchangeably with parser-backed nodes in merge operations.
     #
     # Implements the TreeHaver::Node protocol:
     # - type → String node type
@@ -36,12 +36,10 @@ module Ast
     #     end
     #   end
     #
-    # @see TreeHaver::Node The protocol this class implements
+    # @see TreeHaver::Base::Node The base class defining the canonical Node API
     # @see Comment::Line Example synthetic node for comments
     # @see Text::LineNode Example synthetic node for text lines
-    class AstNode
-      include Comparable
-
+    class AstNode < TreeHaver::Base::Node
       # Point class compatible with TreeHaver::Point
       # Provides both method and hash-style access to row/column
       Point = Struct.new(:row, :column, keyword_init: true) do
@@ -83,9 +81,6 @@ module Ast
       # @return [String] The source text for this node
       attr_reader :slice
 
-      # @return [String, nil] The full source text (for text extraction)
-      attr_reader :source
-
       # Initialize a new AstNode.
       #
       # @param slice [String] The source text for this node
@@ -94,15 +89,14 @@ module Ast
       def initialize(slice:, location:, source: nil)
         @slice = slice
         @location = location
-        @source = source
+        # Call parent constructor with self as inner_node
+        super(self, source: source)
       end
 
-      # TreeHaver::Node protocol: inner_node
-      # For synthetic nodes, this returns self (no wrapping layer)
-      #
-      # @return [AstNode] self
-      def inner_node
-        self
+      # Override source to return stored value (not parent's)
+      # @return [String, nil] The full source text (for text extraction)
+      def source
+        @source || super
       end
 
       # TreeHaver::Node protocol: type
@@ -132,10 +126,11 @@ module Ast
       #
       # @return [Integer] Starting byte offset
       def start_byte
-        return 0 unless source && location
+        src = source
+        return 0 unless src && location
 
         # Calculate byte offset from line/column
-        lines = source.lines
+        lines = src.lines
         byte_offset = 0
         (0...(location.start_line - 1)).each do |i|
           byte_offset += lines[i]&.bytesize || 0
@@ -249,6 +244,7 @@ module Ast
       end
 
       # Comparable: compare nodes by position
+      # Note: Inherits Comparable from TreeHaver::Base::Node
       #
       # @param other [AstNode] node to compare with
       # @return [Integer, nil] -1, 0, 1, or nil if not comparable

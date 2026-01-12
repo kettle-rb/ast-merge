@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::NodeWrapperBase do
-  # Mock node for testing - use double since TreeHaver::Node may not be loaded
-  let(:mock_node) do
-    double(
-      "mock_tree_haver_node",
+  # Use TestableNode for real TreeHaver::Node behavior
+  let(:test_node) do
+    TestableNode.create(
       type: :test_type,
-      start_point: double(row: 0),
-      end_point: double(row: 2),
+      text: "line 1\nline 2\nline 3",
+      start_line: 1,
+      end_line: 3,
       start_byte: 0,
       end_byte: 10,
     )
@@ -20,18 +20,18 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
   let(:test_wrapper_class) do
     Class.new(described_class) do
       def compute_signature(node)
-        [:test, node.type]
+        [:test, node.type.to_sym]
       end
     end
   end
 
   let(:wrapper) do
-    test_wrapper_class.new(mock_node, lines: source_lines, source: source_string)
+    test_wrapper_class.new(test_node, lines: source_lines, source: source_string)
   end
 
   describe "#initialize" do
     it "stores the node" do
-      expect(wrapper.node).to eq(mock_node)
+      expect(wrapper.node).to eq(test_node)
     end
 
     it "stores the lines" do
@@ -64,7 +64,7 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
 
       let(:wrapper_with_comments) do
         test_wrapper_class.new(
-          mock_node,
+          test_node,
           lines: source_lines,
           leading_comments: leading,
           inline_comment: inline,
@@ -80,8 +80,9 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
       end
     end
 
-    context "when end_line is before start_line" do
+    context "when end_line is before start_line (using mock for edge case)" do
       let(:bad_node) do
+        # Use mock for edge case testing where we need invalid data
         double(
           "mock_bad_node",
           type: :test,
@@ -98,11 +99,11 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
 
     context "when node uses hash-style points" do
       let(:hash_point_node) do
-        double(
-          "mock_hash_point_node",
+        TestableNode.create(
           type: :test,
-          start_point: {row: 1},
-          end_point: {row: 3},
+          text: "test content",
+          start_line: 2,
+          end_line: 4,
         )
       end
 
@@ -154,7 +155,7 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
 
   describe "#underlying_node" do
     it "returns the underlying node" do
-      expect(wrapper.underlying_node).to eq(mock_node)
+      expect(wrapper.underlying_node).to eq(test_node)
     end
   end
 
@@ -221,7 +222,7 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
     end
 
     it "raises NotImplementedError when not overridden" do
-      wrapper = abstract_wrapper_class.new(mock_node, lines: source_lines)
+      wrapper = abstract_wrapper_class.new(test_node, lines: source_lines)
       expect { wrapper.signature }.to raise_error(NotImplementedError)
     end
   end
@@ -257,7 +258,7 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
     end
 
     it "can get underlying TreeHaver node from NodeWrapperBase" do
-      expect(wrapper.underlying_node).to eq(mock_node)
+      expect(wrapper.underlying_node).to eq(test_node)
     end
   end
 end

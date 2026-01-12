@@ -29,8 +29,34 @@ require "ast/merge"
 # Test support files
 require_relative "support/testable_node"
 
-# RSpec support: dependency tags + shared examples
-# Loads TreeHaver tags (parser backends) + Ast::Merge tags (merge gems) + shared examples
+# Load TreeHaver RSpec support first to set up backend availability methods
+# This is needed before loading merge gems that depend on backends like markly/commonmarker
+require "tree_haver/rspec"
+
+# Load merge gems to trigger their registrations with MergeGemRegistry
+# This must happen BEFORE requiring ast/merge/rspec so the registrations
+# are complete when RSpec configures exclusion filters.
+# Gems that fail to load (not installed, missing dependencies) are silently skipped.
+%w[
+  markly/merge
+  commonmarker/merge
+  markdown/merge
+  prism/merge
+  bash/merge
+  rbs/merge
+  json/merge
+  jsonc/merge
+  toml/merge
+  psych/merge
+  dotenv/merge
+].each do |gem_path|
+  require gem_path
+rescue LoadError
+  # Gem not available - will be excluded via dependency tags
+end
+
+# RSpec support: dependency tags + shared examples for ast-merge
+# (tree_haver/rspec was already loaded above)
 require "ast/merge/rspec"
 
 RSpec.configure do |config|
