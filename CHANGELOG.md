@@ -31,6 +31,7 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Changed
 
+- Upgrade to [tree_haver v5.0.1](https://github.com/kettle-rb/tree_haver/releases/tag/v5.0.1)
 - **`Ast::Merge::AstNode` now inherits from `TreeHaver::Base::Node`**
   - Ensures synthetic nodes stay in sync with the canonical Node API
   - Inherits `Comparable`, `Enumerable` from base class
