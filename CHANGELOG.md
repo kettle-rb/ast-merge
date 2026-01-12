@@ -20,7 +20,23 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- **`Recipe::Runner` target file override**: Accept `target_files` parameter to override recipe targets
+  - `Runner.new(recipe, target_files: ["file1.md", "file2.md"])` - Process only specified files
+  - Paths are expanded relative to `base_dir`
+  - When not specified, falls back to recipe's configured targets
+- **`exe/ast-merge-recipe` file arguments**: Accept target files on command line
+  - `ast-merge-recipe recipe.yml file1.md file2.md` - Override recipe targets
+  - Updated help text and banner to document new usage
+- **`bin/update_gem_family_section` file arguments**: Accept target files on command line
+  - `bin/update_gem_family_section vendor/my-gem/README.md` - Process specific file(s)
+  - If no files specified, defaults to `README.md` + `vendor/*/README.md`
+  - Added `--skip-fix` option to skip the formatting fix step
+
 ### Changed
+
+- **`bin/update_gem_family_section`**: Refactored to use `OptionParser` for clean option handling
+  - Consistent with `bin/fix_readme_formatting` style
+  - Properly separates options from file arguments
 
 ### Deprecated
 

@@ -171,9 +171,10 @@ class AstMergeRecipeCLI
 
   def parse_options(argv)
     @option_parser = OptionParser.new do |opts|
-      opts.banner = "Usage: #{File.basename($0)} RECIPE_FILE [options]"
+      opts.banner = "Usage: #{File.basename($0)} RECIPE_FILE [FILES...] [options]"
       opts.separator("")
       opts.separator("Run a YAML-based merge recipe against target files.")
+      opts.separator("If FILES are specified, they override the recipe's targets.")
       opts.separator("")
       opts.separator("Options:")
 
@@ -225,9 +226,15 @@ class AstMergeRecipeCLI
       opts.on("-h", "--help", "Show this help message") do
         puts opts
         puts
+        puts "Arguments:"
+        puts "  RECIPE_FILE    Path to the YAML recipe file (required)"
+        puts "  [FILES...]     Target files to process (optional, overrides recipe targets)"
+        puts
         puts "Examples:"
         puts "  #{File.basename($0)} .merge-recipes/gem_family_section.yml --dry-run"
         puts "  #{File.basename($0)} recipe.yml --verbose --parser=commonmarker"
+        puts "  #{File.basename($0)} recipe.yml vendor/my-gem/README.md"
+        puts "  #{File.basename($0)} recipe.yml README.md vendor/*/README.md"
         puts
         puts "Recipe YAML format:"
         puts "  See lib/ast/merge/recipe/README.md for full documentation"
@@ -241,10 +248,8 @@ class AstMergeRecipeCLI
     # First non-option argument is the recipe file
     @options[:recipe_file] = remaining.shift
 
-    # Warn about extra arguments
-    if remaining.any?
-      $stderr.puts Colors.yellow("WARNING: Ignoring extra arguments: #{remaining.join(", ")}")
-    end
+    # Remaining arguments are target files (override recipe targets)
+    @options[:target_files] = remaining if remaining.any?
   end
 
   def validate_options!
@@ -271,14 +276,19 @@ class AstMergeRecipeCLI
     recipe = Ast::Merge::Recipe::Config.load(@options[:recipe_file])
     print_recipe_info(recipe)
 
-    # Create runner
-    runner = Ast::Merge::Recipe::Runner.new(
-      recipe,
+    # Build runner options
+    runner_opts = {
       dry_run: @options[:dry_run],
       base_dir: @options[:base_dir],
       parser: @options[:parser],
       verbose: @options[:verbose],
-    )
+    }
+
+    # If target files specified on command line, override recipe targets
+    runner_opts[:target_files] = @options[:target_files] if @options[:target_files]
+
+    # Create runner
+    runner = Ast::Merge::Recipe::Runner.new(recipe, **runner_opts)
 
     # Run and display results
     puts Colors.cyan("Processing files...")

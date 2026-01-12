@@ -304,6 +304,34 @@
 </li>
 
     
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#target_files-instance_method" title="#target_files (instance method)">#<strong>target_files</strong>  &#x21d2; Array&lt;String&gt;<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Target files override (from command line).</p>
+</div></span>
+  
+</li>
+
+    
   </ul>
 
 
@@ -320,7 +348,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(recipe, dry_run: false, base_dir: nil, parser: :markly, verbose: false)  &#x21d2; Runner </a>
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(recipe, dry_run: false, base_dir: nil, parser: :markly, verbose: false, target_files: nil, **options)  &#x21d2; Runner </a>
     
 
     
@@ -466,7 +494,7 @@
     <div class="method_details first">
   <h3 class="signature first" id="initialize-instance_method">
   
-    #<strong>initialize</strong>(recipe, dry_run: false, base_dir: nil, parser: :markly, verbose: false)  &#x21d2; <tt><span class='object_link'><a href="" title="Ast::Merge::Recipe::Runner (class)">Runner</a></span></tt> 
+    #<strong>initialize</strong>(recipe, dry_run: false, base_dir: nil, parser: :markly, verbose: false, target_files: nil, **options)  &#x21d2; <tt><span class='object_link'><a href="" title="Ast::Merge::Recipe::Runner (class)">Runner</a></span></tt> 
   
 
   
@@ -566,6 +594,23 @@
       
     </li>
   
+    <li>
+      
+        <span class='name'>target_files</span>
+      
+      
+        <span class='type'>(<tt>Array&lt;String&gt;</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>Override recipe targets with these files</p>
+</div>
+      
+    </li>
+  
 </ul>
 
 
@@ -575,24 +620,26 @@
       <pre class="lines">
 
 
-53
-54
-55
-56
 57
 58
 59
-60</pre>
+60
+61
+62
+63
+64
+65</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 53</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 57</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_recipe'>recipe</span><span class='comma'>,</span> <span class='label'>dry_run:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>base_dir:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>parser:</span> <span class='symbol'>:markly</span><span class='comma'>,</span> <span class='label'>verbose:</span> <span class='kw'>false</span><span class='rparen'>)</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_recipe'>recipe</span><span class='comma'>,</span> <span class='label'>dry_run:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>base_dir:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>parser:</span> <span class='symbol'>:markly</span><span class='comma'>,</span> <span class='label'>verbose:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>target_files:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
   <span class='ivar'>@recipe</span> <span class='op'>=</span> <span class='id identifier rubyid_recipe'>recipe</span>
   <span class='ivar'>@dry_run</span> <span class='op'>=</span> <span class='id identifier rubyid_dry_run'>dry_run</span>
   <span class='ivar'>@base_dir</span> <span class='op'>=</span> <span class='id identifier rubyid_base_dir'>base_dir</span> <span class='op'>||</span> <span class='const'>Dir</span><span class='period'>.</span><span class='id identifier rubyid_pwd'>pwd</span>
   <span class='ivar'>@parser</span> <span class='op'>=</span> <span class='id identifier rubyid_parser'>parser</span>
   <span class='ivar'>@verbose</span> <span class='op'>=</span> <span class='id identifier rubyid_verbose'>verbose</span>
+  <span class='ivar'>@target_files</span> <span class='op'>=</span> <span class='id identifier rubyid_target_files'>target_files</span>
   <span class='ivar'>@results</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -885,6 +932,65 @@
       <pre class="lines">
 
 
+47
+48
+49</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 47</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_results'>results</span>
+  <span class='ivar'>@results</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="target_files-instance_method">
+  
+    #<strong>target_files</strong>  &#x21d2; <tt>Array&lt;String&gt;</tt><sup>?</sup>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns Target files override (from command line).</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Array&lt;String&gt;</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Target files override (from command line)</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
 44
 45
 46</pre>
@@ -892,8 +998,8 @@
     <td>
       <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 44</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_results'>results</span>
-  <span class='ivar'>@results</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_target_files'>target_files</span>
+  <span class='ivar'>@target_files</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -945,12 +1051,12 @@
       <pre class="lines">
 
 
-84
-85
-86</pre>
+96
+97
+98</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 84</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 96</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_results_by_status'>results_by_status</span>
   <span class='ivar'>@results</span><span class='period'>.</span><span class='id identifier rubyid_group_by'>group_by</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:status</span><span class='rparen'>)</span>
@@ -998,19 +1104,19 @@
       <pre class="lines">
 
 
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115</pre>
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 106</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 118</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_results_table'>results_table</span>
   <span class='ivar'>@results</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_r'>r</span><span class='op'>|</span>
@@ -1069,11 +1175,6 @@
       <pre class="lines">
 
 
-65
-66
-67
-68
-69
 70
 71
 72
@@ -1083,19 +1184,38 @@
 76
 77
 78
-79</pre>
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 65</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 70</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_run'>run</span>
   <span class='ivar'>@results</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
 
   <span class='id identifier rubyid_template_content'>template_content</span> <span class='op'>=</span> <span class='id identifier rubyid_load_template'>load_template</span>
-  <span class='comment'># Let the recipe expand targets from its own location
-</span>  <span class='id identifier rubyid_target_files'>target_files</span> <span class='op'>=</span> <span class='id identifier rubyid_recipe'>recipe</span><span class='period'>.</span><span class='id identifier rubyid_expand_targets'>expand_targets</span>
 
-  <span class='id identifier rubyid_target_files'>target_files</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_target_path'>target_path</span><span class='op'>|</span>
+  <span class='comment'># Use command-line targets if provided, otherwise expand from recipe
+</span>  <span class='id identifier rubyid_files_to_process'>files_to_process</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ivar'>@target_files</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='ivar'>@target_files</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+    <span class='comment'># Expand paths relative to base_dir
+</span>    <span class='ivar'>@target_files</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_f'>f</span><span class='op'>|</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_expand_path'>expand_path</span><span class='lparen'>(</span><span class='id identifier rubyid_f'>f</span><span class='comma'>,</span> <span class='ivar'>@base_dir</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+  <span class='kw'>else</span>
+    <span class='comment'># Let the recipe expand targets from its own location
+</span>    <span class='id identifier rubyid_recipe'>recipe</span><span class='period'>.</span><span class='id identifier rubyid_expand_targets'>expand_targets</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_files_to_process'>files_to_process</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_target_path'>target_path</span><span class='op'>|</span>
     <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='id identifier rubyid_process_file'>process_file</span><span class='lparen'>(</span><span class='id identifier rubyid_target_path'>target_path</span><span class='comma'>,</span> <span class='id identifier rubyid_template_content'>template_content</span><span class='rparen'>)</span>
     <span class='ivar'>@results</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_result'>result</span>
     <span class='kw'>yield</span> <span class='id identifier rubyid_result'>result</span> <span class='kw'>if</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
@@ -1146,20 +1266,20 @@
       <pre class="lines">
 
 
-91
-92
-93
-94
-95
-96
-97
-98
-99
-100
-101</pre>
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 91</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 103</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_summary'>summary</span>
   <span class='id identifier rubyid_by_status'>by_status</span> <span class='op'>=</span> <span class='id identifier rubyid_results_by_status'>results_by_status</span>
@@ -1215,19 +1335,19 @@
       <pre class="lines">
 
 
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129</pre>
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 120</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/recipe/runner.rb', line 132</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_summary_table'>summary_table</span>
   <span class='id identifier rubyid_s'>s</span> <span class='op'>=</span> <span class='id identifier rubyid_summary'>summary</span>
@@ -1249,7 +1369,7 @@
 </div>
 
       <div id="footer">
-  Generated on Sun Jan 11 22:10:10 2026 by
+  Generated on Mon Jan 12 05:04:08 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

@@ -40,6 +40,9 @@ module Ast
         # @return [Symbol] Parser to use (:markly, :commonmarker, :prism, :psych, etc.)
         attr_reader :parser
 
+        # @return [Array<String>, nil] Target files override (from command line)
+        attr_reader :target_files
+
         # @return [Array<Result>] Results from the last run
         attr_reader :results
 
@@ -50,12 +53,14 @@ module Ast
         # @param base_dir [String, nil] Base directory for path resolution
         # @param parser [Symbol] Which parser to use
         # @param verbose [Boolean] Enable verbose output
-        def initialize(recipe, dry_run: false, base_dir: nil, parser: :markly, verbose: false)
+        # @param target_files [Array<String>, nil] Override recipe targets with these files
+        def initialize(recipe, dry_run: false, base_dir: nil, parser: :markly, verbose: false, target_files: nil, **options)
           @recipe = recipe
           @dry_run = dry_run
           @base_dir = base_dir || Dir.pwd
           @parser = parser
           @verbose = verbose
+          @target_files = target_files
           @results = []
         end
 
@@ -66,10 +71,17 @@ module Ast
           @results = []
 
           template_content = load_template
-          # Let the recipe expand targets from its own location
-          target_files = recipe.expand_targets
 
-          target_files.each do |target_path|
+          # Use command-line targets if provided, otherwise expand from recipe
+          files_to_process = if @target_files && !@target_files.empty?
+            # Expand paths relative to base_dir
+            @target_files.map { |f| File.expand_path(f, @base_dir) }
+          else
+            # Let the recipe expand targets from its own location
+            recipe.expand_targets
+          end
+
+          files_to_process.each do |target_path|
             result = process_file(target_path, template_content)
             @results << result
             yield result if block_given?

@@ -5,6 +5,9 @@
 # 1. Collapse excessive duplicate blank lines (via normalize_whitespace)
 # 2. Remove blank lines between consecutive link reference definitions (via normalize_whitespace: :link_refs)
 # 3. Restore link references (rehydrate inline URLs to use link refs)
+# 4. Fix condensed link reference definitions (refs merged without newlines)
+# 5. Fix code fence spacing issues (space between ``` and language identifier)
+# 6. Fix block element spacing (missing blank lines between markdown/HTML blocks)
 #
 # Uses SmartMerger with an empty template to apply cleanup transformations
 # to the destination file while preserving all content.
@@ -17,6 +20,8 @@
 #   -n, --dry-run    Show what would be changed without writing files
 #   -v, --verbose    Show detailed information
 #   -h, --help       Show this help message
+#   --skip-merge     Skip SmartMerger cleanup (only run Cleanse fixes)
+#   --skip-cleanse   Skip Cleanse fixes (only run SmartMerger cleanup)
 
 require "optparse"
 require "bundler/setup"
@@ -25,6 +30,8 @@ require "markly/merge"
 options = {
   dry_run: false,
   verbose: false,
+  skip_merge: false,
+  skip_cleanse: false,
 }
 
 parser = OptionParser.new do |opts|
@@ -36,6 +43,14 @@ parser = OptionParser.new do |opts|
 
   opts.on("-v", "--verbose", "Show detailed information") do
     options[:verbose] = true
+  end
+
+  opts.on("--skip-merge", "Skip SmartMerger cleanup (only run Cleanse fixes)") do
+    options[:skip_merge] = true
+  end
+
+  opts.on("--skip-cleanse", "Skip Cleanse fixes (only run SmartMerger cleanup)") do
+    options[:skip_cleanse] = true
   end
 
   opts.on("-h", "--help", "Show this help message") do
@@ -58,7 +73,7 @@ if files.empty?
   exit 1
 end
 
-# Process each file using SmartMerger with cleanup options
+# Process each file
 files.each do |file|
   unless File.exist?(file)
     warn "WARNING: File not found: #{file}"
@@ -67,45 +82,77 @@ files.each do |file|
 
   content = File.read(file)
   original_content = content.dup
+  stats = []
+  merge_problems = nil
 
-  # Use SmartMerger with empty template to apply cleanup transformations
-  # - preference: :destination keeps all destination content
-  # - normalize_whitespace: :link_refs collapses excessive blank lines AND
-  #   removes blank lines between consecutive link reference definitions
-  # - rehydrate_link_references: converts inline URLs to link refs
-  merger = Markdown::Merge::SmartMerger.new(
-    "",  # Empty template
-    content,
-    backend: :markly,
-    preference: :destination,
-    add_template_only_nodes: false,
-    normalize_whitespace: :link_refs,
-    rehydrate_link_references: true,
-  )
+  # Phase 1: Apply Cleanse fixes (before SmartMerger, as they fix parsing issues)
+  unless options[:skip_cleanse]
+    # Fix condensed link reference definitions
+    condensed_parser = Markdown::Merge::Cleanse::CondensedLinkRefs.new(content)
+    if condensed_parser.condensed?
+      condensed_count = condensed_parser.count
+      content = condensed_parser.expand
+      stats << "expanded #{condensed_count} condensed link refs"
+    end
 
-  result = merger.merge_result
-  new_content = result.content
+    # Fix code fence spacing issues
+    fence_parser = Markdown::Merge::Cleanse::CodeFenceSpacing.new(content)
+    if fence_parser.malformed?
+      malformed_count = fence_parser.malformed_count
+      content = fence_parser.fix
+      stats << "fixed #{malformed_count} code fence spacing issues"
+    end
 
-  if new_content == original_content
+    # Fix block element spacing issues (missing blank lines between blocks)
+    block_parser = Markdown::Merge::Cleanse::BlockSpacing.new(content)
+    if block_parser.malformed?
+      block_count = block_parser.issue_count
+      content = block_parser.fix
+      stats << "fixed #{block_count} block spacing issues"
+    end
+  end
+
+  # Phase 2: Apply SmartMerger cleanup transformations
+  unless options[:skip_merge]
+    # Use SmartMerger with empty template to apply cleanup transformations
+    # - preference: :destination keeps all destination content
+    # - normalize_whitespace: :link_refs collapses excessive blank lines AND
+    #   removes blank lines between consecutive link reference definitions
+    # - rehydrate_link_references: converts inline URLs to link refs
+    merger = Markdown::Merge::SmartMerger.new(
+      "",  # Empty template
+      content,
+      backend: :markly,
+      preference: :destination,
+      add_template_only_nodes: false,
+      normalize_whitespace: :link_refs,
+      rehydrate_link_references: true,
+    )
+
+    result = merger.merge_result
+    content = result.content
+    merge_problems = result.problems
+  end
+
+  if content == original_content
     puts "#{file}: No changes needed" if options[:verbose]
     next
   end
 
   # Calculate statistics
   original_lines = original_content.lines.count
-  new_lines = new_content.lines.count
+  new_lines = content.lines.count
   lines_removed = original_lines - new_lines
 
-  stats = []
   stats << "removed #{lines_removed} lines" if lines_removed > 0
 
-  # Report problems found
-  if result.problems && !result.problems.empty?
-    whitespace_fixes = result.problems.all.count { |p| p[:category] == :excessive_whitespace }
-    link_ref_spacing = result.problems.all.count { |p| p[:category] == :link_ref_spacing }
-    duplicates = result.problems.all.count { |p| p[:category] == :duplicate_link_definition }
-    link_titles = result.problems.all.count { |p| p[:category] == :link_has_title }
-    image_titles = result.problems.all.count { |p| p[:category] == :image_has_title }
+  # Report problems found from SmartMerger
+  if merge_problems && !merge_problems.empty?
+    whitespace_fixes = merge_problems.all.count { |p| p[:category] == :excessive_whitespace }
+    link_ref_spacing = merge_problems.all.count { |p| p[:category] == :link_ref_spacing }
+    duplicates = merge_problems.all.count { |p| p[:category] == :duplicate_link_definition }
+    link_titles = merge_problems.all.count { |p| p[:category] == :link_has_title }
+    image_titles = merge_problems.all.count { |p| p[:category] == :image_has_title }
 
     stats << "fixed #{whitespace_fixes} whitespace issues" if whitespace_fixes > 0
     stats << "fixed #{link_ref_spacing} link ref spacing issues" if link_ref_spacing > 0
@@ -117,7 +164,7 @@ files.each do |file|
   if options[:dry_run]
     puts "#{file}: Would fix (#{stats.join(", ")}) (#{original_lines} -> #{new_lines} lines)"
   else
-    File.write(file, new_content)
+    File.write(file, content)
     puts "#{file}: Fixed (#{stats.join(", ")}) (#{original_lines} -> #{new_lines} lines)"
   end
 end

@@ -72,7 +72,48 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <h3 id="added">Added</h3>
 
+<ul>
+  <li>
+<strong><code>Recipe::Runner</code> target file override</strong>: Accept <code>target_files</code> parameter to override recipe targets
+    <ul>
+      <li>
+<code>Runner.new(recipe, target_files: ["file1.md", "file2.md"])</code> - Process only specified files</li>
+      <li>Paths are expanded relative to <code>base_dir</code>
+</li>
+      <li>When not specified, falls back to recipe’s configured targets</li>
+    </ul>
+  </li>
+  <li>
+<strong><code>exe/ast-merge-recipe</code> file arguments</strong>: Accept target files on command line
+    <ul>
+      <li>
+<code>ast-merge-recipe recipe.yml file1.md file2.md</code> - Override recipe targets</li>
+      <li>Updated help text and banner to document new usage</li>
+    </ul>
+  </li>
+  <li>
+<strong><code>bin/update_gem_family_section</code> file arguments</strong>: Accept target files on command line
+    <ul>
+      <li>
+<code>bin/update_gem_family_section vendor/my-gem/README.md</code> - Process specific file(s)</li>
+      <li>If no files specified, defaults to <code>README.md</code> + <code>vendor/*/README.md</code>
+</li>
+      <li>Added <code>--skip-fix</code> option to skip the formatting fix step</li>
+    </ul>
+  </li>
+</ul>
+
 <h3 id="changed">Changed</h3>
+
+<ul>
+  <li>
+<strong><code>bin/update_gem_family_section</code></strong>: Refactored to use <code>OptionParser</code> for clean option handling
+    <ul>
+      <li>Consistent with <code>bin/fix_readme_formatting</code> style</li>
+      <li>Properly separates options from file arguments</li>
+    </ul>
+  </li>
+</ul>
 
 <h3 id="deprecated">Deprecated</h3>
 
@@ -1167,7 +1208,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 </div></div>
 
       <div id="footer">
-  Generated on Sun Jan 11 22:10:09 2026 by
+  Generated on Mon Jan 12 05:04:07 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>
