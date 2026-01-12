@@ -208,24 +208,24 @@ The `*-merge` gem family is built on a two-layer architecture:
 
 [tree\_haver][tree_haver] provides cross-Ruby parsing capabilities:
 
-  - **Universal Backend Support**: Automatically selects the best parsing backend for your Ruby implementation (MRI, JRuby, TruffleRuby)
-  - **10 Backend Options**: MRI C extensions, Rust bindings, FFI, Java (JRuby), language-specific parsers (Prism, Psych, Commonmarker, Markly), and pure Ruby fallback (Citrus)
-  - **Unified API**: Write parsing code once, run on any Ruby implementation
-  - **Grammar Discovery**: Built-in `GrammarFinder` for platform-aware grammar library discovery
-  - **Thread-Safe**: Language registry with thread-safe caching
+- **Universal Backend Support**: Automatically selects the best parsing backend for your Ruby implementation (MRI, JRuby, TruffleRuby)
+- **10 Backend Options**: MRI C extensions, Rust bindings, FFI, Java (JRuby), language-specific parsers (Prism, Psych, Commonmarker, Markly), and pure Ruby fallback (Citrus)
+- **Unified API**: Write parsing code once, run on any Ruby implementation
+- **Grammar Discovery**: Built-in `GrammarFinder` for platform-aware grammar library discovery
+- **Thread-Safe**: Language registry with thread-safe caching
 
 #### Layer 2: ast-merge (Merge Infrastructure)
 
 Ast::Merge builds on tree\_haver to provide:
 
-  - **Base Classes**: `FreezeNode`, `MergeResult` base classes with unified constructors
-  - **Shared Modules**: `FileAnalysisBase`, `FileAnalyzable`, `MergerConfig`, `DebugLogger`
-  - **Freeze Block Support**: Configurable marker patterns for multiple comment syntaxes (preserve sections during merge)
-  - **Node Typing System**: `NodeTyping` for canonical node type identification across different parsers
-  - **Conflict Resolution**: `ConflictResolverBase` with pluggable strategies
-  - **Error Classes**: `ParseError`, `TemplateParseError`, `DestinationParseError`
-  - **Region Detection**: `RegionDetectorBase`, `FencedCodeBlockDetector` for text-based analysis
-  - **RSpec Shared Examples**: Test helpers for implementing new merge gems
+- **Base Classes**: `FreezeNode`, `MergeResult` base classes with unified constructors
+- **Shared Modules**: `FileAnalysisBase`, `FileAnalyzable`, `MergerConfig`, `DebugLogger`
+- **Freeze Block Support**: Configurable marker patterns for multiple comment syntaxes (preserve sections during merge)
+- **Node Typing System**: `NodeTyping` for canonical node type identification across different parsers
+- **Conflict Resolution**: `ConflictResolverBase` with pluggable strategies
+- **Error Classes**: `ParseError`, `TemplateParseError`, `DestinationParseError`
+- **Region Detection**: `RegionDetectorBase`, `FencedCodeBlockDetector` for text-based analysis
+- **RSpec Shared Examples**: Test helpers for implementing new merge gems
 
 ### Creating a New Merge Gem
 
@@ -372,10 +372,10 @@ merger = MyFormat::SmartMerger.new(
 
 This is particularly useful for:
 
-  - Paragraphs with minor edits (typos, rewording)
-  - Headings with slight changes
-  - Comments with updated text
-  - Any text-based node that may have been slightly modified
+- Paragraphs with minor edits (typos, rewording)
+- Headings with slight changes
+- Comments with updated text
+- Any text-based node that may have been slightly modified
 
 ### Namespace Reference
 
@@ -391,11 +391,11 @@ The `Ast::Merge` module is organized into several namespaces, each with detailed
 
 **Key Classes by Namespace:**
 
-  - **Detector**: `Region`, `Base`, `Mergeable`, `FencedCodeBlock`, `YamlFrontmatter`, `TomlFrontmatter`
-  - **Recipe**: `Config`, `Runner`, `ScriptLoader`
-  - **Comment**: `Line`, `Block`, `Empty`, `Parser`, `Style`
-  - **Text**: `SmartMerger`, `FileAnalysis`, `LineNode`, `WordNode`, `Section`
-  - **RSpec**: Shared examples and dependency tags for testing `*-merge` implementations
+- **Detector**: `Region`, `Base`, `Mergeable`, `FencedCodeBlock`, `YamlFrontmatter`, `TomlFrontmatter`
+- **Recipe**: `Config`, `Runner`, `ScriptLoader`
+- **Comment**: `Line`, `Block`, `Empty`, `Parser`, `Style`
+- **Text**: `SmartMerger`, `FileAnalysis`, `LineNode`, `WordNode`, `Section`
+- **RSpec**: Shared examples and dependency tags for testing `*-merge` implementations
 
 ## 💡 Info you can shake a stick at
 
@@ -447,18 +447,13 @@ The maintainers of this and thousands of other packages are working with Tidelif
 
 [![Get help from me on Tidelift][🏙️entsup-tidelift-img]][🏙️entsup-tidelift]
 
-  - 💡Subscribe for support guarantees covering *all* your FLOSS dependencies
-
-  - 💡Tidelift is part of [Sonar][🏙️entsup-tidelift-sonar]
-
-  - 💡Tidelift pays maintainers to maintain the software you depend on\!<br/>📊`@`Pointy Haired Boss: An [enterprise support][🏙️entsup-tidelift] subscription is "[never gonna let you down][🧮kloc]", and *supports* open source maintainers
-    Alternatively:
-
-  - [![Live Chat on Discord][✉️discord-invite-img-ftb]][🖼️galtzo-discord]
-
-  - [![Get help from me on Upwork][👨🏼‍🏫expsup-upwork-img]][👨🏼‍🏫expsup-upwork]
-
-  - [![Get help from me on Codementor][👨🏼‍🏫expsup-codementor-img]][👨🏼‍🏫expsup-codementor]
+- 💡Subscribe for support guarantees covering *all* your FLOSS dependencies
+- 💡Tidelift is part of [Sonar][🏙️entsup-tidelift-sonar]
+- 💡Tidelift pays maintainers to maintain the software you depend on\!<br/>📊`@`Pointy Haired Boss: An [enterprise support][🏙️entsup-tidelift] subscription is "[never gonna let you down][🧮kloc]", and *supports* open source maintainers
+  Alternatively:
+- [![Live Chat on Discord][✉️discord-invite-img-ftb]][🖼️galtzo-discord]
+- [![Get help from me on Upwork][👨🏼‍🏫expsup-upwork-img]][👨🏼‍🏫expsup-upwork]
+- [![Get help from me on Codementor][👨🏼‍🏫expsup-codementor-img]][👨🏼‍🏫expsup-codementor]
 
 </details>
 
@@ -537,17 +532,17 @@ merger = SomeFormat::Merge::SmartMerger.new(
 
 Control which source wins when both files have the same structural element:
 
-  - **`:template`** - Template values replace destination values
-  - **`:destination`** (default) - Destination values are preserved
-  - **Hash** - Per-node-type preference (see Advanced Configuration)
+- **`:template`** - Template values replace destination values
+- **`:destination`** (default) - Destination values are preserved
+- **Hash** - Per-node-type preference (see Advanced Configuration)
 
 ### Template-Only Nodes
 
 Control whether to add nodes that only exist in the template:
 
-  - **`true`** - Add all template-only nodes
-  - **`false`** (default) - Skip template-only nodes
-  - **Callable** - Filter which template-only nodes to add
+- **`true`** - Add all template-only nodes
+- **`false`** (default) - Skip template-only nodes
+- **Callable** - Filter which template-only nodes to add
 
 #### Callable Filter
 
@@ -577,10 +572,10 @@ merger = Markly::Merge::SmartMerger.new(
 
 The `entry` hash contains:
 
-  - `:template_node` - The node being considered for addition
-  - `:signature` - The node's signature (Array or other value)
-  - `:template_index` - Index in the template statements
-  - `:dest_index` - Always `nil` for template-only nodes
+- `:template_node` - The node being considered for addition
+- `:signature` - The node's signature (Array or other value)
+- `:template_index` - Index in the template statements
+- `:dest_index` - Always `nil` for template-only nodes
 
 ## 🔧 Basic Usage
 
@@ -606,11 +601,11 @@ end
 
 ### Available Shared Examples
 
-  - `"Ast::Merge::FreezeNode"` - Tests for FreezeNode implementations
-  - `"Ast::Merge::MergeResult"` - Tests for MergeResult implementations
-  - `"Ast::Merge::DebugLogger"` - Tests for DebugLogger implementations
-  - `"Ast::Merge::FileAnalysisBase"` - Tests for FileAnalysis implementations
-  - `"Ast::Merge::MergerConfig"` - Tests for SmartMerger implementations
+- `"Ast::Merge::FreezeNode"` - Tests for FreezeNode implementations
+- `"Ast::Merge::MergeResult"` - Tests for MergeResult implementations
+- `"Ast::Merge::DebugLogger"` - Tests for DebugLogger implementations
+- `"Ast::Merge::FileAnalysisBase"` - Tests for FileAnalysis implementations
+- `"Ast::Merge::MergerConfig"` - Tests for SmartMerger implementations
 
 ## 🎛️ Advanced Configuration
 
@@ -622,9 +617,9 @@ This is useful for hand-edited customizations you never want overwritten.
 
 A freeze block consists of:
 
-  - A **start marker** comment (e.g., `# mytoken:freeze`)
-  - The protected content
-  - An **end marker** comment (e.g., `# mytoken:unfreeze`)
+- A **start marker** comment (e.g., `# mytoken:freeze`)
+- The protected content
+- An **end marker** comment (e.g., `# mytoken:unfreeze`)
 
 ```ruby
 # In a Ruby file with prism-merge:
@@ -669,13 +664,13 @@ preferences for different types of nodes (e.g., prefer template for linter confi
 
 1.  **Define a `node_typing`**: A Hash mapping node type symbols to callables that receive a node and return either:
 
-      - The original node (no special handling)
-      - A wrapped node with a `merge_type` attribute (via `Ast::Merge::NodeTyping::Wrapper`)
+    - The original node (no special handling)
+    - A wrapped node with a `merge_type` attribute (via `Ast::Merge::NodeTyping::Wrapper`)
 
 2.  **Use a Hash-based preference**: Instead of a simple `:destination` or `:template` Symbol, pass a Hash with:
 
-      - `:default` key for the fallback preference
-      - Custom keys matching the `merge_type` values from your `node_typing`
+    - `:default` key for the fallback preference
+    - Custom keys matching the `merge_type` values from your `node_typing`
 
 ```ruby
 # Example: Prefer template for lint gem configs, destination for everything else
@@ -903,7 +898,7 @@ is a *breaking change* to an API, and for that reason the bike shedding is endle
 To get a better understanding of how SemVer is intended to work over a project's lifetime,
 read this article from the creator of SemVer:
 
-  - ["Major Version Numbers are Not Sacred"][📌major-versions-not-sacred]
+- ["Major Version Numbers are Not Sacred"][📌major-versions-not-sacred]
 
 </details>
 
