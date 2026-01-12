@@ -664,7 +664,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.2...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.3...HEAD
+[4.0.3]: https://github.com/kettle-rb/ast-merge/compare/v4.0.2...v4.0.3
+[4.0.3t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.3
 [4.0.2]: https://github.com/kettle-rb/ast-merge/compare/v4.0.1...v4.0.2
 [4.0.2t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.2
 [4.0.1]: https://github.com/kettle-rb/ast-merge/compare/v4.0.0...v4.0.1
