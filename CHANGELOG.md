@@ -33,16 +33,33 @@ Please file a bug if you notice a violation of semantic versioning.
 ## [4.0.4] - 2026-01-20
 
 - TAG: [v4.0.4][4.0.4t]
-- COVERAGE: 97.80% -- 2715/2776 lines in 52 files
-- BRANCH COVERAGE: 90.20% -- 893/990 branches in 52 files
+- COVERAGE: 96.37% -- 2552/2648 lines in 50 files
+- BRANCH COVERAGE: 87.22% -- 812/931 branches in 50 files
 - 98.81% documented
 
 ### Added
 
+- **RSpec Split Loading Pattern**: New files for granular RSpec dependency tag loading
+  - `lib/ast/merge/rspec/setup.rb` - Loads only registry and helper classes (no RSpec configuration)
+  - `lib/ast/merge/rspec/dependency_tags_helpers.rb` - DependencyTags helper module
+  - `lib/ast/merge/rspec/dependency_tags_config.rb` - RSpec.configure block with exclusion filters
+  - Enables registering known gems before RSpec.configure runs (solving catch-22 problem)
+  - Required for ast-merge test suite to preserve SimpleCov coverage
+  - Required for merge gems that register other merge gems as dependencies
 - **`Ast::Merge::RSpec::MergeGemRegistry.force_check_availability!`**: Deferred availability checking for accurate test coverage
   - Called automatically in `before(:suite)` hook AFTER SimpleCov is loaded
   - Prevents premature gem loading that would bypass coverage instrumentation
   - Ensures accurate coverage reporting in merge gem test suites
+
+### Changed
+
+- **RSpec Dependency Tags**: Fixed exclusion filter setup to properly skip tests when optional gems unavailable
+  - Exclusion filters now set during `RSpec.configure` (not in `before(:suite)` which runs too late)
+  - Fixed RSpec API usage: `config.filter_run_excluding tag => true` (not `[tag] = true`)
+  - `ast-merge` uses split loading pattern in `spec/spec_helper.rb` and `spec/config/tree_haver.rb`
+  - `markdown-merge` uses split pattern (registers `:commonmarker_merge`, `:markly_merge`)
+  - `markly-merge` uses split pattern (registers `:prism_merge`)
+  - `commonmarker-merge` uses simple pattern (no registrations needed)
 
 ### Fixed
 
@@ -51,6 +68,10 @@ Please file a bug if you notice a violation of semantic versioning.
   - RSpec exclusion filters are configured in `before(:suite)` hook after `force_check_availability!` runs
   - This ensures gems are loaded AFTER SimpleCov sets up coverage instrumentation
   - Previously, commonmarker-merge reported only 11 lines covered when it should have been far more
+- **RSpec Dependency Tags**: Tests with tags like `:markdown_merge`, `:markly_merge` now properly skip when those gems aren't available
+  - Fixed 141 test failures caused by tests running without required gems loaded
+  - Removed `require` statements from integration specs - dependency tags handle gem loading
+  - Fixed tag usage: Tests using `Markdown::Merge::PartialTemplateMerger` with `:markly` backend now correctly tagged with both `:markdown_merge` and `:markly_merge`
 
 ## [4.0.3] - 2026-01-19
 
@@ -710,6 +731,8 @@ Please file a bug if you notice a violation of semantic versioning.
 - Initial release
 
 [Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.4...HEAD
+[4.0.5]: https://github.com/kettle-rb/ast-merge/compare/v4.0.4...v4.0.5
+[4.0.5t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.5
 [4.0.4]: https://github.com/kettle-rb/ast-merge/compare/v4.0.3...v4.0.4
 [4.0.4t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.4
 [4.0.3]: https://github.com/kettle-rb/ast-merge/compare/v4.0.2...v4.0.3

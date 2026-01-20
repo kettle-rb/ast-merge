@@ -3,7 +3,7 @@
 # Tests for table formatting preservation during markdown merges.
 # The fix uses source-based rendering to preserve original formatting.
 
-RSpec.describe "Table Formatting Preservation", :commonmarker_merge, :markly_merge do
+RSpec.describe "Table Formatting Preservation" do
   # Input markdown with padded/aligned table columns
   let(:markdown_with_padded_table) do
     <<~MD
@@ -20,10 +20,10 @@ RSpec.describe "Table Formatting Preservation", :commonmarker_merge, :markly_mer
     let(:analysis_class) do
       case backend
       when :markly
-        require "markly/merge"
+        # Gem is loaded by spec_helper if available, test is skipped via :markly_merge tag if not
         Markly::Merge::FileAnalysis
       when :commonmarker
-        require "commonmarker/merge"
+        # Gem is loaded by spec_helper if available, test is skipped via :commonmarker_merge tag if not
         Commonmarker::Merge::FileAnalysis
       else
         raise ArgumentError, "Unknown backend: #{backend}"

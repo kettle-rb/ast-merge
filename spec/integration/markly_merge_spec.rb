@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Markly partial template merge integration", :markly_merge do
+RSpec.describe "Markly partial template merge integration", :markdown_merge, :markly_merge do
   let(:template) do
     <<~MD
       ### The Gem Family

@@ -30,14 +30,39 @@ require "ast/merge"
 # Test support files
 require_relative "support/testable_node"
 
-# Load TreeHaver RSpec support first to set up backend availability methods
-# This is needed before loading merge gems that depend on backends like markly/commonmarker
-require "tree_haver/rspec"
+# Load ONLY the registry and helper classes (not RSpec configuration yet)
+# This allows us to register known gems before RSpec.configure runs
+require "ast/merge/rspec/setup"
+
+# Register known merge gems that ast-merge tests depend on
+# This must happen AFTER SimpleCov loads (above) and AFTER ast-merge loads (above)
+# but BEFORE the RSpec configuration runs. This ensures the gems are registered when
+# the before(:suite) hook in dependency_tags_config.rb sets up the exclusion filters.
+Ast::Merge::RSpec::MergeGemRegistry.register_known_gems(
+  :markly_merge,
+  :commonmarker_merge,
+  :markdown_merge,
+  :prism_merge,
+  :bash_merge,
+  :rbs_merge,
+  :json_merge,
+  :jsonc_merge,
+  :toml_merge,
+  :psych_merge,
+  :dotenv_merge,
+)
+
+# Now load the RSpec configuration (before(:suite) hooks, exclusion filters)
+# This must come AFTER register_known_gems so the registry has gems to configure
+require "ast/merge/rspec/dependency_tags_config"
+
+# Load shared examples for ast-merge
+require "ast/merge/rspec/shared_examples"
 
 # Load merge gems to trigger their registrations with MergeGemRegistry
-# This must happen BEFORE requiring ast/merge/rspec so the registrations
-# are complete when RSpec configures exclusion filters.
 # Gems that fail to load (not installed, missing dependencies) are silently skipped.
+# If a gem loads successfully, it will re-register itself (which just updates the
+# existing registration from register_known_gems above).
 %w[
   markly/merge
   commonmarker/merge
@@ -55,10 +80,6 @@ require "tree_haver/rspec"
 rescue LoadError
   # Gem not available - will be excluded via dependency tags
 end
-
-# RSpec support: dependency tags + shared examples for ast-merge
-# (tree_haver/rspec was already loaded above)
-require "ast/merge/rspec"
 
 RSpec.configure do |config|
   config.before do

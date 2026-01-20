@@ -4,7 +4,7 @@
 #
 # These specs test the merge behavior for sections containing tables and paragraphs
 
-RSpec.describe "PartialTemplateMerger table and paragraph merge", :markly_merge do
+RSpec.describe "PartialTemplateMerger table and paragraph merge", :markdown_merge, :markly_merge do
   # Tests paragraph merging behavior when template and destination have different content
   describe "paragraph merging with different content", :aggregate_failures do
     let(:template) do

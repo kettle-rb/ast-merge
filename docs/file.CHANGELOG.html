@@ -88,8 +88,8 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 <ul>
   <li>TAG: <a href="https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.4">v4.0.4</a>
 </li>
-  <li>COVERAGE: 97.80% – 2715/2776 lines in 52 files</li>
-  <li>BRANCH COVERAGE: 90.20% – 893/990 branches in 52 files</li>
+  <li>COVERAGE: 96.37% – 2552/2648 lines in 50 files</li>
+  <li>BRANCH COVERAGE: 87.22% – 812/931 branches in 50 files</li>
   <li>98.81% documented</li>
 </ul>
 
@@ -97,11 +97,46 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <ul>
   <li>
+<strong>RSpec Split Loading Pattern</strong>: New files for granular RSpec dependency tag loading
+    <ul>
+      <li>
+<code>lib/ast/merge/rspec/setup.rb</code> - Loads only registry and helper classes (no RSpec configuration)</li>
+      <li>
+<code>lib/ast/merge/rspec/dependency_tags_helpers.rb</code> - DependencyTags helper module</li>
+      <li>
+<code>lib/ast/merge/rspec/dependency_tags_config.rb</code> - RSpec.configure block with exclusion filters</li>
+      <li>Enables registering known gems before RSpec.configure runs (solving catch-22 problem)</li>
+      <li>Required for ast-merge test suite to preserve SimpleCov coverage</li>
+      <li>Required for merge gems that register other merge gems as dependencies</li>
+    </ul>
+  </li>
+  <li>
 <strong><code>Ast::Merge::RSpec::MergeGemRegistry.force_check_availability!</code></strong>: Deferred availability checking for accurate test coverage
     <ul>
       <li>Called automatically in <code>before(:suite)</code> hook AFTER SimpleCov is loaded</li>
       <li>Prevents premature gem loading that would bypass coverage instrumentation</li>
       <li>Ensures accurate coverage reporting in merge gem test suites</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="changed-1">Changed</h3>
+
+<ul>
+  <li>
+<strong>RSpec Dependency Tags</strong>: Fixed exclusion filter setup to properly skip tests when optional gems unavailable
+    <ul>
+      <li>Exclusion filters now set during <code>RSpec.configure</code> (not in <code>before(:suite)</code> which runs too late)</li>
+      <li>Fixed RSpec API usage: <code>config.filter_run_excluding tag =&gt; true</code> (not <code>[tag] = true</code>)</li>
+      <li>
+<code>ast-merge</code> uses split loading pattern in <code>spec/spec_helper.rb</code> and <code>spec/config/tree_haver.rb</code>
+</li>
+      <li>
+<code>markdown-merge</code> uses split pattern (registers <code>:commonmarker_merge</code>, <code>:markly_merge</code>)</li>
+      <li>
+<code>markly-merge</code> uses split pattern (registers <code>:prism_merge</code>)</li>
+      <li>
+<code>commonmarker-merge</code> uses simple pattern (no registrations needed)</li>
     </ul>
   </li>
 </ul>
@@ -117,6 +152,15 @@ Please file a bug if you notice a violation of semantic versioning.</p>
       <li>RSpec exclusion filters are configured in <code>before(:suite)</code> hook after <code>force_check_availability!</code> runs</li>
       <li>This ensures gems are loaded AFTER SimpleCov sets up coverage instrumentation</li>
       <li>Previously, commonmarker-merge reported only 11 lines covered when it should have been far more</li>
+    </ul>
+  </li>
+  <li>
+<strong>RSpec Dependency Tags</strong>: Tests with tags like <code>:markdown_merge</code>, <code>:markly_merge</code> now properly skip when those gems aren’t available
+    <ul>
+      <li>Fixed 141 test failures caused by tests running without required gems loaded</li>
+      <li>Removed <code>require</code> statements from integration specs - dependency tags handle gem loading</li>
+      <li>Fixed tag usage: Tests using <code>Markdown::Merge::PartialTemplateMerger</code> with <code>:markly</code> backend now correctly tagged with both <code>:markdown_merge</code> and <code>:markly_merge</code>
+</li>
     </ul>
   </li>
 </ul>
@@ -147,7 +191,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-1">Changed</h3>
+<h3 id="changed-2">Changed</h3>
 
 <ul>
   <li>Upgrade to <a href="https://github.com/kettle-rb/tree_haver/releases/tag/v5.0.2">tree_haver v5.0.2</a>
@@ -206,7 +250,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-2">Changed</h3>
+<h3 id="changed-3">Changed</h3>
 
 <ul>
   <li>
@@ -251,7 +295,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-3">Changed</h3>
+<h3 id="changed-4">Changed</h3>
 
 <ul>
   <li>Upgrade to <a href="https://github.com/kettle-rb/tree_haver/releases/tag/v5.0.1">tree_haver v5.0.1</a>
@@ -386,7 +430,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-4">Changed</h3>
+<h3 id="changed-5">Changed</h3>
 
 <ul>
   <li>
@@ -472,7 +516,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-5">Changed</h3>
+<h3 id="changed-6">Changed</h3>
 
 <ul>
   <li>tree_haver v4.0.0</li>
@@ -514,7 +558,7 @@ Please file a bug if you notice a violation of semantic versioning.</p>
   </li>
 </ul>
 
-<h3 id="changed-6">Changed</h3>
+<h3 id="changed-7">Changed</h3>
 
 <ul>
   <li>
@@ -584,7 +628,7 @@ original source text using <code>analysis.source_range</code> instead of <code>t
 </li>
 </ul>
 
-<h3 id="changed-7">Changed</h3>
+<h3 id="changed-8">Changed</h3>
 
 <ul>
   <li>Upgraded to <code>tree_haver</code> v3.2.4 (major new features, and bug fixes, see <a href="https://github.com/kettle-rb/tree_haver/releases/tag/v3.2.4">release notes</a>)</li>
@@ -782,7 +826,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>Tests for <code>Ast::Merge::ContentMatchRefiner</code> filter_nodes with node_types</li>
 </ul>
 
-<h3 id="changed-8">Changed</h3>
+<h3 id="changed-9">Changed</h3>
 
 <ul>
   <li>tree_haver v3.2.1</li>
@@ -866,7 +910,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-9">Changed</h3>
+<h3 id="changed-10">Changed</h3>
 
 <ul>
   <li>Updated RSpec README documentation for tree_haver dependency tag changes
@@ -892,7 +936,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   <li>98.82% documented</li>
 </ul>
 
-<h3 id="changed-10">Changed</h3>
+<h3 id="changed-11">Changed</h3>
 
 <ul>
   <li>Upgraded dependencies
@@ -1142,7 +1186,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-11">Changed</h3>
+<h3 id="changed-12">Changed</h3>
 
 <ul>
   <li>
@@ -1239,7 +1283,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
   </li>
 </ul>
 
-<h3 id="changed-12">Changed</h3>
+<h3 id="changed-13">Changed</h3>
 
 <ul>
   <li>
@@ -1303,7 +1347,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 </div></div>
 
       <div id="footer">
-  Generated on Tue Jan 20 03:08:38 2026 by
+  Generated on Tue Jan 20 04:32:11 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

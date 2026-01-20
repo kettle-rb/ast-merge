@@ -3,7 +3,7 @@
 # Tests for link reference definition preservation during markdown merges.
 # The fix uses source-based rendering to preserve original formatting.
 
-RSpec.describe "Link Reference Preservation", :commonmarker_merge, :markly_merge do
+RSpec.describe "Link Reference Preservation" do
   # Input markdown with link reference definitions
   let(:markdown_with_link_refs) do
     <<~MD
@@ -20,10 +20,10 @@ RSpec.describe "Link Reference Preservation", :commonmarker_merge, :markly_merge
     let(:analysis_class) do
       case backend
       when :markly
-        require "markly/merge"
+        # Gem is loaded by spec_helper if available, test is skipped via :markly_merge tag if not
         Markly::Merge::FileAnalysis
       when :commonmarker
-        require "commonmarker/merge"
+        # Gem is loaded by spec_helper if available, test is skipped via :commonmarker_merge tag if not
         Commonmarker::Merge::FileAnalysis
       else
         raise ArgumentError, "Unknown backend: #{backend}"
