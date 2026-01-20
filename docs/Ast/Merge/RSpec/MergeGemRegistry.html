@@ -387,6 +387,29 @@ These can be checked before the gems are actually loaded</p>
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#force_check_availability!-class_method" title="force_check_availability! (class method)">.<strong>force_check_availability!</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Force availability checking for all registered gems.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#gems_by_category-class_method" title="gems_by_category (class method)">.<strong>gems_by_category</strong>(category)  &#x21d2; Array&lt;Symbol&gt; </a>
     
 
@@ -516,7 +539,7 @@ These can be checked before the gems are actually loaded</p>
   
 
   
-    <span class="summary_desc"><div class='inline'><p>Get all registered gem tag names (including pre-configured known gems).</p>
+    <span class="summary_desc"><div class='inline'><p>Get all explicitly registered gem tag names.</p>
 </div></span>
   
 </li>
@@ -734,16 +757,16 @@ the gem is explicitly loaded.</p>
       <pre class="lines">
 
 
-352
-353
-354
-355
-356
-357
-358</pre>
+382
+383
+384
+385
+386
+387
+388</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 352</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 382</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_clear!'>clear!</span>
   <span class='ivar'>@mutex</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='kw'>do</span>
@@ -782,6 +805,75 @@ the gem is explicitly loaded.</p>
       <pre class="lines">
 
 
+372
+373
+374
+375
+376
+377</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 372</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_clear_cache!'>clear_cache!</span>
+  <span class='ivar'>@mutex</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='kw'>do</span>
+    <span class='ivar'>@availability_cache</span><span class='period'>.</span><span class='id identifier rubyid_clear'>clear</span>
+  <span class='kw'>end</span>
+  <span class='kw'>nil</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="force_check_availability!-class_method">
+  
+    .<strong>force_check_availability!</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Force availability checking for all registered gems</p>
+
+<p>This method should be called AFTER SimpleCov is loaded (typically at the end<br />
+of spec_helper.rb) to trigger gem loading and availability checking. Calling<br />
+this ensures RSpec exclusion filters are properly configured based on which<br />
+gems are actually available.</p>
+
+<p>This is necessary because register_known_gems() only registers gems without<br />
+checking availability. The actual availability check (which requires loading<br />
+the gem) must happen AFTER coverage instrumentation is set up.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+  <div class="examples">
+    <h4 class="tag_title">Examples:</h4>
+    
+      
+        <h5 class="example_title"><div class='inline'><p>At the end of spec_helper.rb (after SimpleCov loads)</p>
+</div></h5>
+      
+      <pre class="example code"><code><span class='comment'># Force availability checking now that coverage is instrumented
+</span><span class='const'><span class='object_link'><a href="../../../Ast.html" title="Ast (module)">Ast</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Merge.html" title="Ast::Merge (module)">Merge</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../RSpec.html" title="Ast::Merge::RSpec (module)">RSpec</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Ast::Merge::RSpec::MergeGemRegistry (module)">MergeGemRegistry</a></span></span><span class='period'>.</span><span class='id identifier rubyid_force_check_availability!'>force_check_availability!</span></code></pre>
+    
+  </div>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+340
+341
 342
 343
 344
@@ -790,11 +882,13 @@ the gem is explicitly loaded.</p>
 347</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 342</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 340</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_clear_cache!'>clear_cache!</span>
-  <span class='ivar'>@mutex</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='kw'>do</span>
-    <span class='ivar'>@availability_cache</span><span class='period'>.</span><span class='id identifier rubyid_clear'>clear</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_force_check_availability!'>force_check_availability!</span>
+  <span class='id identifier rubyid_registered_gems'>registered_gems</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_tag'>tag</span><span class='op'>|</span>
+    <span class='comment'># This will trigger gem_works? which loads the gem
+</span>    <span class='comment'># Results are cached, so subsequent calls are fast
+</span>    <span class='id identifier rubyid_available?'>available?</span><span class='lparen'>(</span><span class='id identifier rubyid_tag'>tag</span><span class='rparen'>)</span>
   <span class='kw'>end</span>
   <span class='kw'>nil</span>
 <span class='kw'>end</span></pre>
@@ -864,16 +958,16 @@ the gem is explicitly loaded.</p>
       <pre class="lines">
 
 
-311
-312
-313
-314
-315
 316
-317</pre>
+317
+318
+319
+320
+321
+322</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 311</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 316</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_gems_by_category'>gems_by_category</span><span class='lparen'>(</span><span class='id identifier rubyid_category'>category</span><span class='rparen'>)</span>
   <span class='ivar'>@mutex</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='kw'>do</span>
@@ -948,15 +1042,15 @@ the gem is explicitly loaded.</p>
       <pre class="lines">
 
 
-323
-324
-325
-326
-327
-328</pre>
+353
+354
+355
+356
+357
+358</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 323</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 353</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_info'>info</span><span class='lparen'>(</span><span class='id identifier rubyid_tag_name'>tag_name</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_tag_sym'>tag_sym</span> <span class='op'>=</span> <span class='id identifier rubyid_tag_name'>tag_name</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span>
@@ -1394,7 +1488,12 @@ for their tests, avoiding the overhead of registering all known gems.</p>
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p>Get all registered gem tag names (including pre-configured known gems)</p>
+    <p>Get all explicitly registered gem tag names</p>
+
+<p>This returns ONLY gems that were explicitly registered via register() or<br />
+register_known_gems(), NOT all gems in KNOWN_GEMS. This prevents premature<br />
+loading of gems during RSpec tag setup, which would happen before SimpleCov<br />
+and ruin coverage reporting.</p>
 
 
   </div>
@@ -1425,18 +1524,18 @@ for their tests, avoiding the overhead of registering all known gems.</p>
       <pre class="lines">
 
 
-301
-302
-303
-304
-305</pre>
+306
+307
+308
+309
+310</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 301</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 306</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_registered_gems'>registered_gems</span>
   <span class='ivar'>@mutex</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='kw'>do</span>
-    <span class='lparen'>(</span><span class='const'><span class='object_link'><a href="#KNOWN_GEMS-constant" title="Ast::Merge::RSpec::MergeGemRegistry::KNOWN_GEMS (constant)">KNOWN_GEMS</a></span></span><span class='period'>.</span><span class='id identifier rubyid_keys'>keys</span> <span class='op'>+</span> <span class='ivar'>@registry</span><span class='period'>.</span><span class='id identifier rubyid_keys'>keys</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_uniq'>uniq</span>
+    <span class='ivar'>@registry</span><span class='period'>.</span><span class='id identifier rubyid_keys'>keys</span>
   <span class='kw'>end</span>
 <span class='kw'>end</span></pre>
     </td>
@@ -1469,18 +1568,18 @@ for their tests, avoiding the overhead of registering all known gems.</p>
       <pre class="lines">
 
 
-363
-364
-365
-366
-367
-368
-369
-370
-371</pre>
+393
+394
+395
+396
+397
+398
+399
+400
+401</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 363</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 393</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_reset_availability!'>reset_availability!</span>
   <span class='id identifier rubyid_clear_cache!'>clear_cache!</span>
@@ -1538,14 +1637,14 @@ for their tests, avoiding the overhead of registering all known gems.</p>
       <pre class="lines">
 
 
-333
-334
-335
-336
-337</pre>
+363
+364
+365
+366
+367</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 333</span>
+      <pre class="code"><span class="info file"># File 'lib/ast/merge/rspec/merge_gem_registry.rb', line 363</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_summary'>summary</span>
   <span class='id identifier rubyid_registered_gems'>registered_gems</span><span class='period'>.</span><span class='id identifier rubyid_each_with_object'>each_with_object</span><span class='lparen'>(</span><span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_tag'>tag</span><span class='comma'>,</span> <span class='id identifier rubyid_result'>result</span><span class='op'>|</span>
@@ -1562,7 +1661,7 @@ for their tests, avoiding the overhead of registering all known gems.</p>
 </div>
 
       <div id="footer">
-  Generated on Mon Jan 19 23:45:37 2026 by
+  Generated on Tue Jan 20 03:05:33 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>

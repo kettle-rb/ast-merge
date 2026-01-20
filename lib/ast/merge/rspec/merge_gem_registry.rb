@@ -295,12 +295,17 @@ module Ast
           end
         end
 
-        # Get all registered gem tag names (including pre-configured known gems)
+        # Get all explicitly registered gem tag names
+        #
+        # This returns ONLY gems that were explicitly registered via register() or
+        # register_known_gems(), NOT all gems in KNOWN_GEMS. This prevents premature
+        # loading of gems during RSpec tag setup, which would happen before SimpleCov
+        # and ruin coverage reporting.
         #
         # @return [Array<Symbol>] list of registered tag names
         def registered_gems
           @mutex.synchronize do
-            (KNOWN_GEMS.keys + @registry.keys).uniq
+            @registry.keys
           end
         end
 
@@ -314,6 +319,31 @@ module Ast
             registered = @registry.select { |_, info| info[:category] == category }.keys
             (known + registered).uniq
           end
+        end
+
+        # Force availability checking for all registered gems
+        #
+        # This method should be called AFTER SimpleCov is loaded (typically at the end
+        # of spec_helper.rb) to trigger gem loading and availability checking. Calling
+        # this ensures RSpec exclusion filters are properly configured based on which
+        # gems are actually available.
+        #
+        # This is necessary because register_known_gems() only registers gems without
+        # checking availability. The actual availability check (which requires loading
+        # the gem) must happen AFTER coverage instrumentation is set up.
+        #
+        # @return [void]
+        #
+        # @example At the end of spec_helper.rb (after SimpleCov loads)
+        #   # Force availability checking now that coverage is instrumented
+        #   Ast::Merge::RSpec::MergeGemRegistry.force_check_availability!
+        def force_check_availability!
+          registered_gems.each do |tag|
+            # This will trigger gem_works? which loads the gem
+            # Results are cached, so subsequent calls are fast
+            available?(tag)
+          end
+          nil
         end
 
         # Get registration info for a gem

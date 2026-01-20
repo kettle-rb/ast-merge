@@ -105,6 +105,29 @@ RSpec.configure do |config|
   registry = Ast::Merge::RSpec::MergeGemRegistry
 
   config.before(:suite) do
+    # Force availability checking for all registered gems
+    # This happens AFTER SimpleCov is loaded, preserving coverage accuracy
+    registry.force_check_availability!
+
+    # Now configure exclusion filters based on actual availability
+    registry.registered_gems.each do |tag|
+      if registry.available?(tag)
+        # Gem is available - exclude tests tagged with :not_tag
+        negated_tag = :"not_#{tag}"
+        config.filter_run_excluding[negated_tag] = true
+      else
+        # Gem is NOT available - exclude tests tagged with :tag
+        config.filter_run_excluding[tag] = true
+      end
+    end
+
+    # Configure composite tags (these also trigger gem loading, so must be here)
+    if deps.any_markdown_merge_available?
+      config.filter_run_excluding[:not_any_markdown_merge] = true
+    else
+      config.filter_run_excluding[:any_markdown_merge] = true
+    end
+
     # Print dependency summary if AST_MERGE_DEBUG is set
     unless ENV.fetch("AST_MERGE_DEBUG", "false").casecmp?("false")
       puts "\n=== Ast::Merge Test Dependencies ==="
@@ -117,24 +140,10 @@ RSpec.configure do |config|
   end
 
   # ============================================================
-  # Dynamic Merge Gem Tags
+  # Dynamic Merge Gem Tags - Initial Setup
   # ============================================================
-  # Tags are configured dynamically based on what's registered in MergeGemRegistry.
-  # Each merge gem registers itself, and exclusion filters are set up automatically.
-
-  registry.registered_gems.each do |tag|
-    # Positive tag: run when gem IS available
-    config.filter_run_excluding(tag => true) unless registry.available?(tag)
-
-    # Negated tag: run when gem is NOT available
-    negated_tag = :"not_#{tag}"
-    config.filter_run_excluding(negated_tag => true) if registry.available?(tag)
-  end
-
-  # ============================================================
-  # Composite Tags
-  # ============================================================
-
-  config.filter_run_excluding(any_markdown_merge: true) unless deps.any_markdown_merge_available?
-  config.filter_run_excluding(not_any_markdown_merge: true) if deps.any_markdown_merge_available?
+  # Note: We don't set exclusions here because that would require checking
+  # availability (loading gems) before SimpleCov. The actual exclusions are
+  # set in the before(:suite) hook above after force_check_availability! runs.
+  # This includes composite tags like :any_markdown_merge.
 end

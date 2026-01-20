@@ -20,6 +20,11 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- **`Ast::Merge::RSpec::MergeGemRegistry.force_check_availability!`**: Deferred availability checking for accurate test coverage
+  - Called automatically in `before(:suite)` hook AFTER SimpleCov is loaded
+  - Prevents premature gem loading that would bypass coverage instrumentation
+  - Ensures accurate coverage reporting in merge gem test suites
+
 ### Changed
 
 ### Deprecated
@@ -27,6 +32,12 @@ Please file a bug if you notice a violation of semantic versioning.
 ### Removed
 
 ### Fixed
+
+- **Test coverage accuracy**: Fixed premature gem loading that bypassed SimpleCov instrumentation
+  - `MergeGemRegistry.registered_gems` now returns ONLY explicitly registered gems, not all KNOWN_GEMS
+  - RSpec exclusion filters are configured in `before(:suite)` hook after `force_check_availability!` runs
+  - This ensures gems are loaded AFTER SimpleCov sets up coverage instrumentation
+  - Previously, commonmarker-merge reported only 11 lines covered when it should have been far more
 
 ### Security
 

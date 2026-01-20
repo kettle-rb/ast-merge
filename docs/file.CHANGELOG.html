@@ -72,6 +72,17 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 
 <h3 id="added">Added</h3>
 
+<ul>
+  <li>
+<strong><code>Ast::Merge::RSpec::MergeGemRegistry.force_check_availability!</code></strong>: Deferred availability checking for accurate test coverage
+    <ul>
+      <li>Called automatically in <code>before(:suite)</code> hook AFTER SimpleCov is loaded</li>
+      <li>Prevents premature gem loading that would bypass coverage instrumentation</li>
+      <li>Ensures accurate coverage reporting in merge gem test suites</li>
+    </ul>
+  </li>
+</ul>
+
 <h3 id="changed">Changed</h3>
 
 <h3 id="deprecated">Deprecated</h3>
@@ -79,6 +90,19 @@ Please file a bug if you notice a violation of semantic versioning.</p>
 <h3 id="removed">Removed</h3>
 
 <h3 id="fixed">Fixed</h3>
+
+<ul>
+  <li>
+<strong>Test coverage accuracy</strong>: Fixed premature gem loading that bypassed SimpleCov instrumentation
+    <ul>
+      <li>
+<code>MergeGemRegistry.registered_gems</code> now returns ONLY explicitly registered gems, not all KNOWN_GEMS</li>
+      <li>RSpec exclusion filters are configured in <code>before(:suite)</code> hook after <code>force_check_availability!</code> runs</li>
+      <li>This ensures gems are loaded AFTER SimpleCov sets up coverage instrumentation</li>
+      <li>Previously, commonmarker-merge reported only 11 lines covered when it should have been far more</li>
+    </ul>
+  </li>
+</ul>
 
 <h3 id="security">Security</h3>
 
@@ -1264,7 +1288,7 @@ conflict with <code>NodeTyping::Wrapper#unwrap</code> semantics in <code>FileAna
 </div></div>
 
       <div id="footer">
-  Generated on Mon Jan 19 23:45:36 2026 by
+  Generated on Tue Jan 20 03:05:33 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>
