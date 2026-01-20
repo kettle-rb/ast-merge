@@ -121,7 +121,8 @@ RSpec.describe Ast::Merge::NodeTyping::Normalizer do
     end
 
     it "is thread-safe for concurrent reads" do
-      results = []
+      # Use Queue for thread-safe result collection
+      results = Queue.new
       threads = 100.times.map do
         Thread.new do
           results << test_normalizer.canonical_type(:raw_heading, :backend_a)
@@ -129,7 +130,11 @@ RSpec.describe Ast::Merge::NodeTyping::Normalizer do
       end
       threads.each(&:join)
 
-      expect(results).to all(eq(:heading))
+      # Convert Queue to array for assertion
+      results_array = []
+      results_array << results.pop until results.empty?
+
+      expect(results_array).to all(eq(:heading))
     end
   end
 

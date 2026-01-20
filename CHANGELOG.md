@@ -72,6 +72,9 @@ Please file a bug if you notice a violation of semantic versioning.
   - Fixed 141 test failures caused by tests running without required gems loaded
   - Removed `require` statements from integration specs - dependency tags handle gem loading
   - Fixed tag usage: Tests using `Markdown::Merge::PartialTemplateMerger` with `:markly` backend now correctly tagged with both `:markdown_merge` and `:markly_merge`
+- **Thread-Safety Spec**: Fixed JRuby concurrency test failure in `NodeTyping::Normalizer#canonical_type`
+  - Changed from unsynchronized `Array` to thread-safe `Queue` for collecting results from concurrent threads
+  - Eliminates `ConcurrencyError: Detected invalid array contents due to unsynchronized modifications`
 
 ## [4.0.3] - 2026-01-19
 
