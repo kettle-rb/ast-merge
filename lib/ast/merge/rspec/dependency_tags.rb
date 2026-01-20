@@ -84,6 +84,21 @@ module Ast
   end
 end
 
+# NOTE: Known merge gems (KNOWN_GEMS) are NOT automatically registered here.
+# Each test suite should explicitly register only the gems it needs in its
+# spec/config/tree_haver.rb file using:
+#
+#   Ast::Merge::RSpec::MergeGemRegistry.register_known_gems(:gem1, :gem2, ...)
+#
+# This avoids wasting time registering gems that aren't needed for a particular
+# test suite. Only the gems that are actually required for testing should be registered.
+#
+# Example for a gem that needs to test with optional markdown backends:
+#   Ast::Merge::RSpec::MergeGemRegistry.register_known_gems(
+#     :commonmarker_merge,
+#     :markly_merge
+#   )
+
 # Configure RSpec with dependency-based exclusion filters
 RSpec.configure do |config|
   deps = Ast::Merge::RSpec::DependencyTags

@@ -253,6 +253,48 @@ module Ast
           end
         end
 
+        # Register one or more known gems for RSpec dependency tag support
+        #
+        # This allows test suites to explicitly register only the merge gems they need
+        # for their tests, avoiding the overhead of registering all known gems.
+        #
+        # @param gem_names [Array<Symbol>] list of gem names from KNOWN_GEMS to register
+        # @return [void]
+        #
+        # @example In spec/config/tree_haver.rb
+        #   # Only register the markdown merge gems that markly-merge tests depend on
+        #   Ast::Merge::RSpec::MergeGemRegistry.register_known_gems(:prism_merge)
+        #
+        # @example Register multiple gems
+        #   Ast::Merge::RSpec::MergeGemRegistry.register_known_gems(
+        #     :commonmarker_merge,
+        #     :markly_merge
+        #   )
+        def register_known_gems(*gem_names)
+          gem_names.each do |tag_name|
+            tag_sym = tag_name.to_sym
+
+            # Skip if not in KNOWN_GEMS
+            unless KNOWN_GEMS.key?(tag_sym)
+              warn "Unknown gem: #{tag_name}. Available: #{KNOWN_GEMS.keys.join(", ")}"
+              next
+            end
+
+            # Skip if already registered
+            next if registered?(tag_sym)
+
+            metadata = KNOWN_GEMS[tag_sym]
+            register(
+              tag_sym,
+              require_path: metadata[:require_path],
+              merger_class: metadata[:merger_class],
+              test_source: metadata[:test_source],
+              category: metadata[:category],
+              skip_instantiation: metadata[:skip_instantiation]
+            )
+          end
+        end
+
         # Get all registered gem tag names (including pre-configured known gems)
         #
         # @return [Array<Symbol>] list of registered tag names

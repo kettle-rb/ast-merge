@@ -20,9 +20,19 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- **`Ast::Merge::RSpec::MergeGemRegistry.register_known_gems`**: Selective registration of known merge gems for RSpec dependency tags
+  - Allows test suites to explicitly register only the merge gems they need, avoiding overhead of registering all known gems
+  - Usage in `spec/config/tree_haver.rb`: `MergeGemRegistry.register_known_gems(:prism_merge, :commonmarker_merge)`
+  - Enables proper RSpec tag-based test skipping for optional merge gem dependencies
+  - Example: Tests tagged with `:prism_merge` are automatically skipped when prism-merge isn't available
+
 ### Changed
 
 - Upgrade to [tree_haver v5.0.2](https://github.com/kettle-rb/tree_haver/releases/tag/v5.0.2)
+- **RSpec dependency tag load order pattern**: Merge gems now load tree_haver and dependency tags early via `spec/config/tree_haver.rb`
+  - Ensures `TreeHaver::RSpec::DependencyTags` is loaded before gems register themselves
+  - Pattern: Load tree_haver/rspec → Load ast/merge/rspec → Register known gems → Load library
+  - Applied to markdown-merge and markly-merge; other merge gems should follow this pattern
 
 ### Deprecated
 
