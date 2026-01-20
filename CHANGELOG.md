@@ -28,6 +28,8 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+- Documentation fixes related to gem family section
+
 ### Security
 
 ## [4.0.4] - 2026-01-20
