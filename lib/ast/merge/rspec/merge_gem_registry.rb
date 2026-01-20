@@ -276,7 +276,7 @@ module Ast
 
             # Skip if not in KNOWN_GEMS
             unless KNOWN_GEMS.key?(tag_sym)
-              warn "Unknown gem: #{tag_name}. Available: #{KNOWN_GEMS.keys.join(", ")}"
+              warn("Unknown gem: #{tag_name}. Available: #{KNOWN_GEMS.keys.join(", ")}")
               next
             end
 
@@ -290,7 +290,7 @@ module Ast
               merger_class: metadata[:merger_class],
               test_source: metadata[:test_source],
               category: metadata[:category],
-              skip_instantiation: metadata[:skip_instantiation]
+              skip_instantiation: metadata[:skip_instantiation],
             )
           end
         end

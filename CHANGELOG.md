@@ -20,6 +20,25 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [4.0.3] - 2026-01-19
+
+- TAG: [v4.0.3][4.0.3t]
+- COVERAGE: 97.30% -- 2739/2815 lines in 53 files
+- BRANCH COVERAGE: 89.84% -- 893/994 branches in 53 files
+- 98.81% documented
+
+### Added
+
 - **`Ast::Merge::RSpec::MergeGemRegistry.register_known_gems`**: Selective registration of known merge gems for RSpec dependency tags
   - Allows test suites to explicitly register only the merge gems they need, avoiding overhead of registering all known gems
   - Usage in `spec/config/tree_haver.rb`: `MergeGemRegistry.register_known_gems(:prism_merge, :commonmarker_merge)`
@@ -33,14 +52,6 @@ Please file a bug if you notice a violation of semantic versioning.
   - Ensures `TreeHaver::RSpec::DependencyTags` is loaded before gems register themselves
   - Pattern: Load tree_haver/rspec → Load ast/merge/rspec → Register known gems → Load library
   - Applied to markdown-merge and markly-merge; other merge gems should follow this pattern
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [4.0.2] - 2026-01-12
 

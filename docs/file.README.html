@@ -140,7 +140,7 @@
       <td><a href="https://bestgems.org/gems/tree_haver"><img src="https://img.shields.io/gem/v/tree_haver.svg" alt="Version"></a></td>
       <td><a href="https://github.com/kettle-rb/tree_haver/actions/workflows/current.yml"><img src="https://github.com/kettle-rb/tree_haver/actions/workflows/current.yml/badge.svg" alt="Version"></a></td>
       <td>Multi</td>
-      <td>MRI C, Rust, FFI, Java, Prism, Psych, Commonmarker, Markly, Citrus, Parslet</td>
+      <td>Supported Backends: MRI C, Rust, FFI, Java, Prism, Psych, Commonmarker, Markly, Citrus, Parslet</td>
       <td>
 <strong>Foundation</strong>: Cross-Ruby adapter for parsing libraries (like Faraday for HTTP)</td>
       <td> </td>
@@ -300,7 +300,8 @@
       <td>Rust extension via magnus/rb-sys, MRI only</td>
     </tr>
     <tr>
-      <td><strong>FFI</strong></td>
+      <td>
+<strong>FFI</strong> (<a href="https://github.com/ffi/ffi">ffi</a>)</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">❌</td>
@@ -316,46 +317,52 @@
       <td>JRuby only, requires grammar JARs</td>
     </tr>
     <tr>
-      <td><strong>Prism</strong></td>
+      <td>
+<strong>Prism</strong> (<a href="https://github.com/ruby/prism">prism</a>)</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">✅</td>
       <td>Ruby parsing, stdlib in Ruby 3.4+</td>
     </tr>
     <tr>
-      <td><strong>Psych</strong></td>
+      <td>
+<strong>Psych</strong> (<a href="https://github.com/ruby/psych">psych</a>)</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">✅</td>
       <td>YAML parsing, stdlib</td>
     </tr>
     <tr>
-      <td><strong>Citrus</strong></td>
+      <td>
+<strong>Citrus</strong> (<a href="https://github.com/mjackson/citrus">citrus</a>)</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">✅</td>
       <td>Pure Ruby PEG parser, no native dependencies</td>
     </tr>
     <tr>
-      <td><strong>Parslet</strong></td>
+      <td>
+<strong>Parslet</strong> (<a href="https://github.com/kschiess/parslet">parslet</a>)</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">✅</td>
       <td>Pure Ruby PEG parser, no native dependencies</td>
     </tr>
     <tr>
-      <td><strong>Commonmarker</strong></td>
+      <td>
+<strong>Commonmarker</strong> (<a href="https://github.com/gjtorikian/commonmarker">commonmarker</a>)</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">❌</td>
       <td style="text-align: center">❓</td>
-      <td>Rust extension for Markdown</td>
+      <td>Rust extension for Markdown (via <a href="https://github.com/kettle-rb/commonmarker-merge">commonmarker-merge</a>)</td>
     </tr>
     <tr>
-      <td><strong>Markly</strong></td>
+      <td>
+<strong>Markly</strong> (<a href="https://github.com/ioquatix/markly">markly</a>)</td>
       <td style="text-align: center">✅</td>
       <td style="text-align: center">❌</td>
       <td style="text-align: center">❓</td>
-      <td>C extension for Markdown</td>
+      <td>C extension for Markdown  (via <a href="https://github.com/kettle-rb/markly-merge">markly-merge</a>)</td>
     </tr>
   </tbody>
 </table>
@@ -1439,7 +1446,7 @@ Please consider sponsoring me or the project.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Mon Jan 19 21:22:37 2026 by
+  Generated on Mon Jan 19 23:45:36 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.0).
 </div>
