@@ -20,11 +20,6 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
-- **`Ast::Merge::RSpec::MergeGemRegistry.force_check_availability!`**: Deferred availability checking for accurate test coverage
-  - Called automatically in `before(:suite)` hook AFTER SimpleCov is loaded
-  - Prevents premature gem loading that would bypass coverage instrumentation
-  - Ensures accurate coverage reporting in merge gem test suites
-
 ### Changed
 
 ### Deprecated
@@ -33,13 +28,29 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+### Security
+
+## [4.0.4] - 2026-01-20
+
+- TAG: [v4.0.4][4.0.4t]
+- COVERAGE: 97.80% -- 2715/2776 lines in 52 files
+- BRANCH COVERAGE: 90.20% -- 893/990 branches in 52 files
+- 98.81% documented
+
+### Added
+
+- **`Ast::Merge::RSpec::MergeGemRegistry.force_check_availability!`**: Deferred availability checking for accurate test coverage
+  - Called automatically in `before(:suite)` hook AFTER SimpleCov is loaded
+  - Prevents premature gem loading that would bypass coverage instrumentation
+  - Ensures accurate coverage reporting in merge gem test suites
+
+### Fixed
+
 - **Test coverage accuracy**: Fixed premature gem loading that bypassed SimpleCov instrumentation
   - `MergeGemRegistry.registered_gems` now returns ONLY explicitly registered gems, not all KNOWN_GEMS
   - RSpec exclusion filters are configured in `before(:suite)` hook after `force_check_availability!` runs
   - This ensures gems are loaded AFTER SimpleCov sets up coverage instrumentation
   - Previously, commonmarker-merge reported only 11 lines covered when it should have been far more
-
-### Security
 
 ## [4.0.3] - 2026-01-19
 
@@ -698,7 +709,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.3...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.4...HEAD
+[4.0.4]: https://github.com/kettle-rb/ast-merge/compare/v4.0.3...v4.0.4
+[4.0.4t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.4
 [4.0.3]: https://github.com/kettle-rb/ast-merge/compare/v4.0.2...v4.0.3
 [4.0.3t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.3
 [4.0.2]: https://github.com/kettle-rb/ast-merge/compare/v4.0.1...v4.0.2
