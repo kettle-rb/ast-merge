@@ -23,6 +23,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ruby-tree-sitter.iml" filepath="$PROJECT_DIR$/.idea/modules/ruby-tree-sitter.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/toml-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/toml-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree_haver.iml" filepath="$PROJECT_DIR$/.idea/modules/tree_haver.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree_sitter.iml" filepath="$PROJECT_DIR$/.idea/modules/tree_sitter.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree_stump.iml" filepath="$PROJECT_DIR$/.idea/modules/tree_stump.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/yard-fence.iml" filepath="$PROJECT_DIR$/.idea/modules/yard-fence.iml" />
     </modules>

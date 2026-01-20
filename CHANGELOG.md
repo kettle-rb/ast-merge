@@ -22,6 +22,8 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Changed
 
+- Upgrade to [tree_haver v5.0.2](https://github.com/kettle-rb/tree_haver/releases/tag/v5.0.2)
+
 ### Deprecated
 
 ### Removed
