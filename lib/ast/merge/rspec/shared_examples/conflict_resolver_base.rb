@@ -155,6 +155,18 @@ RSpec.shared_examples("Ast::Merge::ConflictResolverBase") do
     it "has #add_template_only_nodes reader" do
       expect(resolver).to(respond_to(:add_template_only_nodes))
     end
+
+    it "has #remove_template_missing_nodes reader" do
+      expect(resolver).to(respond_to(:remove_template_missing_nodes))
+    end
+
+    it "has #recursive reader" do
+      expect(resolver).to(respond_to(:recursive))
+    end
+
+    it "has #match_refiner reader" do
+      expect(resolver).to(respond_to(:match_refiner))
+    end
   end
 
   describe "#resolve" do
@@ -197,6 +209,68 @@ RSpec.shared_examples("Ast::Merge::ConflictResolverBase") do
     it "returns false for nodes that respond to freeze_node? and return false" do
       node = double("RegularNode", freeze_node?: false)
       expect(resolver.freeze_node?(node)).to(be(false))
+    end
+  end
+
+  describe "per-node-type preferences" do
+    let(:template_analysis) { build_mock_analysis.call }
+    let(:dest_analysis) { build_mock_analysis.call }
+
+    context "with hash preferences" do
+      let(:resolver) do
+        build_conflict_resolver.call(
+          preference: {default: :destination, special: :template},
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+        )
+      end
+      let(:typed_template_node) { Ast::Merge::NodeTyping.with_merge_type(Object.new, :special) }
+      let(:typed_dest_node) { Ast::Merge::NodeTyping.with_merge_type(Object.new, :special) }
+      let(:untyped_node) { Object.new }
+
+      it "reports per-type preference enabled" do
+        expect(resolver.per_type_preference?).to(be(true))
+      end
+
+      it "returns default preference for untyped nodes" do
+        expect(resolver.preference_for_node(untyped_node)).to(eq(:destination))
+      end
+
+      it "returns per-type preference for typed nodes" do
+        expect(resolver.preference_for_node(typed_template_node)).to(eq(:template))
+      end
+
+      it "prefers typed template nodes when configured" do
+        resolution = resolver.send(:preference_resolution, template_node: typed_template_node, dest_node: untyped_node)
+        expect(resolution[:source]).to(eq(:template))
+        expect(resolution[:decision]).to(eq(conflict_resolver_class::DECISION_TEMPLATE))
+      end
+
+      it "prefers typed destination nodes when configured" do
+        resolver_with_dest = build_conflict_resolver.call(
+          preference: {default: :template, special: :destination},
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+        )
+
+        resolution = resolver_with_dest.send(:preference_resolution, template_node: untyped_node, dest_node: typed_dest_node)
+        expect(resolution[:source]).to(eq(:destination))
+        expect(resolution[:decision]).to(eq(conflict_resolver_class::DECISION_DESTINATION))
+      end
+    end
+
+    context "with scalar preference" do
+      let(:resolver) do
+        build_conflict_resolver.call(
+          preference: :template,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+        )
+      end
+
+      it "reports per-type preference disabled" do
+        expect(resolver.per_type_preference?).to(be(false))
+      end
     end
   end
 end
