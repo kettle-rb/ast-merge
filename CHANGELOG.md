@@ -20,7 +20,12 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- More shared examples for ConflictResolverBase
+
 ### Changed
+
+- tree_haver v5.0.3
+- improve robustness of tests
 
 ### Deprecated
 
