@@ -20,12 +20,7 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
-- More shared examples for ConflictResolverBase
-
 ### Changed
-
-- tree_haver v5.0.3
-- improve robustness of tests
 
 ### Deprecated
 
@@ -33,9 +28,27 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
-- Documentation fixes related to gem family section
-
 ### Security
+
+## [4.0.5] - 2026-02-01
+
+- TAG: [v4.0.5][4.0.5t]
+- COVERAGE: 96.37% -- 2552/2648 lines in 50 files
+- BRANCH COVERAGE: 87.22% -- 812/931 branches in 50 files
+- 98.81% documented
+
+### Added
+
+- More shared examples for ConflictResolverBase
+
+### Changed
+
+- tree_haver v5.0.3
+- improve robustness of tests
+
+### Fixed
+
+- Documentation fixes related to gem family section
 
 ## [4.0.4] - 2026-01-20
 
@@ -740,7 +753,7 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.4...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.5...HEAD
 [4.0.5]: https://github.com/kettle-rb/ast-merge/compare/v4.0.4...v4.0.5
 [4.0.5t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.5
 [4.0.4]: https://github.com/kettle-rb/ast-merge/compare/v4.0.3...v4.0.4
