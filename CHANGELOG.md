@@ -43,7 +43,7 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Changed
 
-- tree_haver v5.0.3
+- Upgrade to [tree_haver v5.0.3](https://github.com/kettle-rb/tree_haver/releases/tag/v5.0.3)
 - improve robustness of tests
 
 ### Fixed
