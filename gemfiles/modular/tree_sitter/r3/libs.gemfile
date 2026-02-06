@@ -33,20 +33,20 @@ platform :mri do
   # Rust Backend - use local patched version for tree-sitter 0.26 ABI
   if ENV.fetch("KETTLE_RB_DEV", "false").casecmp?("true")
     gem "ruby_tree_sitter",
-        path: "../../../../vendor/ruby-tree-sitter",
-        require: false # DO NOT LOAD, because conflicts with FFI
+      path: "../../../../vendor/ruby-tree-sitter",
+      require: false # DO NOT LOAD, because conflicts with FFI
     gem "tree_stump",
-        path: "../../../../vendor/tree_stump"
+      path: "../../../../vendor/tree_stump"
   else
     # MRI Backend
     gem "ruby_tree_sitter",
-        github: "pboling/ruby-tree-sitter",
-        branch: "tree_haver",
-        require: false # DO NOT LOAD, because conflicts with FFI
+      github: "pboling/ruby-tree-sitter",
+      branch: "tree_haver",
+      require: false # DO NOT LOAD, because conflicts with FFI
     # Rust Backend
     gem "tree_stump",
-        github: "pboling/tree_stump",
-        branch: "tree_haver",
-        ref: "4d83ba27eb37497d634984bcb06c19d4d80f2c2d"
+      github: "pboling/tree_stump",
+      branch: "tree_haver",
+      ref: "4d83ba27eb37497d634984bcb06c19d4d80f2c2d"
   end
 end
