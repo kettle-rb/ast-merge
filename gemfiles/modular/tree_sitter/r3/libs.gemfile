@@ -16,6 +16,11 @@ gem "parslet"
 gem "prism", "~> 1.6"
 gem "unparser", "~> 0.8", ">= 0.8.1"
 
+# Set KETTLE_RB_DEV=true for local development
+if ENV.fetch("KETTLE_RB_DEV", "false").casecmp?("true")
+  gem "tree_haver", path: "../../../../vendor/tree_haver"
+end
+
 platform :mri do
   # On JRuby only the :java and :ffi backends are available.
   # On Truffleruby it seems that no backends are available (yet)
@@ -28,10 +33,10 @@ platform :mri do
   # Rust Backend - use local patched version for tree-sitter 0.26 ABI
   if ENV.fetch("KETTLE_RB_DEV", "false").casecmp?("true")
     gem "ruby_tree_sitter",
-        path: "../../vendor/ruby-tree-sitter",
+        path: "../../../../vendor/ruby-tree-sitter",
         require: false # DO NOT LOAD, because conflicts with FFI
     gem "tree_stump",
-        path: "../../vendor/tree_stump"
+        path: "../../../../vendor/tree_stump"
   else
     # MRI Backend
     gem "ruby_tree_sitter",
