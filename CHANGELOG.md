@@ -43,8 +43,6 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Changed
 
-- Updated documentation on hostile takeover of RubyGems
-  - https://dev.to/galtzo/hostile-takeover-of-rubygems-my-thoughts-5hlo
 - appraisal2 v3.0.6
 - kettle-test v1.0.10
 - stone_checksums v1.0.3
