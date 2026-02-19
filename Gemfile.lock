@@ -386,7 +386,7 @@ PLATFORMS
 
 DEPENDENCIES
   addressable (>= 2.8, < 3)
-  appraisal2 (~> 3.0)
+  appraisal2 (~> 3.0.6, ~> 3.0)
   ast-merge!
   benchmark (~> 0.5, >= 0.5.0)
   bundler-audit (~> 0.9.2)
@@ -400,7 +400,7 @@ DEPENDENCIES
   irb (~> 1.17)
   kettle-dev (~> 1.1)
   kettle-soup-cover (~> 1.1, ~> 1.0, >= 1.1.1, >= 1.0.10)
-  kettle-test (~> 1.0, >= 1.0.7)
+  kettle-test (~> 1.0, >= 1.0.10)
   kramdown (~> 2.5, >= 2.5.1)
   kramdown-parser-gfm (~> 1.1)
   markly (~> 0.15, >= 0.15.2)
@@ -421,7 +421,7 @@ DEPENDENCIES
   ruby-progressbar (~> 1.13)
   ruby_tree_sitter!
   standard (>= 1.50)
-  stone_checksums (~> 1.0, >= 1.0.2)
+  stone_checksums (~> 1.0, >= 1.0.3)
   stringio (>= 3.0)
   toml
   toml-rb
