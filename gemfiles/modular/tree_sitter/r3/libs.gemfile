@@ -44,9 +44,6 @@ platform :mri do
       branch: "tree_haver",
       require: false # DO NOT LOAD, because conflicts with FFI
     # Rust Backend
-    gem "tree_stump",
-      github: "pboling/tree_stump",
-      branch: "tree_haver",
-      ref: "4d83ba27eb37497d634984bcb06c19d4d80f2c2d"
+    gem "tree_stump", "~> 0.2"
   end
 end
