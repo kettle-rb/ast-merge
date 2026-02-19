@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: AGENTS
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "AGENTS";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: AGENTS</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'><h1 id="agentsmd---ast-merge-development-guide">AGENTS.md - ast-merge Development Guide</h1>
+
+<h2 id="-project-overview">🎯 Project Overview</h2>
+
+<p><code>ast-merge</code> is a <strong>shared infrastructure library for the <code>*-merge</code> gem family</strong>. It provides base classes, modules, and RSpec shared examples for building intelligent file mergers using AST analysis. It powers <code>prism-merge</code>, <code>psych-merge</code>, <code>json-merge</code>, <code>markly-merge</code>, and other format-specific merge gems.</p>
+
+<p><strong>Core Philosophy</strong>: Write once, run anywhere. Define the merge protocol once in <code>ast-merge</code>; implement it in each <code>*-merge</code> gem for a specific file format.</p>
+
+<p><strong>Repository</strong>: https://github.com/kettle-rb/ast-merge<br>
+<strong>Current Version</strong>: 4.0.5<br>
+<strong>Required Ruby</strong>: &gt;= 3.2.0 (currently developed against Ruby 4.0.1)</p>
+
+<h2 id="️-architecture-the-base-library-pattern">🏗️ Architecture: The Base Library Pattern</h2>
+
+<h3 id="what-ast-merge-provides">What ast-merge Provides</h3>
+
+<ul>
+  <li>
+<strong><code>Ast::Merge::SmartMergerBase</code></strong> – Abstract base class for all format-specific <code>SmartMerger</code> implementations</li>
+  <li>
+<strong><code>Ast::Merge::FileAnalyzable</code></strong> – Mixin for file analysis classes; provides freeze block detection, signature generation, and line access</li>
+  <li>
+<strong><code>Ast::Merge::AstNode</code></strong> – Base class for synthetic AST nodes (backed by <code>TreeHaver::Base::Node</code>)</li>
+  <li>
+<strong><code>Ast::Merge::MergeResultBase</code></strong> – Base class for merge result objects</li>
+  <li>
+<strong><code>Ast::Merge::MergerConfig</code></strong> – Configuration object encapsulating merge options</li>
+  <li>
+<strong><code>Ast::Merge::FreezeNodeBase</code></strong> / <strong><code>Ast::Merge::Freezable</code></strong> – Freeze block support</li>
+  <li>
+<strong><code>Ast::Merge::PartialTemplateMergerBase</code></strong> – Base for section-level partial merges</li>
+  <li>
+<strong><code>Ast::Merge::SectionTyping</code></strong> – AST-aware section classification</li>
+  <li>
+<strong><code>Ast::Merge::NodeTyping</code></strong> – Per-node-type preference overrides</li>
+  <li>
+<strong><code>Ast::Merge::Navigable</code></strong> – Injection point finding for partial merges</li>
+  <li>
+<strong><code>Ast::Merge::Recipe</code></strong> – YAML-driven merge recipe runner (<code>ast-merge-recipe</code> executable)</li>
+  <li>
+<strong><code>Ast::Merge::Text::SmartMerger</code></strong> – Concrete line-based text merger (included in this gem)</li>
+  <li>
+<strong><code>Ast::Merge::Comment::*</code></strong> – Generic, language-agnostic comment classes</li>
+  <li>
+<strong><code>Ast::Merge::Detector::*</code></strong> – Content detectors (fenced code blocks, YAML/TOML frontmatter, etc.)</li>
+  <li>
+<strong><code>Ast::Merge::RSpec</code></strong> – Full RSpec support infrastructure for all <code>*-merge</code> gems</li>
+</ul>
+
+<h3 id="key-dependencies">Key Dependencies</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>Role</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+<code>tree_haver</code> (~&gt; 5.0)</td>
+      <td>Unified AST parsing adapter; provides <code>TreeHaver::Base::Node</code> and backend tags</td>
+    </tr>
+    <tr>
+      <td>
+<code>version_gem</code> (~&gt; 1.1)</td>
+      <td>Version management</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="vendor-directory">Vendor Directory</h3>
+
+<p><strong>IMPORTANT</strong>: Nothing in <code>vendor/</code> is part of this project. The <code>vendor/</code> directory is used for local development only and is <strong>not committed to the repository</strong> and <strong>does not exist in CI</strong>. All vendor gems must be loaded via their published gem versions or git sources in <code>Gemfile.lock</code>.</p>
+
+<h2 id="-project-structure">📁 Project Structure</h2>
+
+<pre class="code ruby"><code class="ruby">lib/ast/merge/
+├── ast_node.rb                    # Base class for synthetic nodes (TreeHaver::Base::Node subclass)
+├── comment/                       # Generic comment classes (line, block, empty, style, parser)
+├── conflict_resolver_base.rb      # Abstract conflict resolver
+├── content_match_refiner.rb       # Fuzzy match refiner
+├── debug_logger.rb                # Logging mixin
+├── detector/                      # Content detectors (fenced_code_block, frontmatter, etc.)
+├── diff_mapper_base.rb            # Diff/alignment base
+├── emitter_base.rb                # Source emitter base
+├── file_analyzable.rb             # Mixin for FileAnalysis classes
+├── freezable.rb                   # Freeze node mixin
+├── freeze_node_base.rb            # Base for freeze block nodes
+├── match_refiner_base.rb          # Abstract match refiner
+├── match_score_base.rb            # Match scoring base
+├── merge_result_base.rb           # Base for merge result objects
+├── merger_config.rb               # Merge options configuration
+├── navigable/                     # Injection point, statement, finder
+├── node_typing/                   # Per-node-type preferences (wrapper, frozen_wrapper, normalizer)
+├── partial_template_merger_base.rb # Base for partial/section merges
+├── recipe/                        # YAML recipe runner (config, preset, runner, script_loader)
+├── rspec/                         # Full RSpec support infrastructure (see below)
+├── section_typing.rb              # AST-aware section classification
+├── smart_merger_base.rb           # Abstract SmartMerger base class
+├── text/                          # Concrete line-based text merger
+│   ├── smart_merger.rb
+│   ├── file_analysis.rb
+│   ├── conflict_resolver.rb
+│   ├── merge_result.rb
+│   ├── section.rb
+│   ├── section_splitter.rb
+│   ├── line_node.rb
+│   └── word_node.rb
+└── version.rb
+
+exe/
+├── ast-merge-recipe               # Executable for running YAML merge recipes
+└── ast-merge-diff                 # Executable for merge diffs
+</code></pre>
+
+<h2 id="-development-workflows">🔧 Development Workflows</h2>
+
+<h3 id="running-tests">Running Tests</h3>
+
+<pre class="code language-bash"><code class="language-bash"># Full suite (required for coverage thresholds)
+bundle exec rspec
+
+# Single file (disable coverage threshold check)
+K_SOUP_COV_MIN_HARD=false bundle exec rspec spec/ast/merge/text/smart_merger_spec.rb
+</code></pre>
+
+<p><strong>Note</strong>: Always run commands in the project root (<code>/home/pboling/src/kettle-rb/ast-merge</code>). Allow <code>direnv</code> to load environment variables first by doing a plain <code>cd</code> before running commands.</p>
+
+<p>Example (two separate commands):</p>
+<pre class="code language-bash"><code class="language-bash">cd /home/pboling/src/kettle-rb/ast-merge
+bundle exec rspec spec/ast/merge/smart_merger_base_spec.rb
+</code></pre>
+
+<h3 id="coverage-reports">Coverage Reports</h3>
+
+<pre class="code language-bash"><code class="language-bash">cd /home/pboling/src/kettle-rb/ast-merge
+bin/rake coverage &amp;&amp; bin/kettle-soup-cover -d
+</code></pre>
+
+<p>This runs tests with coverage instrumentation and generates reports in the <code>coverage/</code> directory.</p>
+
+<p><strong>Key ENV variables</strong> (set in <code>.envrc</code>, loaded via <code>direnv allow</code>):</p>
+<ul>
+  <li>
+<code>K_SOUP_COV_DO=true</code> – Enable coverage (default in <code>.envrc</code>)</li>
+  <li>
+<code>K_SOUP_COV_MIN_LINE=91</code> – Line coverage threshold</li>
+  <li>
+<code>K_SOUP_COV_MIN_BRANCH=81</code> – Branch coverage threshold</li>
+  <li>
+<code>K_SOUP_COV_MIN_HARD=true</code> – Fail if thresholds not met</li>
+  <li>
+<code>K_SOUP_COV_FORMATTERS="html,xml,rcov,lcov,json,tty"</code> – Output formats</li>
+</ul>
+
+<p><strong>Never</strong> review HTML reports – use JSON (preferred), XML, LCOV, or the <code>kettle-soup-cover -d</code> TTY output.</p>
+
+<h3 id="code-quality">Code Quality</h3>
+
+<pre class="code language-bash"><code class="language-bash">bundle exec rake reek
+bundle exec rake rubocop_gradual
+</code></pre>
+
+<h3 id="prepare-and-release">Prepare and Release</h3>
+
+<pre class="code language-bash"><code class="language-bash">kettle-changelog &amp;&amp; kettle-release
+</code></pre>
+
+<h2 id="-project-conventions">📝 Project Conventions</h2>
+
+<h3 id="api-conventions">API Conventions</h3>
+
+<h4 id="smartmergerbase-api">SmartMergerBase API</h4>
+<ul>
+  <li>
+<code>merge</code> – Returns a <strong>String</strong> (the merged content)</li>
+  <li>
+<code>merge_result</code> – Returns a <strong>MergeResult</strong> object</li>
+  <li>
+<code>to_s</code> on MergeResult returns the merged content as a string</li>
+  <li>
+<code>content_string</code> is <strong>legacy</strong> – use <code>to_s</code> instead</li>
+</ul>
+
+<h4 id="forward-compatibility-with-options">Forward Compatibility with <code>**options</code>
+</h4>
+
+<p><strong>CRITICAL DESIGN PRINCIPLE</strong>: All constructors and public API methods that accept keyword arguments MUST include <code>**options</code> as the final parameter.</p>
+
+<p>✅ <strong>CORRECT</strong>:</p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, freeze_token: DEFAULT, signature_generator: nil, **options)
+  @source = source
+  @freeze_token = freeze_token
+  @signature_generator = signature_generator
+  # **options captures future parameters for forward compatibility
+end
+</code></pre>
+
+<p>❌ <strong>WRONG</strong>:</p>
+<pre class="code language-ruby"><code class="language-ruby">def initialize(source, freeze_token: DEFAULT, signature_generator: nil)
+  # Breaks when new parameters are added to SmartMergerBase
+end
+</code></pre>
+
+<p><strong>Applies to</strong>: <code>FileAnalysis#initialize</code>, <code>SmartMerger#initialize</code>, and any method accepting a variable set of options.</p>
+
+<h4 id="comment-classes">Comment Classes</h4>
+
+<ul>
+  <li>
+<code>Ast::Merge::Comment::*</code> – Generic, language-agnostic comment classes</li>
+  <li>Format-specific comment classes belong in their respective <code>*-merge</code> gem (e.g., <code>Prism::Merge::Comment::*</code> for Ruby magic comments)</li>
+</ul>
+
+<h4 id="naming-conventions">Naming Conventions</h4>
+
+<ul>
+  <li>File paths must match class namespace paths (Ruby convention)</li>
+  <li>Example: <code>Ast::Merge::Comment::Line</code> → <code>lib/ast/merge/comment/line.rb</code>
+</li>
+</ul>
+
+<h3 id="kettle-dev-tooling">kettle-dev Tooling</h3>
+
+<p>This project uses <code>kettle-dev</code> for gem maintenance automation:</p>
+
+<ul>
+  <li>
+<strong>Rakefile</strong>: Sourced from kettle-dev template (<code># kettle-dev Rakefile v1.1.60</code>)</li>
+  <li>
+<strong>CI Workflows</strong>: GitHub Actions and GitLab CI are managed via kettle-dev templates</li>
+  <li>
+<strong>Templating</strong>: Lines between <code>kettle-dev:freeze</code> / <code>kettle-dev:unfreeze</code> comments are preserved during template updates</li>
+  <li>
+<strong>Releases</strong>: Use <code>kettle-release</code> for the automated release process</li>
+</ul>
+
+<h3 id="version-requirements">Version Requirements</h3>
+<ul>
+  <li>Ruby &gt;= 3.2.0 (gemspec), developed against Ruby 4.0.1 (<code>.tool-versions</code>)</li>
+  <li>
+<code>tree_haver</code> &gt;= 5.0.3 required</li>
+</ul>
+
+<h2 id="-testing-patterns">🧪 Testing Patterns</h2>
+
+<h3 id="kettle-test-rspec-helpers">kettle-test RSpec Helpers</h3>
+
+<p>All spec files load <code>require "kettle/test/rspec"</code> which provides RSpec helpers from the kettle-test gem. Do NOT recreate these helpers.</p>
+
+<p><strong>Environment Variable Helpers</strong> (from <code>rspec-stubbed_env</code>):</p>
+<pre class="code language-ruby"><code class="language-ruby">before do
+  stub_env(&quot;MY_ENV_VAR&quot; =&gt; &quot;value&quot;)
+end
+
+before do
+  hide_env(&quot;HOME&quot;, &quot;USER&quot;)
+end
+</code></pre>
+
+<p><strong>Other Helpers</strong>:</p>
+<ul>
+  <li>
+<code>block_is_expected</code> – Enhanced block expectations (<code>rspec-block_is_expected</code>)</li>
+  <li>
+<code>capture</code> – Capture output (<code>silent_stream</code>)</li>
+  <li>Timecop integration for time manipulation</li>
+</ul>
+
+<h3 id="mergegemregistry-and-dependency-tags">MergeGemRegistry and Dependency Tags</h3>
+
+<p><code>ast-merge</code> maintains a <code>MergeGemRegistry</code> for all known <code>*-merge</code> gems. Tags are available for conditional spec execution.</p>
+
+<p><strong>Available dependency tags</strong> (from <code>lib/ast/merge/rspec/dependency_tags.rb</code>):</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tag</th>
+      <th>Gem Required</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>:markly_merge</code></td>
+      <td>markly-merge</td>
+    </tr>
+    <tr>
+      <td><code>:commonmarker_merge</code></td>
+      <td>commonmarker-merge</td>
+    </tr>
+    <tr>
+      <td><code>:markdown_merge</code></td>
+      <td>markdown-merge</td>
+    </tr>
+    <tr>
+      <td><code>:prism_merge</code></td>
+      <td>prism-merge</td>
+    </tr>
+    <tr>
+      <td><code>:bash_merge</code></td>
+      <td>bash-merge</td>
+    </tr>
+    <tr>
+      <td><code>:rbs_merge</code></td>
+      <td>rbs-merge</td>
+    </tr>
+    <tr>
+      <td><code>:json_merge</code></td>
+      <td>json-merge</td>
+    </tr>
+    <tr>
+      <td><code>:jsonc_merge</code></td>
+      <td>jsonc-merge</td>
+    </tr>
+    <tr>
+      <td><code>:toml_merge</code></td>
+      <td>toml-merge</td>
+    </tr>
+    <tr>
+      <td><code>:psych_merge</code></td>
+      <td>psych-merge</td>
+    </tr>
+    <tr>
+      <td><code>:dotenv_merge</code></td>
+      <td>dotenv-merge</td>
+    </tr>
+    <tr>
+      <td><code>:any_markdown_merge</code></td>
+      <td>any markdown merge gem</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>TreeHaver also provides</strong> backend tags (<code>:markly</code>, <code>:commonmarker</code>, <code>:prism_backend</code>, etc.) – see <code>tree_haver/rspec/dependency_tags</code>.</p>
+
+<p>✅ <strong>CORRECT</strong> – Use dependency tag on describe/context/it:</p>
+<pre class="code language-ruby"><code class="language-ruby">RSpec.describe SomeClass, :markly_merge do
+  # Entire describe block is skipped if markly-merge unavailable
+end
+
+it &quot;does something&quot;, :json_merge do
+  # Skipped if json-merge unavailable
+end
+</code></pre>
+
+<p>❌ <strong>WRONG</strong> – Never use require inside spec files:</p>
+<pre class="code language-ruby"><code class="language-ruby">before do
+  require &quot;markly/merge&quot;  # DO NOT DO THIS
+end
+</code></pre>
+
+<h3 id="loading-order-in-spec_helperrb-ast-merges-own-suite">Loading Order in spec_helper.rb (ast-merge’s own suite)</h3>
+
+<p><code>ast-merge</code> uses the <strong>split loading pattern</strong> to preserve SimpleCov coverage instrumentation:</p>
+
+<ol>
+  <li>Load <code>tree_haver</code> and <code>tree_haver/rspec</code> early (before SimpleCov)</li>
+  <li>Start SimpleCov (<code>kettle-soup-cover</code>)</li>
+  <li>
+<code>require "ast/merge"</code> (instrumented by SimpleCov)</li>
+  <li>
+<code>require "ast/merge/rspec/setup"</code> (registry + helpers only)</li>
+  <li>
+<code>Ast::Merge::RSpec::MergeGemRegistry.register_known_gems(...)</code> (register all known gems)</li>
+  <li>
+<code>require "ast/merge/rspec/dependency_tags_config"</code> (configure RSpec exclusion filters)</li>
+  <li>
+<code>require "ast/merge/rspec/shared_examples"</code> (load shared examples)</li>
+  <li>Load merge gems via <code>require</code> in a rescue block (silently skip unavailable ones)</li>
+</ol>
+
+<p>For <strong>other <code>*-merge</code> gems</strong> (not ast-merge itself), use the simple pattern:</p>
+<pre class="code language-ruby"><code class="language-ruby">require &quot;ast/merge/rspec&quot;  # Loads everything: TreeHaver tags + Ast::Merge tags + shared examples
+</code></pre>
+
+<h3 id="shared-examples">Shared Examples</h3>
+
+<p><code>ast-merge</code> provides shared examples for testing <code>*-merge</code> implementations:</p>
+
+<pre class="code ruby"><code class="ruby">lib/ast/merge/rspec/shared_examples/
+├── conflict_resolver_base.rb  # &quot;Ast::Merge::ConflictResolverBase&quot;
+├── debug_logger.rb            # &quot;Ast::Merge::DebugLogger&quot;
+├── file_analyzable.rb         # &quot;Ast::Merge::FileAnalyzable&quot;
+├── freeze_node_base.rb        # &quot;Ast::Merge::FreezeNodeBase&quot;
+├── merge_result_base.rb       # &quot;Ast::Merge::MergeResultBase&quot;
+├── merger_config.rb           # &quot;Ast::Merge::MergerConfig&quot;
+└── reproducible_merge.rb      # &quot;a reproducible merge&quot; (idempotency tests)
+</code></pre>
+
+<p>The <code>"a reproducible merge"</code> shared example requires:</p>
+<ul>
+  <li>
+<code>let(:fixtures_path)</code> – Path to fixtures directory</li>
+  <li>
+<code>let(:merger_class)</code> – The SmartMerger class under test</li>
+  <li>Optional: <code>let(:file_extension)</code> – File extension for fixtures (default: <code>""</code>)</li>
+</ul>
+
+<p>Fixture structure:</p>
+<pre class="code ruby"><code class="ruby">fixtures_path/
+  scenario_name/
+    template.{ext}
+    destination.{ext}
+    result.{ext}
+</code></pre>
+
+<h3 id="mergegemregistry-registering-a-new-merge-gem">MergeGemRegistry: Registering a New Merge Gem</h3>
+
+<p>When a new <code>*-merge</code> gem is created, add it to <code>KNOWN_GEMS</code> in <code>lib/ast/merge/rspec/merge_gem_registry.rb</code> and to <code>register_known_gems(...)</code> in <code>spec/spec_helper.rb</code>.</p>
+
+<p>External gems can also self-register when loaded:</p>
+<pre class="code language-ruby"><code class="language-ruby"># In your-gem/lib/your/merge.rb
+if defined?(Ast::Merge::RSpec::MergeGemRegistry)
+  Ast::Merge::RSpec::MergeGemRegistry.register(
+    :your_merge,
+    require_path: &quot;your/merge&quot;,
+    merger_class: &quot;Your::Merge::SmartMerger&quot;,
+    test_source: &quot;example source&quot;,
+    category: :data  # :markdown, :data, :code, :config, :other
+  )
+end
+</code></pre>
+
+<h2 id="-critical-files">🔍 Critical Files</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>lib/ast/merge/smart_merger_base.rb</code></td>
+      <td>Abstract base for all SmartMerger implementations (501 lines)</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/file_analyzable.rb</code></td>
+      <td>Mixin for FileAnalysis classes; freeze detection, signatures (312 lines)</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/ast_node.rb</code></td>
+      <td>Base for synthetic AST nodes; implements TreeHaver::Node protocol (284 lines)</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/merger_config.rb</code></td>
+      <td>Merge options configuration object (261 lines)</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/rspec/merge_gem_registry.rb</code></td>
+      <td>Registry for merge gem dependency tag availability (455 lines)</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/partial_template_merger_base.rb</code></td>
+      <td>Base for partial/section merges (349 lines)</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/section_typing.rb</code></td>
+      <td>AST-aware section classification (306 lines)</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/rspec/dependency_tags_config.rb</code></td>
+      <td>RSpec exclusion filter configuration</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/rspec/dependency_tags_helpers.rb</code></td>
+      <td>
+<code>DependencyTags</code> helper module</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/rspec/setup.rb</code></td>
+      <td>Registry-only loader (no RSpec config); used by ast-merge’s own spec suite</td>
+    </tr>
+    <tr>
+      <td><code>lib/ast/merge/rspec.rb</code></td>
+      <td>Full RSpec entry point (TreeHaver tags + Ast::Merge tags + shared examples)</td>
+    </tr>
+    <tr>
+      <td><code>exe/ast-merge-recipe</code></td>
+      <td>YAML-driven merge recipe CLI executable</td>
+    </tr>
+    <tr>
+      <td><code>spec/spec_helper.rb</code></td>
+      <td>Test suite entry point; demonstrates split loading pattern</td>
+    </tr>
+    <tr>
+      <td><code>.envrc</code></td>
+      <td>Coverage thresholds, tree-sitter paths, and dev environment variables</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="-common-tasks">🚀 Common Tasks</h2>
+
+<pre class="code language-bash"><code class="language-bash"># Run all specs with coverage
+bundle exec rake spec
+
+# Generate coverage report
+bundle exec rake coverage
+
+# Check code quality
+bundle exec rake reek
+bundle exec rake rubocop_gradual
+
+# Run benchmarks (skipped on CI)
+bundle exec rake bench
+
+# Prepare changelog for release, build and release
+kettle-changelog &amp;&amp; kettle-release
+</code></pre>
+
+<h2 id="-integration-points">🌊 Integration Points</h2>
+
+<ul>
+  <li>
+<strong><code>tree_haver</code></strong>: All backends (MRI, Rust, FFI, Java, Prism, Psych, Citrus, Parslet, Commonmarker, Markly) via the unified TreeHaver adapter. <code>AstNode</code> inherits from <code>TreeHaver::Base::Node</code>.</li>
+  <li>
+<strong><code>*-merge</code> gems</strong>: Use <code>ast-merge</code> base classes to implement format-specific merging. Each gem registers itself with <code>MergeGemRegistry</code>.</li>
+  <li>
+<strong>RSpec</strong>: Deep integration via <code>lib/ast/merge/rspec.rb</code> for dependency tagging and shared examples.</li>
+  <li>
+<strong>SimpleCov</strong>: Coverage tracked for <code>lib/**/*.rb</code> and <code>lib/**/*.rake</code>; spec, vendor, examples, and <code>lib/ast/merge/rspec/</code> directories are excluded from coverage.</li>
+  <li>
+<strong>Recipe system</strong>: <code>ast-merge-recipe</code> CLI + <code>Ast::Merge::Recipe::*</code> classes for YAML-driven merge automation.</li>
+</ul>
+
+<h2 id="-key-insights">💡 Key Insights</h2>
+
+<ol>
+  <li>
+<strong>No backward compatibility</strong>: The maintainer explicitly prohibits backward compatibility shims, aliases, or deprecation layers. Make clean breaks.</li>
+  <li>
+<strong><code>vendor/</code> is not part of the project</strong>: It is used for local development only and does not exist in CI.</li>
+  <li>
+<strong>Split loading for SimpleCov</strong>: <code>ast-merge</code>’s own spec suite MUST use the split loading pattern to ensure SimpleCov instruments the library code before it’s required.</li>
+  <li>
+<strong><code>merge</code> returns a String</strong>: <code>SmartMergerBase#merge</code> returns a String directly. <code>merge_result</code> returns the result object.</li>
+  <li>
+<strong><code>content_string</code> is legacy</strong>: Use <code>to_s</code> on the result object instead.</li>
+  <li>
+<strong><code>merged_source</code> doesn’t exist</strong>: Use <code>merge</code> or <code>merge_result.to_s</code>.</li>
+  <li>
+<strong>Magic comments are Ruby-specific</strong>: They belong in <code>prism-merge</code>, not in <code>ast-merge</code>.</li>
+  <li>
+<strong><code>FrozenWrapper</code> vs <code>FreezeNodeBase</code></strong>: <code>FreezeNodeBase</code> uses <code>freeze_signature</code> (content-based matching). <code>FrozenWrapper</code> is unwrapped by <code>FileAnalyzable#generate_signature</code> to use the underlying node’s structural signature — this prevents duplication when frozen node content differs between template and destination.</li>
+  <li>
+<strong><code>text_node.text</code> strips markdown formatting</strong>: When matching Markdown nodes by <code>.text</code>, backticks, bold, italic, and link text are stripped. Match plain text only.</li>
+</ol>
+
+<h2 id="-markdown-text-matching-behavior">🧩 Markdown Text Matching Behavior</h2>
+
+<p><strong>CRITICAL</strong>: When matching Markdown nodes by text content (e.g., anchor patterns in merge recipes or <code>PartialTemplateMerger</code>), the <code>.text</code> method returns <strong>plain text without markdown formatting</strong>.</p>
+
+<p><strong>Example</strong>:</p>
+<ul>
+  <li>Markdown source: <code>### The `*-merge` Gem Family</code>
+</li>
+  <li>
+<code>.text</code> returns: <code>"The *-merge Gem Family\n"</code>
+</li>
+</ul>
+
+<p><strong>Stripped formatting includes</strong>: bold, italic, code spans, links, images.</p>
+
+<p><strong>Pattern examples</strong>:</p>
+<pre class="code language-ruby"><code class="language-ruby"># ❌ WRONG - backticks won&#39;t be found
+anchor: { type: :heading, text: /`\*-merge` Gem Family/ }
+
+# ✅ CORRECT - match plain text
+anchor: { type: :heading, text: /\*-merge.*Gem Family/ }
+</code></pre>
+
+<p><strong>In YAML recipes</strong> (double escaping needed):</p>
+<pre class="code language-yaml"><code class="language-yaml">anchor:
+  type: heading
+  text: &quot;/^The \\*-merge Gem Family/&quot;
+</code></pre>
+
+<h2 id="-common-pitfalls">🚫 Common Pitfalls</h2>
+
+<ol>
+  <li>
+<strong>NEVER add backward compatibility</strong> – No shims, aliases, or deprecation layers.</li>
+  <li>
+<strong>NEVER use <code>require</code> inside spec files</strong> – Use dependency tags instead.</li>
+  <li>
+<strong>NEVER pipe test commands through <code>head</code>/<code>tail</code></strong> – Run tests without output truncation.</li>
+  <li>
+<strong>Do NOT load vendor gems</strong> – They are not part of this project; they do not exist in CI.</li>
+  <li>
+<strong>Use <code>tmp/</code> for temporary files</strong> – Never use <code>/tmp</code> or other system directories.</li>
+  <li>
+<strong>Do NOT chain <code>cd</code> with <code>&amp;&amp;</code></strong> – Run <code>cd</code> as a separate command so <code>direnv</code> loads ENV.</li>
+</ol>
+</div></div>
+
+      <div id="footer">
+  Generated on Thu Feb 19 02:38:54 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-4.0.1).
+</div>
+
+    </div>
+  </body>
+</html>
