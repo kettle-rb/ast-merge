@@ -22,9 +22,6 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Changed
 
-- Updated documentation on hostile takeover of RubyGems
-  - https://dev.to/galtzo/hostile-takeover-of-rubygems-my-thoughts-5hlo
-
 ### Deprecated
 
 ### Removed
@@ -32,6 +29,30 @@ Please file a bug if you notice a violation of semantic versioning.
 ### Fixed
 
 ### Security
+
+## [4.0.6] - 2026-02-19
+
+- TAG: [v4.0.6][4.0.6t]
+- COVERAGE: 96.37% -- 2552/2648 lines in 50 files
+- BRANCH COVERAGE: 87.22% -- 812/931 branches in 50 files
+- 98.81% documented
+
+### Added
+
+- AGENTS.md
+
+### Changed
+
+- Updated documentation on hostile takeover of RubyGems
+  - https://dev.to/galtzo/hostile-takeover-of-rubygems-my-thoughts-5hlo
+- appraisal2 v3.0.6
+- kettle-test v1.0.10
+- stone_checksums v1.0.3
+- tree_haver v5.0.5
+- tree_stump v0.2.0
+  - fork no longer required, updates all applied upstream
+- Updated documentation on hostile takeover of RubyGems
+  - https://dev.to/galtzo/hostile-takeover-of-rubygems-my-thoughts-5hlo
 
 ## [4.0.5] - 2026-02-01
 
@@ -756,7 +777,9 @@ Please file a bug if you notice a violation of semantic versioning.
 
 - Initial release
 
-[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.5...HEAD
+[Unreleased]: https://github.com/kettle-rb/ast-merge/compare/v4.0.6...HEAD
+[4.0.6]: https://github.com/kettle-rb/ast-merge/compare/v4.0.5...v4.0.6
+[4.0.6t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.6
 [4.0.5]: https://github.com/kettle-rb/ast-merge/compare/v4.0.4...v4.0.5
 [4.0.5t]: https://github.com/kettle-rb/ast-merge/releases/tag/v4.0.5
 [4.0.4]: https://github.com/kettle-rb/ast-merge/compare/v4.0.3...v4.0.4
