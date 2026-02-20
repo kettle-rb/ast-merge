@@ -20,6 +20,8 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Added
 
+- Primary documentation of merge presets, configs, and recipes
+
 ### Changed
 
 ### Deprecated

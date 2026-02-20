@@ -735,6 +735,189 @@ config = Ast::Merge::MergerConfig.template_wins(
 )
 ```
 
+## 📋 YAML Merge Recipes
+
+ast-merge includes a YAML-based recipe system for defining portable, distributable merge configurations. Recipes allow any project to ship merge knowledge as data — a YAML file (and optionally small companion Ruby scripts) — that consumers can load and execute without writing merge instrumentation.
+
+### Preset vs Config (Recipe)
+
+The recipe system provides two levels of configuration:
+
+- **`Ast::Merge::Recipe::Preset`** — Merge configuration only (preference, signature generator, node typing, freeze token). Use when you have your own template/destination handling and just need the merge settings.
+- **`Ast::Merge::Recipe::Config`** — Full recipe extending Preset with template file, target glob patterns, injection point configuration, and when_missing behavior. Use for standalone merge operations that know their own inputs and outputs.
+
+### Minimal Recipe (Preset)
+
+A simple preset recipe is just a YAML file — no companion folder or Ruby scripts required:
+
+```yaml
+name: my_config
+description: Merge YAML config files with destination preference
+parser: psych
+merge:
+  preference: destination
+  add_missing: true
+freeze_token: my-project
+```
+
+Load and use it:
+
+```ruby
+preset = Ast::Merge::Recipe::Preset.load("path/to/my_config.yml")
+merger = Psych::Merge::SmartMerger.new(template, destination, **preset.to_h)
+result = merger.merge
+```
+
+### Full Recipe (Config)
+
+A full recipe adds template, targets, and injection point configuration:
+
+```yaml
+name: gem_family_section
+description: Update gem family section in README files
+
+# Template file (relative to recipe file)
+template: GEM_FAMILY_SECTION.md
+
+# Target files (supports globs)
+targets:
+  - README.md
+  - vendor/*/README.md
+
+# Where to inject/replace content
+injection:
+  anchor:
+    type: heading
+    text: "/Gem Family/"
+  position: replace
+  boundary:
+    type: heading
+    same_or_shallower: true
+
+# Merge settings
+merge:
+  preference: template
+  add_missing: true
+
+# When anchor is not found in a target
+when_missing: skip
+```
+
+Execute it:
+
+```ruby
+recipe = Ast::Merge::Recipe::Config.load("path/to/gem_family_section.yml")
+runner = Ast::Merge::Recipe::Runner.new(recipe, dry_run: true, parser: :markly)
+results = runner.run
+puts runner.summary
+# => { total: 10, updated: 5, unchanged: 3, skipped: 2 }
+```
+
+Or via CLI:
+
+```bash
+bin/ast-merge-recipe path/to/gem_family_section.yml --dry-run --parser=markly
+```
+
+### Recipe YAML Schema
+
+#### Preset Fields (used by both Preset and Config)
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Recipe identifier |
+| `description` | No | Human-readable description |
+| `parser` | No | Parser to use (`prism`, `markly`, `psych`, etc.). Default: `prism` |
+| `merge.preference` | No | `:template` or `:destination`. Default: `:template` |
+| `merge.add_missing` | No | `true`, `false`, or path to a Ruby script returning a callable filter. Default: `true` |
+| `merge.signature_generator` | No | Path to companion Ruby script (relative to recipe folder) |
+| `merge.node_typing` | No | Hash mapping node class names to companion Ruby script paths |
+| `merge.match_refiner` | No | Path to companion Ruby script for match refinement |
+| `merge.normalize_whitespace` | No | `true` to collapse excessive blank lines |
+| `merge.rehydrate_link_references` | No | `true` to convert inline links to reference style |
+| `freeze_token` | No | Token for freeze block preservation (e.g., `"my-project"`) |
+
+#### Config-Only Fields (full recipes)
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `template` | Yes | Path to template file (relative to recipe file or absolute) |
+| `targets` | No | Array of glob patterns for target files. Default: `["*.md"]` |
+| `injection.anchor.type` | No | Node type to match (e.g., `heading`, `paragraph`) |
+| `injection.anchor.text` | No | Text pattern — string for exact match, `/regex/` for pattern |
+| `injection.anchor.level` | No | Heading level (for heading anchors) |
+| `injection.position` | No | `replace`, `before`, `after`, `first_child`, `last_child`. Default: `replace` |
+| `injection.boundary.type` | No | Node type that marks the end of the section |
+| `injection.boundary.same_or_shallower` | No | `true` to end at next same-level-or-higher heading |
+| `when_missing` | No | `skip`, `add`, or `error`. Default: `skip` |
+
+### Companion Scripts (Optional)
+
+When a recipe needs custom signature matching or node categorization beyond the defaults, it can reference Ruby scripts in an optional companion folder. The folder name must match the recipe name (without `.yml`):
+
+```
+my-project/
+  recipes/
+    my_format.yml                    # The recipe
+    my_format/                       # Optional companion folder
+      signature_generator.rb         # Returns a lambda for node matching
+      typing/
+        call_node.rb                 # Returns a lambda for node categorization
+```
+
+Each script must return a callable (the last expression is the return value):
+
+```ruby
+# signature_generator.rb
+lambda do |node|
+  return node unless node.is_a?(Prism::CallNode)
+  case node.name
+  when :gem
+    first_arg = node.arguments&.arguments&.first
+    [:gem, first_arg.unescaped] if first_arg.is_a?(Prism::StringNode)
+  when :source
+    [:source]
+  else
+    node
+  end
+end
+```
+
+Scripts are loaded on demand via `Ast::Merge::Recipe::ScriptLoader` and cached for the lifetime of the preset.
+
+### Text Matching in Anchor Patterns
+
+When matching nodes by text content (e.g., heading anchors), the `.text` method returns **plain text without formatting**:
+
+| Markdown Source | `.text` Returns |
+|----------------|----------------|
+| `` ### The `*-merge` Gem Family `` | `The *-merge Gem Family` |
+| `**Bold text**` | `Bold text` |
+| `[link text](url)` | `link text` |
+
+Write patterns that match the plain text:
+
+```yaml
+# ❌ WRONG - backticks won't appear in .text
+anchor:
+  text: "/`\\*-merge` Gem Family/"
+
+# ✅ CORRECT - match plain text
+anchor:
+  text: "/\\*-merge Gem Family/"
+```
+
+### Distributing Recipes
+
+Recipes are designed to be portable. A project can ship recipes in its gem or repository:
+
+- **Minimal recipes** (YAML only) need no companion folder — consumers only need `ast-merge`
+- **Advanced recipes** (YAML + scripts) ship the companion folder alongside the YAML
+- Consumers load recipes with `Ast::Merge::Recipe::Preset.load(path)` or `Config.load(path)` — no dependency on `kettle-jem` or any specific tool
+- The [kettle-jem][kettle-jem] gem provides a collection of built-in recipes for common file types (Gemfile, gemspec, Rakefile, Appraisals, Markdown)
+
+See [`lib/ast/merge/recipe/README.md`](lib/ast/merge/recipe/README.md) for additional details and examples.
+
 ## 🦷 FLOSS Funding
 
 While kettle-rb tools are free software and will always be, the project would benefit immensely from some funding.
