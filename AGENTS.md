@@ -83,6 +83,38 @@ exe/
 └── ast-merge-diff                 # Executable for merge diffs
 ```
 
+## ⚠️ AI Agent Terminal Limitations
+
+### Terminal Output Is Not Visible
+
+**CRITICAL**: AI agents using `run_in_terminal` almost never see the command output. The terminal tool sends commands to a persistent Copilot terminal, but output is frequently lost or invisible to the agent.
+
+**Workaround**: Always redirect output to a file in the project's local `tmp/` directory, then read it back:
+
+```bash
+bundle exec rspec spec/some_spec.rb > tmp/test_output.txt 2>&1
+```
+Then use `read_file` to see `tmp/test_output.txt`.
+
+**NEVER** use `/tmp` or other system directories — always use the project's own `tmp/` directory.
+
+### direnv Requires Separate `cd` Command
+
+**CRITICAL**: The project uses `direnv` to load environment variables from `.envrc`. When you `cd` into the project directory, `direnv` initializes **after** the shell prompt returns. If you chain `cd` with other commands via `&&`, the subsequent commands run **before** `direnv` has loaded the environment.
+
+✅ **CORRECT** — Run `cd` alone, then run commands separately:
+```bash
+cd /home/pboling/src/kettle-rb/ast-merge
+```
+```bash
+bundle exec rspec
+```
+
+❌ **WRONG** — Never chain `cd` with `&&`:
+```bash
+cd /home/pboling/src/kettle-rb/ast-merge && bundle exec rspec
+```
+
 ## 🔧 Development Workflows
 
 ### Running Tests
@@ -97,10 +129,12 @@ K_SOUP_COV_MIN_HARD=false bundle exec rspec spec/ast/merge/text/smart_merger_spe
 
 **Note**: Always run commands in the project root (`/home/pboling/src/kettle-rb/ast-merge`). Allow `direnv` to load environment variables first by doing a plain `cd` before running commands.
 
-Example (two separate commands):
+For AI agents, redirect output to a file:
 ```bash
 cd /home/pboling/src/kettle-rb/ast-merge
-bundle exec rspec spec/ast/merge/smart_merger_base_spec.rb
+```
+```bash
+bundle exec rspec spec/ast/merge/smart_merger_base_spec.rb > tmp/test_output.txt 2>&1
 ```
 
 ### Coverage Reports
