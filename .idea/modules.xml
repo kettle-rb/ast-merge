@@ -4,8 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/ast-merge.iml" filepath="$PROJECT_DIR$/.idea/ast-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/bash-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/bash-merge.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/benchmark.iml" filepath="$PROJECT_DIR$/.idea/modules/benchmark.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/commonmarker.iml" filepath="$PROJECT_DIR$/.idea/modules/commonmarker.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/commonmarker-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/commonmarker-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dotenv-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/dotenv-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/json-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/json-merge.iml" />
@@ -16,7 +14,6 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/kettle-test.iml" filepath="$PROJECT_DIR$/.idea/modules/kettle-test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/magnus.iml" filepath="$PROJECT_DIR$/.idea/modules/magnus.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/markdown-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/markdown-merge.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/markly.iml" filepath="$PROJECT_DIR$/.idea/modules/markly.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/markly-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/markly-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/parslet.iml" filepath="$PROJECT_DIR$/.idea/modules/parslet.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/prism-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/prism-merge.iml" />
@@ -24,8 +21,6 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/rb-sys.iml" filepath="$PROJECT_DIR$/.idea/modules/rb-sys.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/rbs-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/rbs-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/rubocop.iml" filepath="$PROJECT_DIR$/.idea/modules/rubocop.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/rubocop-gradual.iml" filepath="$PROJECT_DIR$/.idea/modules/rubocop-gradual.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ruby-tree-sitter.iml" filepath="$PROJECT_DIR$/.idea/modules/ruby-tree-sitter.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/setup-ruby.iml" filepath="$PROJECT_DIR$/.idea/modules/setup-ruby.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/stage.iml" filepath="$PROJECT_DIR$/.idea/modules/stage.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/test-project.iml" filepath="$PROJECT_DIR$/.idea/modules/test-project.iml" />
@@ -33,9 +28,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/toml-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/toml-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/toml-rb.iml" filepath="$PROJECT_DIR$/.idea/modules/toml-rb.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree_haver.iml" filepath="$PROJECT_DIR$/.idea/modules/tree_haver.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree_sitter.iml" filepath="$PROJECT_DIR$/.idea/modules/tree_sitter.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree_stump.iml" filepath="$PROJECT_DIR$/.idea/modules/tree_stump.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/website.iml" filepath="$PROJECT_DIR$/.idea/modules/website.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/yard-fence.iml" filepath="$PROJECT_DIR$/.idea/modules/yard-fence.iml" />
     </modules>
   </component>
