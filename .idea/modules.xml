@@ -24,6 +24,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/setup-ruby.iml" filepath="$PROJECT_DIR$/.idea/modules/setup-ruby.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/stage.iml" filepath="$PROJECT_DIR$/.idea/modules/stage.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/test-project.iml" filepath="$PROJECT_DIR$/.idea/modules/test-project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/token-resolver.iml" filepath="$PROJECT_DIR$/.idea/modules/token-resolver.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/toml.iml" filepath="$PROJECT_DIR$/.idea/modules/toml.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/toml-merge.iml" filepath="$PROJECT_DIR$/.idea/modules/toml-merge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/toml-rb.iml" filepath="$PROJECT_DIR$/.idea/modules/toml-rb.iml" />
