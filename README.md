@@ -297,6 +297,206 @@ module MyFormat
 end
 ```
 
+### Merge Architecture: Choosing a Pattern
+
+When building a new `*-merge` gem, the most important design decision is how to implement the merge logic. There are **two proven patterns** in the gem family. The choice depends on the structure of your format.
+
+See also: [MERGE_APPROACH.md](MERGE_APPROACH.md) for a detailed per-gem reference with real-world examples.
+
+#### Pattern 1: Inline SmartMerger (recommended for new gems)
+
+The SmartMerger handles all merge logic directly in `perform_merge`. No ConflictResolver class is needed. `resolver_class` returns `nil`.
+
+**Used by**: `prism-merge` (Ruby), `bash-merge` (Bash), `dotenv-merge` (dotenv)
+
+```ruby
+class SmartMerger < Ast::Merge::SmartMergerBase
+  protected
+
+  def resolver_class
+    nil  # No ConflictResolver — merge logic is inline
+  end
+
+  def perform_merge
+    template_by_sig = build_signature_map(@template_analysis)
+    dest_by_sig = build_signature_map(@dest_analysis)
+
+    consumed_template_indices = Set.new
+    sig_cursor = Hash.new(0)
+
+    # Phase 1: template-only nodes (if add_template_only_nodes)
+    # Phase 2: walk dest nodes, match by signature, emit result
+    # Phase 3: (implicit) unmatched template nodes from Phase 1
+
+    @result
+  end
+
+  def build_signature_map(analysis)
+    map = Hash.new { |h, k| h[k] = [] }
+    analysis.statements.each_with_index do |node, idx|
+      sig = analysis.generate_signature(node)
+      map[sig] << {node: node, index: idx} if sig
+    end
+    map
+  end
+end
+```
+
+**Choose this when**:
+- Your format has **recursive nesting** (classes containing methods, objects containing objects) — you'll want recursive body merging, which is easiest to control inline
+- Your merge needs **multi-phase output** (e.g., magic comments first, then template-only nodes, then dest-order merge)
+- You want **simpler code** with fewer classes to maintain
+- The format is **flat** (dotenv, bash) — a ConflictResolver adds unnecessary indirection
+
+#### Pattern 2: ConflictResolver Delegation
+
+The SmartMerger delegates merge logic to a separate `ConflictResolver` class. The resolver receives pre-built analyses and populates a `MergeResult` via an emitter.
+
+**Used by**: `psych-merge` (YAML), `json-merge` (JSON), `jsonc-merge` (JSONC), `toml-merge` (TOML)
+
+```ruby
+class SmartMerger < Ast::Merge::SmartMergerBase
+  protected
+
+  def resolver_class
+    ConflictResolver  # Delegate merge to ConflictResolver
+  end
+
+  def build_conflict_resolver
+    ConflictResolver.new(
+      @template_analysis,
+      @dest_analysis,
+      preference: @preference,
+      add_template_only_nodes: @add_template_only_nodes,
+      freeze_token: @freeze_token,
+      match_refiner: @match_refiner,
+    )
+  end
+end
+
+class ConflictResolver < Ast::Merge::ConflictResolverBase
+  # strategy: :batch — resolve all nodes at once
+  def resolve_batch(result)
+    merge_node_lists_to_emitter(template_nodes, dest_nodes, ...)
+  end
+end
+```
+
+**Choose this when**:
+- Your format's merge logic is **complex enough to warrant a separate class** for testability
+- You want the resolver to be **independently testable** with mock analyses
+- The format uses an **emitter pattern** (building output line-by-line with structural awareness)
+- Multiple merge strategies might share the same SmartMerger but differ in resolution
+
+#### Signature Matching: The Core Algorithm
+
+Both patterns use the same core algorithm. Every `*-merge` gem follows these steps:
+
+1. **Parse** both template and destination files into ASTs via `FileAnalysis`
+2. **Generate signatures** for each top-level node (e.g., `[:def, :greet]`, `[:pair, "name"]`, `[:command, "echo", ['"Foo"']]`)
+3. **Build a signature map**: `signature → [{node:, index:}, ...]` — stores **all** occurrences, not just the first
+4. **First pass** (destination order): Walk destination nodes, find matching template nodes by signature
+5. **Second pass**: Add any remaining unmatched template nodes (if `add_template_only_nodes: true`)
+
+##### Cursor-Based Positional Matching
+
+> **Design principle**: Two distinct lines in the input must remain two distinct lines in the output. Signatures identify *what* a node is, not *where* it is. The AST provides the structural context that prevents false merging.
+
+When multiple nodes share the same signature, they are matched **1:1 in order** using a per-signature cursor:
+
+```
+Template:              Destination:
+  echo "Foo"    ←→      echo "Foo"       (1st ←→ 1st)
+  echo "Foo"    ←→      echo "Foo"       (2nd ←→ 2nd)
+  echo "Bar"             echo "Bar"
+                         echo "Baz"       (dest-only, preserved)
+```
+
+This uses two data structures:
+- **`consumed_template_indices`** (`Set`): tracks which template nodes have been matched
+- **`sig_cursor`** (`Hash`): tracks the next candidate index per signature
+
+The old approach used a `processed_signatures` Set which would collapse all nodes sharing a signature into a single match — losing legitimate duplicates. **All gems in the family now use cursor-based matching.**
+
+##### Recursive Body Merging
+
+For formats with nested structure (Ruby, YAML, JSON, TOML), containers are merged recursively:
+
+```ruby
+module Foo
+  class Bar
+    attr_accessor :fizz    # ← scoped to Bar's body
+  end
+  class Buzz
+    attr_accessor :fizz    # ← scoped to Buzz's body (NOT collapsed with Bar's)
+  end
+end
+```
+
+When `class Bar` matches between template and destination, their **bodies** are extracted and merged in a **separate recursive call**. The recursion itself provides tree-path scoping — signatures are only compared within the same container.
+
+**Implementing recursive merge** (inline pattern):
+```ruby
+def perform_merge
+  # ... signature matching ...
+  if should_merge_recursively?(template_node, dest_node)
+    body_merger = self.class.new(
+      extract_body(template_node),
+      extract_body(dest_node),
+      preference: @preference,
+      # ... pass through all options ...
+    )
+    merged_body = body_merger.merge
+    # Reassemble: opening line + merged body + closing line
+  end
+end
+```
+
+**Implementing recursive merge** (ConflictResolver pattern):
+```ruby
+def merge_node_lists_to_emitter(template_nodes, dest_nodes, template_analysis, dest_analysis)
+  # ... signature matching ...
+  if can_merge_recursively?(template_node, dest_node)
+    # Extract children, build new signature maps, recurse
+    merge_node_lists_to_emitter(
+      template_children, dest_children,
+      template_analysis, dest_analysis,
+    )
+  end
+end
+```
+
+#### Decision Guide: Which Pattern for Your Format?
+
+| Format Characteristic                   | Inline SmartMerger | ConflictResolver |
+|-----------------------------------------|:------------------:|:----------------:|
+| Flat structure (no nesting)             |         ✅          |        ✅         |
+| Deep recursive nesting                  |         ✅          |        ✅         |
+| Multi-phase output ordering             |         ✅          |        ➖         |
+| Magic comments / prefix lines           |         ✅          |        ➖         |
+| Independent resolver testability needed |         ➖          |        ✅         |
+| Emitter-based output construction       |         ➖          |        ✅         |
+| Simple, fewer classes                   |         ✅          |        ➖         |
+
+**Legend**: ✅ = natural fit, ➖ = possible but not the natural fit
+
+**Rules of thumb**:
+- If your format has **prefix metadata** that must appear first regardless of merge preference (magic comments, shebangs, frontmatter), use the **inline pattern** — it gives you direct control over output ordering
+- If your format's merge is **purely structural** (matching keys/nodes and choosing which version to keep), the **ConflictResolver pattern** keeps the SmartMerger clean
+- When in doubt, start with the **inline pattern** — it's simpler and you can always extract a ConflictResolver later
+
+#### Forward Compatibility: **options
+
+All constructors and public API methods **must** include `**options` as the final parameter:
+
+```ruby
+def initialize(source, freeze_token: nil, signature_generator: nil, **options)
+  # **options captures future parameters for forward compatibility
+end
+```
+
+When `SmartMergerBase` adds new standard options (like `node_typing`, `regions`), all `FileAnalysis` classes automatically accept them without code changes. Without `**options`, every gem would need updating whenever a new option is added to the base class.
+
 ### Base Classes Reference
 
 | Base Class             | Purpose                     | Key Methods to Implement               |
