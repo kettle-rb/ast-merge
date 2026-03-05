@@ -24,16 +24,19 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Changed
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
+- `MergeResultBase#to_s` now ensures a trailing newline for non-empty content,
+  matching the convention used by `EmitterBase#to_s`, `Psych::Merge::MergeResult#to_yaml`,
+  and `Bash::Merge::MergeResult#to_bash`
 - `Text::ConflictResolver` now honors custom `signature_generator` procs during line matching.
   Previously, the resolver always matched lines by full normalized content, ignoring
   any custom signature generator passed to `Text::SmartMerger`. This meant that
   key-value text files (e.g., `.tool-versions`) could not match lines by key alone.
+
+### Deprecated
+
+### Removed
 
 ### Security
 

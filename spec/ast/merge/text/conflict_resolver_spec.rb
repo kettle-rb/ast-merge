@@ -38,7 +38,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
 
         resolver.resolve(result)
 
-        expect(result.to_s).to eq("Line one\nLine two\nLine three")
+        expect(result.to_s).to eq("Line one\nLine two\nLine three\n")
       end
 
       it "records identical decisions" do

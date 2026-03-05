@@ -174,8 +174,8 @@ RSpec.describe Ast::Merge::MergeResultBase do
         result.lines << "line2"
       end
 
-      it "joins lines with newlines" do
-        expect(result.to_s).to eq("line1\nline2")
+      it "joins lines with newlines and ensures trailing newline" do
+        expect(result.to_s).to eq("line1\nline2\n")
       end
     end
   end

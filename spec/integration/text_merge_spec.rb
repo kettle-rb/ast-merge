@@ -155,7 +155,7 @@ RSpec.describe "Text-based AST merge integration" do
         merger = Ast::Merge::Text::SmartMerger.new(template, destination)
         result = merger.merge
 
-        expect(result).to eq("Line one\nLine two")
+        expect(result).to eq("Line one\nLine two\n")
       end
 
       it "is idempotent" do
@@ -192,7 +192,7 @@ RSpec.describe "Text-based AST merge integration" do
         )
         result = merger.merge
 
-        expect(result).to eq("Line one\nLine two")
+        expect(result).to eq("Line one\nLine two\n")
       end
     end
 
@@ -203,7 +203,7 @@ RSpec.describe "Text-based AST merge integration" do
         merger = Ast::Merge::Text::SmartMerger.new(content, content)
         result = merger.merge
 
-        expect(result).to eq(content)
+        expect(result).to eq("#{content}\n")
       end
 
       it "is idempotent" do

@@ -8,7 +8,7 @@ RSpec.describe Ast::Merge::Text::MergeResult do
       result = described_class.new
       result.add_line("Hello world")
 
-      expect(result.to_s).to eq("Hello world")
+      expect(result.to_s).to eq("Hello world\n")
     end
   end
 
@@ -17,7 +17,7 @@ RSpec.describe Ast::Merge::Text::MergeResult do
       result = described_class.new
       result.add_lines(["Line one", "Line two", "Line three"])
 
-      expect(result.to_s).to eq("Line one\nLine two\nLine three")
+      expect(result.to_s).to eq("Line one\nLine two\nLine three\n")
     end
   end
 
@@ -44,7 +44,7 @@ RSpec.describe Ast::Merge::Text::MergeResult do
       result.add_line("Line two")
       result.add_line("Line three")
 
-      expect(result.to_s).to eq("Line one\nLine two\nLine three")
+      expect(result.to_s).to eq("Line one\nLine two\nLine three\n")
     end
 
     it "returns empty string for no lines" do

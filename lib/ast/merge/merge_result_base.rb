@@ -113,11 +113,15 @@ module Ast
 
       # Get content as a string.
       # This is the canonical method for converting the merge result to a string.
-      # Subclasses may override to customize string output (e.g., adding trailing newline).
+      # Ensures a trailing newline for non-empty content, matching standard file
+      # conventions and the pattern used by EmitterBase#to_s, Psych::Merge::MergeResult#to_yaml,
+      # and Bash::Merge::MergeResult#to_bash.
       #
       # @return [String] Content as string joined with newlines
       def to_s
-        @lines.join("\n")
+        content = @lines.join("\n")
+        content += "\n" unless content.empty? || content.end_with?("\n")
+        content
       end
 
       # Check if content has been built (has any lines).
