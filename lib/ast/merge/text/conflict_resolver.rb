@@ -47,8 +47,8 @@ module Ast
           template_statements = @template_analysis.statements
           dest_statements = @dest_analysis.statements
 
-          # Build content index for matching
-          template_by_content = build_content_index(template_statements)
+          # Build index for matching (uses signatures when custom generator present)
+          template_index = build_match_index(template_statements)
 
           # Track matched template indices
           matched_template_indices = Set.new
@@ -61,9 +61,9 @@ module Ast
               next
             end
 
-            # Find matching template line by normalized content
-            normalized = dest_node.normalized_content
-            template_match = find_unmatched(template_by_content[normalized], matched_template_indices)
+            # Find matching template line by signature or normalized content
+            match_key = signature_key_for(dest_node)
+            template_match = find_unmatched(template_index[match_key], matched_template_indices)
 
             if template_match
               matched_template_indices << template_match[:index]
@@ -83,17 +83,37 @@ module Ast
 
         private
 
-        # Build an index of statements by normalized content
+        # Whether a custom signature generator is in use
+        # @return [Boolean]
+        def custom_signatures?
+          @template_analysis.respond_to?(:signature_generator) &&
+            !@template_analysis.signature_generator.nil?
+        end
+
+        # Compute the match key for a node.
+        # Uses generate_signature when a custom generator is present;
+        # falls back to normalized_content for default text matching.
+        # @param node [LineNode] the node
+        # @return [Object] match key (String or Array)
+        def signature_key_for(node)
+          if custom_signatures?
+            @template_analysis.generate_signature(node)
+          else
+            node.normalized_content
+          end
+        end
+
+        # Build an index of statements by match key (signature or normalized content)
         #
         # @param statements [Array] Statements to index
-        # @return [Hash] Map of normalized content => [{node:, index:}, ...]
-        def build_content_index(statements)
+        # @return [Hash] Map of match_key => [{node:, index:}, ...]
+        def build_match_index(statements)
           index = Hash.new { |h, k| h[k] = [] }
           statements.each_with_index do |node, idx|
             next if freeze_node?(node)
 
-            normalized = node.normalized_content
-            index[normalized] << {node: node, index: idx}
+            key = signature_key_for(node)
+            index[key] << {node: node, index: idx}
           end
           index
         end

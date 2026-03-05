@@ -30,6 +30,11 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+- `Text::ConflictResolver` now honors custom `signature_generator` procs during line matching.
+  Previously, the resolver always matched lines by full normalized content, ignoring
+  any custom signature generator passed to `Text::SmartMerger`. This meant that
+  key-value text files (e.g., `.tool-versions`) could not match lines by key alone.
+
 ### Security
 
 ## [4.0.6] - 2026-02-19

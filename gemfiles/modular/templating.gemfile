@@ -14,6 +14,7 @@ if ENV.fetch("KETTLE_RB_DEV", "false").casecmp?("true")
   gem "dotenv-merge", path: "../../vendor/dotenv-merge"             # dotenv code blocks
   gem "json-merge", path: "../../vendor/json-merge"                 # JSON code blocks
   gem "jsonc-merge", path: "../../vendor/jsonc-merge"               # JSONC code blocks
+  gem "kettle-jem", path: "../../vendor/kettle-jem"                 # gem templating engine
   gem "markdown-merge", path: "../../vendor/markdown-merge"         # generic markdown tools
   gem "prism-merge", path: "../../vendor/prism-merge"               # Ruby code blocks
   gem "psych-merge", path: "../../vendor/psych-merge"               # YAML code blocks
