@@ -85,32 +85,36 @@ exe/
 
 ## ⚠️ AI Agent Terminal Limitations
 
-### Terminal Output Is Not Visible
+### Terminal Output Is Available, but Each Command Is Isolated
 
-**CRITICAL**: AI agents using `run_in_terminal` almost never see the command output. The terminal tool sends commands to a persistent Copilot terminal, but output is frequently lost or invisible to the agent.
+**CRITICAL**: AI agents can reliably read terminal output when commands run in the background and the output is polled afterward. However, each terminal command should be treated as a fresh shell with no shared state.
 
-**Workaround**: Always redirect output to a file in the project's local `tmp/` directory, then read it back:
+**Use this pattern**:
+1. Run commands with background execution enabled.
+2. Fetch the output afterward.
+3. Make every command self-contained — do **not** rely on a previous `cd`, `export`, alias, or shell function.
 
+### Use `mise` for Project Environment
+
+**CRITICAL**: The canonical project environment now lives in `mise.toml`, with local overrides in `.env.local` loaded via `dotenvy`.
+
+✅ **CORRECT** — Run self-contained commands with `mise exec`:
 ```bash
-bundle exec rspec spec/some_spec.rb > tmp/test_output.txt 2>&1
+mise exec -C /home/pboling/src/kettle-rb/ast-merge -- bundle exec rspec
 ```
-Then use `read_file` to see `tmp/test_output.txt`.
 
-**NEVER** use `/tmp` or other system directories — always use the project's own `tmp/` directory.
+✅ **CORRECT** — If you need shell syntax first, load the environment in the same command:
+```bash
+eval "$(mise env -C /home/pboling/src/kettle-rb/ast-merge -s bash)" && bundle exec rspec
+```
 
-### direnv Requires Separate `cd` Command
-
-**CRITICAL**: The project uses `direnv` to load environment variables from `.envrc`. When you `cd` into the project directory, `direnv` initializes **after** the shell prompt returns. If you chain `cd` with other commands via `&&`, the subsequent commands run **before** `direnv` has loaded the environment.
-
-✅ **CORRECT** — Run `cd` alone, then run commands separately:
+❌ **WRONG** — Do not rely on a previous command changing directories:
 ```bash
 cd /home/pboling/src/kettle-rb/ast-merge
-```
-```bash
 bundle exec rspec
 ```
 
-❌ **WRONG** — Never chain `cd` with `&&`:
+❌ **WRONG** — A chained `cd` does not give directory-change hooks time to update the environment:
 ```bash
 cd /home/pboling/src/kettle-rb/ast-merge && bundle exec rspec
 ```
@@ -121,33 +125,30 @@ cd /home/pboling/src/kettle-rb/ast-merge && bundle exec rspec
 
 ```bash
 # Full suite (required for coverage thresholds)
-bundle exec rspec
+mise exec -C /home/pboling/src/kettle-rb/ast-merge -- bundle exec rspec
 
 # Single file (disable coverage threshold check)
-K_SOUP_COV_MIN_HARD=false bundle exec rspec spec/ast/merge/text/smart_merger_spec.rb
+mise exec -C /home/pboling/src/kettle-rb/ast-merge -- env K_SOUP_COV_MIN_HARD=false bundle exec rspec spec/ast/merge/text/smart_merger_spec.rb
 ```
 
-**Note**: Always run commands in the project root (`/home/pboling/src/kettle-rb/ast-merge`). Allow `direnv` to load environment variables first by doing a plain `cd` before running commands.
+**Note**: Always make commands self-contained. Use `mise exec -C /home/pboling/src/kettle-rb/ast-merge -- ...` so the command gets the project environment in the same invocation.
 
-For AI agents, redirect output to a file:
+For AI agents, prefer a single self-contained test command over redirecting output to a file:
 ```bash
-cd /home/pboling/src/kettle-rb/ast-merge
-```
-```bash
-bundle exec rspec spec/ast/merge/smart_merger_base_spec.rb > tmp/test_output.txt 2>&1
+mise exec -C /home/pboling/src/kettle-rb/ast-merge -- bundle exec rspec spec/ast/merge/smart_merger_base_spec.rb
 ```
 
 ### Coverage Reports
 
 ```bash
-cd /home/pboling/src/kettle-rb/ast-merge
-bin/rake coverage && bin/kettle-soup-cover -d
+mise exec -C /home/pboling/src/kettle-rb/ast-merge -- bin/rake coverage
+mise exec -C /home/pboling/src/kettle-rb/ast-merge -- bin/kettle-soup-cover -d
 ```
 
 This runs tests with coverage instrumentation and generates reports in the `coverage/` directory.
 
-**Key ENV variables** (set in `.envrc`, loaded via `direnv allow`):
-- `K_SOUP_COV_DO=true` – Enable coverage (default in `.envrc`)
+**Key ENV variables** (set in `mise.toml`, with local overrides in `.env.local`):
+- `K_SOUP_COV_DO=true` – Enable coverage (default in `mise.toml`)
 - `K_SOUP_COV_MIN_LINE=91` – Line coverage threshold
 - `K_SOUP_COV_MIN_BRANCH=81` – Branch coverage threshold
 - `K_SOUP_COV_MIN_HARD=true` – Fail if thresholds not met
@@ -369,7 +370,7 @@ end
 | `lib/ast/merge/rspec.rb` | Full RSpec entry point (TreeHaver tags + Ast::Merge tags + shared examples) |
 | `exe/ast-merge-recipe` | YAML-driven merge recipe CLI executable |
 | `spec/spec_helper.rb` | Test suite entry point; demonstrates split loading pattern |
-| `.envrc` | Coverage thresholds, tree-sitter paths, and dev environment variables |
+| `mise.toml` | Shared development environment variables and local `.env.local` loading |
 
 ## 🚀 Common Tasks
 
@@ -422,7 +423,7 @@ kettle-changelog && kettle-release
 **Stripped formatting includes**: bold, italic, code spans, links, images.
 
 **Pattern examples**:
-```ruby
+```text
 # ❌ WRONG - backticks won't be found
 anchor: { type: :heading, text: /`\*-merge` Gem Family/ }
 
@@ -444,4 +445,5 @@ anchor:
 3. **NEVER pipe test commands through `head`/`tail`** – Run tests without output truncation.
 4. **Do NOT load vendor gems** – They are not part of this project; they do not exist in CI.
 5. **Use `tmp/` for temporary files** – Never use `/tmp` or other system directories.
-6. **Do NOT chain `cd` with `&&`** – Run `cd` as a separate command so `direnv` loads ENV.
+6. **Do NOT expect `cd` to persist** – Every terminal command is isolated; use a self-contained `mise exec -C ... -- ...` invocation.
+7. **Do NOT rely on prior shell state** – Previous `cd`, `export`, aliases, and functions are not available to the next command.
