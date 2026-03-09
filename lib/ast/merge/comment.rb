@@ -26,6 +26,11 @@ module Ast
     #   nodes = Comment::Parser.parse(lines, style: :auto)
     #
     module Comment
+      autoload :Attachment, "ast/merge/comment/attachment"
+      autoload :Augmenter, "ast/merge/comment/augmenter"
+      autoload :Capability, "ast/merge/comment/capability"
+      autoload :Region, "ast/merge/comment/region"
+      autoload :TrackedHashAdapter, "ast/merge/comment/tracked_hash_adapter"
       autoload :Style, "ast/merge/comment/style"
       autoload :Line, "ast/merge/comment/line"
       autoload :Empty, "ast/merge/comment/empty"
