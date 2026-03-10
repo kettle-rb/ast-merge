@@ -1049,7 +1049,7 @@ bin/ast-merge-recipe path/to/gem_family_section.yml --dry-run --parser=markly
 | `injection.position` | No | `replace`, `before`, `after`, `first_child`, `last_child`. Default: `replace` |
 | `injection.boundary.type` | No | Node type that marks the end of the section |
 | `injection.boundary.same_or_shallower` | No | `true` to end at next same-level-or-higher heading |
-| `when_missing` | No | `skip`, `add`, or `error`. Default: `skip` |
+| `when_missing` | No | `skip`, `append`, or `prepend`. Default: `skip` |
 
 ### Companion Scripts (Optional)
 

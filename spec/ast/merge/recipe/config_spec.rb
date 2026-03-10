@@ -82,6 +82,16 @@ RSpec.describe Ast::Merge::Recipe::Config do
         described_class.new({"name" => "test"})
       }.to raise_error(ArgumentError, /template/)
     end
+
+    it "preserves append when_missing behavior" do
+      recipe = described_class.new(minimal_config.merge("when_missing" => "append"))
+      expect(recipe.when_missing).to eq(:append)
+    end
+
+    it "preserves prepend when_missing behavior" do
+      recipe = described_class.new(minimal_config.merge("when_missing" => "prepend"))
+      expect(recipe.when_missing).to eq(:prepend)
+    end
   end
 
   describe "#injection" do

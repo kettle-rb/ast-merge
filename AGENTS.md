@@ -7,7 +7,7 @@
 **Core Philosophy**: Write once, run anywhere. Define the merge protocol once in `ast-merge`; implement it in each `*-merge` gem for a specific file format.
 
 **Repository**: https://github.com/kettle-rb/ast-merge
-**Current Version**: 4.0.5
+**Current Version**: 4.0.6
 **Required Ruby**: >= 3.2.0 (currently developed against Ruby 4.0.1)
 
 ## 🏗️ Architecture: The Base Library Pattern
@@ -83,16 +83,16 @@ exe/
 └── ast-merge-diff                 # Executable for merge diffs
 ```
 
-## ⚠️ AI Agent Terminal Limitations
+## ⚠️ AI Agent Terminal Behavior
 
 ### Terminal Output Is Available, but Each Command Is Isolated
 
-**CRITICAL**: AI agents can reliably read terminal output when commands run in the background and the output is polled afterward. However, each terminal command should be treated as a fresh shell with no shared state.
+**CRITICAL**: AI agents can read normal terminal output directly. However, each terminal command should still be treated as a fresh shell with no shared state.
 
 **Use this pattern**:
-1. Run commands with background execution enabled.
-2. Fetch the output afterward.
-3. Make every command self-contained — do **not** rely on a previous `cd`, `export`, alias, or shell function.
+1. Run commands normally.
+2. Make every command self-contained — do **not** rely on a previous `cd`, `export`, alias, or shell function.
+3. Prefer `mise exec -C ... -- ...` so the project environment is loaded in the same invocation.
 
 ### Use `mise` for Project Environment
 

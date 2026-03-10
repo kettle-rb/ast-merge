@@ -26,6 +26,7 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+- Recipe documentation now correctly describes `when_missing` behavior as `skip`, `append`, or `prepend`
 - `MergeResultBase#to_s` now ensures a trailing newline for non-empty content,
   matching the convention used by `EmitterBase#to_s`, `Psych::Merge::MergeResult#to_yaml`,
   and `Bash::Merge::MergeResult#to_bash`

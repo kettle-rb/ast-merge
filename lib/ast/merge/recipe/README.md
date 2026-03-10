@@ -111,7 +111,7 @@ merge:
   add_missing: true         # Add template-only nodes
 
 # Behavior when anchor not found (optional)
-when_missing: skip          # skip, add, error
+when_missing: skip          # skip, append, prepend
 ```
 
 ## Text Matching Behavior
@@ -202,4 +202,3 @@ See `.merge-recipes/gem_family_section.yml` for a real-world example that update
 - [ast-merge README](../../../README.md) - Main documentation
 - [Detector namespace](../detector/README.md) - Region detection
 - [bin/ast-merge-recipe](../../../bin/ast-merge-recipe) - CLI implementation
-

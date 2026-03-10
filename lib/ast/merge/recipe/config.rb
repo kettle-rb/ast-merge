@@ -57,7 +57,7 @@ module Ast
         # @return [Hash] Injection point configuration
         attr_reader :injection
 
-        # @return [Symbol] Behavior when injection anchor not found (:skip, :add, :error)
+        # @return [Symbol] Behavior when injection anchor not found (:skip, :append, :prepend)
         attr_reader :when_missing
 
         # Alias for compatibility - recipe_path points to the same file as preset_path
