@@ -2,7 +2,7 @@
 
 # We run code coverage on the latest version of Ruby only.
 
-if ENV.fetch("KETTLE_RB_DEV", "false").casecmp?("true")
+unless ENV.fetch("KETTLE_RB_DEV", "false").casecmp("false").zero?
   gem "kettle-dev", path: "../../vendor/kettle-dev"
   gem "kettle-test", path: "../../vendor/kettle-test"
 else
@@ -13,7 +13,7 @@ end
 
 # Coverage
 platform :mri do
-  if ENV.fetch("KETTLE_RB_DEV", "false").casecmp?("true")
+  unless ENV.fetch("KETTLE_RB_DEV", "false").casecmp("false").zero?
     gem "kettle-soup-cover", path: "../../vendor/kettle-soup-cover"
   else
     gem "kettle-soup-cover", "~> 1.0", ">= 1.0.10", require: false

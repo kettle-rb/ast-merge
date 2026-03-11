@@ -7,7 +7,7 @@
 #
 
 # AST parsing for advanced templating
-if ENV.fetch("KETTLE_RB_DEV", "false").casecmp?("true")
+unless ENV.fetch("KETTLE_RB_DEV", "false").casecmp("false").zero?
   # Inner-merge dependencies for CodeBlockMerger
   # These are loaded on-demand when merging fenced code blocks
   gem "bash-merge", path: "../../vendor/bash-merge"                 # dotenv code blocks
