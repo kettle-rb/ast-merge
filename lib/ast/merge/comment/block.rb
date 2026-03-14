@@ -109,16 +109,42 @@ module Ast
         # Check if this block contains a freeze marker.
         #
         # @param freeze_token [String] The freeze token to look for
-        # @return [Boolean] true if any child contains a freeze marker
-        def freeze_marker?(freeze_token)
-          return false unless freeze_token
+        # @return [Symbol, nil] :freeze, :unfreeze, or nil
+        def freeze_action(freeze_token)
+          return unless freeze_token
 
           if raw_content
             pattern = /#{Regexp.escape(freeze_token)}:(freeze|unfreeze)/i
-            raw_content.match?(pattern)
-          else
-            children.any? { |c| c.respond_to?(:freeze_marker?) && c.freeze_marker?(freeze_token) }
+            match = raw_content.match(pattern)
+            return match[1]&.downcase&.to_sym if match
           end
+
+          children.each do |child|
+            next unless child.respond_to?(:freeze_action)
+
+            action = child.freeze_action(freeze_token)
+            return action if action
+          end
+
+          nil
+        end
+
+        # @param freeze_token [String] The freeze token to look for
+        # @return [Boolean] true if any child contains a freeze marker
+        def freeze_marker?(freeze_token)
+          !freeze_action(freeze_token).nil?
+        end
+
+        # @param freeze_token [String] The freeze token to look for
+        # @return [Boolean] true if this block contains a freeze directive
+        def freeze?(freeze_token)
+          freeze_action(freeze_token) == :freeze
+        end
+
+        # @param freeze_token [String] The freeze token to look for
+        # @return [Boolean] true if this block contains an unfreeze directive
+        def unfreeze?(freeze_token)
+          freeze_action(freeze_token) == :unfreeze
         end
 
         # @return [String] Human-readable representation

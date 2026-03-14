@@ -128,6 +128,30 @@ RSpec.describe Ast::Merge::Comment::Line do
     end
   end
 
+  describe "#freeze_action / #freeze? / #unfreeze?" do
+    it "classifies freeze directives explicitly" do
+      line = described_class.new(text: "# mytoken:freeze", line_number: 1)
+
+      expect(line.freeze_action("mytoken")).to eq(:freeze)
+      expect(line.freeze?("mytoken")).to be(true)
+      expect(line.unfreeze?("mytoken")).to be(false)
+    end
+
+    it "classifies unfreeze directives explicitly" do
+      line = described_class.new(text: "# mytoken:unfreeze", line_number: 1)
+
+      expect(line.freeze_action("mytoken")).to eq(:unfreeze)
+      expect(line.freeze?("mytoken")).to be(false)
+      expect(line.unfreeze?("mytoken")).to be(true)
+    end
+
+    it "returns nil when no freeze directive is present" do
+      line = described_class.new(text: "# regular comment", line_number: 1)
+
+      expect(line.freeze_action("mytoken")).to be_nil
+    end
+  end
+
   describe "#inspect" do
     it "returns human-readable representation" do
       line = described_class.new(text: "# test", line_number: 42, style: :hash_comment)

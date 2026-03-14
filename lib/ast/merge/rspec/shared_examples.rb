@@ -9,6 +9,9 @@
 # making them available for use in any *-merge gem's test suite.
 #
 # Available shared examples:
+# - "Ast::Merge::Comment::Attachment" - validates merge-facing comment attachments
+# - "Ast::Merge::Comment::Augmenter" - validates shared comment augmenter behavior
+# - "Ast::Merge::Comment::Region" - validates merge-facing comment regions
 # - "Ast::Merge::ConflictResolverBase" - validates conflict resolver base implementation
 # - "Ast::Merge::DebugLogger" - validates debug logging integration
 # - "Ast::Merge::FileAnalyzable" - validates file analysis mixin integration
@@ -17,6 +20,9 @@
 # - "Ast::Merge::MergerConfig" - validates merger configuration
 # - "a reproducible merge" - validates merge scenarios with fixtures and idempotency
 
+require_relative "shared_examples/comment_attachment"
+require_relative "shared_examples/comment_augmenter"
+require_relative "shared_examples/comment_region"
 require_relative "shared_examples/conflict_resolver_base"
 require_relative "shared_examples/debug_logger"
 require_relative "shared_examples/file_analyzable"

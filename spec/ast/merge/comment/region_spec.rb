@@ -74,4 +74,29 @@ RSpec.describe Ast::Merge::Comment::Region do
       expect(region.freeze_marker?("psych-merge")).to be(false)
     end
   end
+
+  describe "#freeze? / #unfreeze?" do
+    it "detects freeze directives separately from unfreeze directives" do
+      region = described_class.new(
+        kind: :leading,
+        nodes: [
+          Ast::Merge::Comment::Line.new(text: "# prism-merge:freeze", line_number: 10),
+          Ast::Merge::Comment::Line.new(text: "# docs", line_number: 11),
+        ],
+      )
+
+      expect(region.freeze?("prism-merge")).to be(true)
+      expect(region.unfreeze?("prism-merge")).to be(false)
+    end
+
+    it "detects unfreeze directives separately from freeze directives" do
+      region = described_class.new(
+        kind: :leading,
+        nodes: [Ast::Merge::Comment::Line.new(text: "# prism-merge:unfreeze", line_number: 10)],
+      )
+
+      expect(region.freeze?("prism-merge")).to be(false)
+      expect(region.unfreeze?("prism-merge")).to be(true)
+    end
+  end
 end

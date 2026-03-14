@@ -29,8 +29,24 @@ module Ast
           regions.empty?
         end
 
+        def leading_freeze?(freeze_token)
+          leading_region.respond_to?(:freeze?) && leading_region.freeze?(freeze_token)
+        end
+
+        def leading_unfreeze?(freeze_token)
+          leading_region.respond_to?(:unfreeze?) && leading_region.unfreeze?(freeze_token)
+        end
+
+        def freeze?(freeze_token)
+          regions.any? { |region| region.respond_to?(:freeze?) && region.freeze?(freeze_token) }
+        end
+
+        def unfreeze?(freeze_token)
+          regions.any? { |region| region.respond_to?(:unfreeze?) && region.unfreeze?(freeze_token) }
+        end
+
         def freeze_marker?(freeze_token)
-          regions.any? { |region| region.respond_to?(:freeze_marker?) && region.freeze_marker?(freeze_token) }
+          freeze?(freeze_token) || unfreeze?(freeze_token)
         end
 
         def inspect

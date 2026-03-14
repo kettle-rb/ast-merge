@@ -59,6 +59,35 @@ RSpec.describe Ast::Merge::Comment::Attachment do
     end
   end
 
+  describe "#leading_freeze? / #leading_unfreeze?" do
+    it "detects freeze directives in the leading region only" do
+      attachment = described_class.new(
+        owner: owner,
+        leading_region: Ast::Merge::Comment::Region.new(
+          kind: :leading,
+          nodes: [Ast::Merge::Comment::Line.new(text: "# psych-merge:freeze", line_number: 1)],
+        ),
+        inline_region: inline_region,
+      )
+
+      expect(attachment.leading_freeze?("psych-merge")).to be(true)
+      expect(attachment.leading_unfreeze?("psych-merge")).to be(false)
+    end
+
+    it "distinguishes unfreeze directives from freeze directives" do
+      attachment = described_class.new(
+        owner: owner,
+        leading_region: Ast::Merge::Comment::Region.new(
+          kind: :leading,
+          nodes: [Ast::Merge::Comment::Line.new(text: "# psych-merge:unfreeze", line_number: 1)],
+        ),
+      )
+
+      expect(attachment.leading_freeze?("psych-merge")).to be(false)
+      expect(attachment.leading_unfreeze?("psych-merge")).to be(true)
+    end
+  end
+
   describe "#inspect" do
     it "includes owner and region count for debugging" do
       attachment = described_class.new(owner: owner, leading_region: leading_region)

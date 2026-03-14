@@ -242,7 +242,6 @@ None currently - all questions resolved during planning.
 
 ## References
 
-- [exe/ast-merge-recipe](../exe/ast-merge-recipe) - Pattern for bundler/inline CLI
-- [partial_template_merger_base.rb](../lib/ast/merge/partial_template_merger_base.rb) - Base class pattern
-- [conflict_resolver_base.rb](../lib/ast/merge/conflict_resolver_base.rb) - Options pattern
-
+- [exe/ast-merge-recipe](./exe/ast-merge-recipe) - Pattern for bundler/inline CLI
+- [partial_template_merger_base.rb](./lib/ast/merge/partial_template_merger_base.rb) - Base class pattern
+- [conflict_resolver_base.rb](./lib/ast/merge/conflict_resolver_base.rb) - Options pattern

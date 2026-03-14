@@ -173,6 +173,19 @@ RSpec.describe Ast::Merge::Text::FileAnalysis do
       result = analysis.send(:freeze_marker?, "regular line", :freeze)
       expect(result).to be false
     end
+
+    it "detects explicit unfreeze directives through normalized comment parsing" do
+      analysis = described_class.new("test")
+
+      expect(analysis.send(:freeze_marker?, "# text-merge:unfreeze", :unfreeze)).to be(true)
+      expect(analysis.send(:freeze_marker?, "# text-merge:unfreeze", :freeze)).to be(false)
+    end
+
+    it "does not treat inline token text in non-comment lines as freeze directives" do
+      analysis = described_class.new("test")
+
+      expect(analysis.send(:freeze_marker?, "value text-merge:freeze", :freeze)).to be(false)
+    end
   end
 
   describe "orphan unfreeze marker" do

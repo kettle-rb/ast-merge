@@ -30,6 +30,7 @@ module Ast
       autoload :Augmenter, "ast/merge/comment/augmenter"
       autoload :Capability, "ast/merge/comment/capability"
       autoload :Region, "ast/merge/comment/region"
+      autoload :RegionMergePolicy, "ast/merge/comment/region_merge_policy"
       autoload :TrackedHashAdapter, "ast/merge/comment/tracked_hash_adapter"
       autoload :Style, "ast/merge/comment/style"
       autoload :Line, "ast/merge/comment/line"

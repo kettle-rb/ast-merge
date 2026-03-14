@@ -59,8 +59,8 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
     end
 
     context "with comments" do
-      let(:leading) { [{text: "# comment"}] }
-      let(:inline) { {text: "# inline"} }
+      let(:leading) { [{line: 1, text: "comment", raw: "# comment", full_line: true}] }
+      let(:inline) { {line: 2, text: "inline", raw: "# inline", full_line: false} }
 
       let(:wrapper_with_comments) do
         test_wrapper_class.new(
@@ -173,6 +173,70 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
         wrapper = test_wrapper_class.new(no_point_node, lines: source_lines)
         expect(wrapper.content).to eq("")
       end
+    end
+  end
+
+  describe "shared comment hooks" do
+    let(:wrapper_with_comments) do
+      test_wrapper_class.new(
+        test_node,
+        lines: source_lines,
+        source: source_string,
+        leading_comments: [{line: 1, text: "header", raw: "# header", full_line: true}],
+        inline_comment: {line: 2, text: "inline", raw: "# inline", full_line: false},
+      )
+    end
+
+    it "converts leading comment hashes into a shared region" do
+      region = wrapper_with_comments.leading_comment_region(repository: :ast_merge)
+
+      expect(region).to be_a(Ast::Merge::Comment::Region)
+      expect(region.kind).to eq(:leading)
+      expect(region.normalized_content).to eq("header")
+      expect(region.metadata[:repository]).to eq(:ast_merge)
+    end
+
+    it "converts inline comment hashes into a shared region" do
+      region = wrapper_with_comments.inline_comment_region(repository: :ast_merge)
+
+      expect(region).to be_a(Ast::Merge::Comment::Region)
+      expect(region.kind).to eq(:inline)
+      expect(region.normalized_content).to eq("inline")
+      expect(region.metadata[:repository]).to eq(:ast_merge)
+    end
+
+    it "builds a shared attachment from the wrapper comment hashes" do
+      attachment = wrapper_with_comments.comment_attachment(repository: :ast_merge)
+
+      expect(attachment).to be_a(Ast::Merge::Comment::Attachment)
+      expect(attachment.owner).to eq(wrapper_with_comments)
+      expect(attachment.leading_region&.normalized_content).to eq("header")
+      expect(attachment.inline_region&.normalized_content).to eq("inline")
+      expect(attachment.metadata[:repository]).to eq(:ast_merge)
+    end
+
+    it "detects freeze directives in leading normalized comments" do
+      wrapper = test_wrapper_class.new(
+        test_node,
+        lines: source_lines,
+        source: source_string,
+        leading_comments: [{line: 1, text: "ast-merge:freeze", raw: "# ast-merge:freeze", full_line: true}],
+      )
+
+      expect(wrapper.leading_comment_freeze?("ast-merge")).to be(true)
+      expect(wrapper.leading_comment_unfreeze?("ast-merge")).to be(false)
+    end
+
+    it "distinguishes leading unfreeze directives from freeze directives" do
+      wrapper = test_wrapper_class.new(
+        test_node,
+        lines: source_lines,
+        source: source_string,
+        leading_comments: [{line: 1, text: "ast-merge:unfreeze", raw: "# ast-merge:unfreeze", full_line: true}],
+      )
+
+      expect(wrapper.leading_comment_freeze?("ast-merge")).to be(false)
+      expect(wrapper.leading_comment_unfreeze?("ast-merge")).to be(true)
     end
   end
 

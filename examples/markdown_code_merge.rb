@@ -11,12 +11,37 @@
 # native code block nodes in the Markdown AST (accessed via fence_info and
 # string_content) are sufficient for inner-merging.
 
-$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
-$LOAD_PATH.unshift(File.expand_path("../vendor/tree_haver/lib", __dir__))
-$LOAD_PATH.unshift(File.expand_path("../vendor/markdown-merge/lib", __dir__))
+WORKSPACE_ROOT = File.expand_path("../..", __dir__)
+ENV["KETTLE_RB_DEV"] = WORKSPACE_ROOT unless ENV.key?("KETTLE_RB_DEV")
+
+require "bundler/inline"
+
+gemfile do
+  source "https://gem.coop"
+  require File.expand_path("nomono/lib/nomono/bundler", WORKSPACE_ROOT)
+
+  gem "benchmark"
+  gem "commonmarker", ">= 0.23"
+
+  eval_nomono_gems(
+    gems: %w[
+      ast-merge
+      tree_haver
+      markdown-merge
+      commonmarker-merge
+      prism-merge
+    ],
+    prefix: "KETTLE_RB",
+    path_env: "KETTLE_RB_DEV",
+    vendored_gems_env: "VENDORED_GEMS",
+    vendor_gem_dir_env: "VENDOR_GEM_DIR",
+    debug_env: "KETTLE_DEV_DEBUG"
+  )
+end
 
 require "tree_haver"
 require "markdown/merge"
+require "commonmarker/merge"
 
 puts "=" * 80
 puts "Markdown Code Block Inner-Merge Example"
@@ -75,7 +100,7 @@ TreeHaver.backend = :commonmarker
 puts "Backend: #{TreeHaver.backend_module}"
 puts
 
-if !TreeHaver::Backends::Commonmarker.available?
+if !Commonmarker::Merge::Backend.available?
   puts "✗ Commonmarker not available"
   exit 1
 end
@@ -130,7 +155,7 @@ begin
   puts "  and performed semantic merging at the method level."
 rescue LoadError => e
   puts "✗ prism-merge not available: #{e.message}"
-  puts "  Install with: cd vendor/prism-merge && bundle install"
+  puts "  Ensure KETTLE_RB_DEV points at the sibling workspace root."
 end
 
 puts

@@ -163,6 +163,65 @@ module Ast
         (@start_line..@end_line).map { |ln| @lines[ln - 1] }.compact.join("\n")
       end
 
+      # Convert the wrapper's raw leading comment hashes into a shared region.
+      #
+      # @param style [Comment::Style, Symbol, nil] line-comment style to use for conversion
+      # @param metadata [Hash] extra region metadata
+      # @return [Comment::Region, nil]
+      def leading_comment_region(style: nil, **metadata)
+        comments_to_region(:leading, leading_comments, style: style, **metadata)
+      end
+
+      # Convert the wrapper's raw inline comment hash into a shared region.
+      #
+      # @param style [Comment::Style, Symbol, nil] line-comment style to use for conversion
+      # @param metadata [Hash] extra region metadata
+      # @return [Comment::Region, nil]
+      def inline_comment_region(style: nil, **metadata)
+        comments_to_region(:inline, inline_comment ? [inline_comment] : [], style: style, **metadata)
+      end
+
+      # Build a shared attachment from the wrapper's raw comment hashes.
+      #
+      # This provides an incremental bridge from existing `leading_comments` /
+      # `inline_comment` flows to the normalized merge-facing comment model.
+      #
+      # @param style [Comment::Style, Symbol, nil] line-comment style to use for conversion
+      # @param metadata [Hash] extra attachment metadata
+      # @return [Comment::Attachment]
+      def comment_attachment(style: nil, **metadata)
+        Comment::Attachment.new(
+          owner: self,
+          leading_region: leading_comment_region(style: style, **metadata),
+          inline_region: inline_comment_region(style: style, **metadata),
+          metadata: {
+            source: :node_wrapper_base,
+          }.merge(metadata),
+        )
+      end
+
+      # Check whether the wrapper's leading comment region contains a freeze directive.
+      #
+      # @param freeze_token [String] Freeze token to detect
+      # @param style [Comment::Style, Symbol, nil] line-comment style to use for conversion
+      # @param metadata [Hash] extra region metadata
+      # @return [Boolean]
+      def leading_comment_freeze?(freeze_token, style: nil, **metadata)
+        region = leading_comment_region(style: style, **metadata)
+        region.respond_to?(:freeze?) && region.freeze?(freeze_token)
+      end
+
+      # Check whether the wrapper's leading comment region contains an unfreeze directive.
+      #
+      # @param freeze_token [String] Freeze token to detect
+      # @param style [Comment::Style, Symbol, nil] line-comment style to use for conversion
+      # @param metadata [Hash] extra region metadata
+      # @return [Boolean]
+      def leading_comment_unfreeze?(freeze_token, style: nil, **metadata)
+        region = leading_comment_region(style: style, **metadata)
+        region.respond_to?(:unfreeze?) && region.unfreeze?(freeze_token)
+      end
+
       # Check if this node is a container (has children for merging).
       # Override in subclasses to define container types.
       # @return [Boolean]
@@ -235,6 +294,19 @@ module Ast
       end
 
       private
+
+      def comments_to_region(kind, comments, style: nil, **metadata)
+        return if comments.empty?
+
+        Comment::TrackedHashAdapter.region(
+          kind: kind,
+          comments: comments,
+          style: style || :hash_comment,
+          metadata: {
+            source: :node_wrapper_base,
+          }.merge(metadata),
+        )
+      end
 
       # Extract line information from the node.
       # @param node [Object] The node to extract line info from

@@ -90,8 +90,24 @@ module Ast
           [:comment_region, kind, normalized_content[0..120]]
         end
 
+        def freeze_actions(freeze_token)
+          nodes.filter_map do |node|
+            next unless node.respond_to?(:freeze_action)
+
+            node.freeze_action(freeze_token)
+          end
+        end
+
+        def freeze?(freeze_token)
+          freeze_actions(freeze_token).include?(:freeze)
+        end
+
+        def unfreeze?(freeze_token)
+          freeze_actions(freeze_token).include?(:unfreeze)
+        end
+
         def freeze_marker?(freeze_token)
-          nodes.any? { |node| node.respond_to?(:freeze_marker?) && node.freeze_marker?(freeze_token) }
+          freeze?(freeze_token) || unfreeze?(freeze_token)
         end
 
         def inspect

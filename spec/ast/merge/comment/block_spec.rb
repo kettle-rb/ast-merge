@@ -198,6 +198,30 @@ RSpec.describe Ast::Merge::Comment::Block do
     end
   end
 
+  describe "#freeze_action / #freeze? / #unfreeze?" do
+    it "classifies child-based freeze directives" do
+      freeze_line = Ast::Merge::Comment::Line.new(text: "# mytoken:freeze", line_number: 1)
+      block = described_class.new(children: [freeze_line, second_line])
+
+      expect(block.freeze_action("mytoken")).to eq(:freeze)
+      expect(block.freeze?("mytoken")).to be(true)
+      expect(block.unfreeze?("mytoken")).to be(false)
+    end
+
+    it "classifies raw-content unfreeze directives" do
+      raw_block = described_class.new(
+        raw_content: "/* mytoken:unfreeze */",
+        start_line: 1,
+        end_line: 1,
+        style: :c_style_block,
+      )
+
+      expect(raw_block.freeze_action("mytoken")).to eq(:unfreeze)
+      expect(raw_block.freeze?("mytoken")).to be(false)
+      expect(raw_block.unfreeze?("mytoken")).to be(true)
+    end
+  end
+
   describe "#inspect" do
     context "with children" do
       it "returns readable representation" do

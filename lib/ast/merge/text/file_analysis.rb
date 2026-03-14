@@ -134,16 +134,15 @@ module Ast
         # @param type [Symbol] :freeze or :unfreeze
         # @return [Boolean] True if line is a marker
         def freeze_marker?(line, type)
-          pattern = FreezeNodeBase.pattern_for(:hash_comment, @freeze_token)
-          match = line.match(pattern)
-          return false unless match
+          style = Comment::Style.for(:hash_comment)
+          return false unless style.match_line?(line)
 
-          marker_type = match[1]&.downcase
+          marker_type = Comment::Line.new(text: line, line_number: 1, style: style).freeze_action(@freeze_token)
           case type
           when :freeze
-            marker_type == "freeze"
+            marker_type == :freeze
           when :unfreeze
-            marker_type == "unfreeze"
+            marker_type == :unfreeze
           else
             false
           end

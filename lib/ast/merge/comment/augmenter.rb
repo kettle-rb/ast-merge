@@ -19,12 +19,12 @@ module Ast
           new(**options)
         end
 
-        def initialize(lines: nil, source: nil, comments: [], owners: [], style: nil, **options)
+        def initialize(lines: nil, source: nil, comments: [], owners: [], style: nil, capability: nil, **options)
           @lines = normalize_lines(lines, source)
           @style = resolve_style(style)
           @owners = normalize_owners(owners)
           @tracked_comments = normalize_comments(comments)
-          @capability = Capability.source_augmented(
+          @capability = capability || Capability.source_augmented(
             source: :tracked_hash,
             style: style_name,
             owner_count: @owners.size,

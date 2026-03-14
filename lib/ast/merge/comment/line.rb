@@ -105,11 +105,30 @@ module Ast
         #
         # @param freeze_token [String] The freeze token to look for
         # @return [Boolean] true if this comment contains a freeze marker
-        def freeze_marker?(freeze_token)
-          return false unless freeze_token
+        def freeze_action(freeze_token)
+          return unless freeze_token
 
           pattern = /#{Regexp.escape(freeze_token)}:(freeze|unfreeze)/i
-          text.match?(pattern)
+          match = text.match(pattern)
+          match && match[1]&.downcase&.to_sym
+        end
+
+        # @param freeze_token [String] The freeze token to look for
+        # @return [Boolean] true if this comment contains a freeze directive
+        def freeze_marker?(freeze_token)
+          !freeze_action(freeze_token).nil?
+        end
+
+        # @param freeze_token [String] The freeze token to look for
+        # @return [Boolean] true if this comment contains a freeze directive
+        def freeze?(freeze_token)
+          freeze_action(freeze_token) == :freeze
+        end
+
+        # @param freeze_token [String] The freeze token to look for
+        # @return [Boolean] true if this comment contains an unfreeze directive
+        def unfreeze?(freeze_token)
+          freeze_action(freeze_token) == :unfreeze
         end
 
         # @return [String] Human-readable representation

@@ -8,14 +8,26 @@
 # - Gem family section detection
 # - Path configuration
 
+WORKSPACE_ROOT = File.expand_path("../../..", __dir__)
+ENV["KETTLE_RB_DEV"] = WORKSPACE_ROOT unless ENV.key?("KETTLE_RB_DEV")
+
 require "bundler/inline"
 
 gemfile do
   source "https://gem.coop"
-  gem "ast-merge", path: File.expand_path("../..", __dir__)
-  gem "tree_haver", path: File.expand_path("../../vendor/tree_haver", __dir__)
-  gem "markdown-merge", path: File.expand_path("../../vendor/markdown-merge", __dir__)
-  gem "markly-merge", path: File.expand_path("../../vendor/markly-merge", __dir__)
+  require File.expand_path("nomono/lib/nomono/bundler", WORKSPACE_ROOT)
+
+  gem "benchmark"
+  gem "markly", "~> 0.15", ">= 0.15.2"
+
+  eval_nomono_gems(
+    gems: %w[ast-merge tree_haver markdown-merge markly-merge],
+    prefix: "KETTLE_RB",
+    path_env: "KETTLE_RB_DEV",
+    vendored_gems_env: "VENDORED_GEMS",
+    vendor_gem_dir_env: "VENDOR_GEM_DIR",
+    debug_env: "KETTLE_DEV_DEBUG"
+  )
 end
 
 require "tree_haver"

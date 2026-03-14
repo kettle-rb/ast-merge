@@ -98,6 +98,21 @@ exe/
 
 **CRITICAL**: The canonical project environment now lives in `mise.toml`, with local overrides in `.env.local` loaded via `dotenvy`.
 
+⚠️ **Watch for trust prompts**: After editing `mise.toml` or `.env.local`, `mise` may require trust to be refreshed before commands can load the project environment. That interactive trust screen can masquerade as missing terminal output, so commands may appear hung or silent until you handle it.
+
+**Recovery rule**: If a `mise exec` command in this repo goes silent, appears hung, or terminal polling stops returning useful output, assume `mise trust` is needed first and recover with:
+
+```bash
+mise trust -C /home/pboling/src/kettle-rb/ast-merge
+mise exec -C /home/pboling/src/kettle-rb/ast-merge -- bundle exec rspec
+```
+
+Do this before spending time on unrelated debugging; in this workspace, silent `mise` commands are usually a trust problem.
+
+```bash
+mise trust -C /home/pboling/src/kettle-rb/ast-merge
+```
+
 ✅ **CORRECT** — Run self-contained commands with `mise exec`:
 ```bash
 mise exec -C /home/pboling/src/kettle-rb/ast-merge -- bundle exec rspec
@@ -146,6 +161,14 @@ mise exec -C /home/pboling/src/kettle-rb/ast-merge -- bin/kettle-soup-cover -d
 ```
 
 This runs tests with coverage instrumentation and generates reports in the `coverage/` directory.
+
+**Preferred inspection workflow**: use `bin/kettle-soup-cover -d` to parse and summarize coverage output instead of ad hoc JSON/Python parsing or HTML report review.
+
+For sibling repos, run coverage from that repo's own root, for example:
+
+```bash
+mise exec -C /home/pboling/src/kettle-rb/prism-merge -- bash -lc 'bin/rake coverage && bin/kettle-soup-cover -d'
+```
 
 **Key ENV variables** (set in `mise.toml`, with local overrides in `.env.local`):
 - `K_SOUP_COV_DO=true` – Enable coverage (default in `mise.toml`)

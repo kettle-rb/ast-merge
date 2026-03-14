@@ -116,6 +116,112 @@ module Ast
         line&.strip
       end
 
+      # Describe the level of comment support available from this analysis.
+      #
+      # Analyses with native or augmented comment support should override this.
+      # The default implementation advertises no comment support while still
+      # providing the shared hook surface used by merge gems.
+      #
+      # @return [Comment::Capability]
+      def comment_capability
+        Comment::Capability.none(source: :file_analyzable_default)
+      end
+
+      # Return all shared comment nodes known to this analysis.
+      #
+      # @return [Array<Ast::Merge::Comment::Line>]
+      def comment_nodes
+        []
+      end
+
+      # Return the shared comment node at a specific line.
+      #
+      # @param _line_num [Integer] 1-based line number
+      # @return [Ast::Merge::Comment::Line, nil]
+      def comment_node_at(_line_num)
+        nil
+      end
+
+      # Return a shared comment region spanning a requested line range.
+      #
+      # Analyses with comment support should override this to return attached or
+      # tracked comment content. The default implementation returns an empty
+      # region of the requested kind so callers can rely on the hook surface.
+      #
+      # @param range [Range] 1-based line range
+      # @param kind [Symbol] region ownership kind
+      # @param options [Hash] region metadata
+      # @return [Comment::Region]
+      def comment_region_for_range(range, kind:, **options)
+        Comment::Region.new(
+          kind: kind,
+          nodes: [],
+          metadata: {
+            source: :file_analyzable_default,
+            range: range,
+          }.merge(options),
+        )
+      end
+
+      # Return a passive shared attachment for a structural owner.
+      #
+      # Analyses with comment ownership data should override this to return
+      # meaningful leading/inline/trailing regions. The default implementation
+      # returns an empty attachment so callers can migrate incrementally.
+      #
+      # @param owner [Object] structural owner
+      # @param options [Hash] attachment metadata
+      # @return [Comment::Attachment]
+      def comment_attachment_for(owner, **options)
+        Comment::Attachment.new(
+          owner: owner,
+          metadata: {
+            source: :file_analyzable_default,
+          }.merge(options),
+        )
+      end
+
+      # Build a passive shared comment augmenter for the current analysis.
+      #
+      # Format-specific analyses should override this when they can provide
+      # native or tracked comment data. The default implementation preserves the
+      # shared augmenter interface while reporting the analysis capability.
+      #
+      # @param owners [Array<#start_line,#end_line>, nil] owners for attachment inference
+      # @param options [Hash] augmenter metadata
+      # @return [Comment::Augmenter]
+      def comment_augmenter(owners: nil, **options)
+        Comment::Augmenter.new(
+          lines: lines,
+          comments: [],
+          owners: owners || comment_augmenter_default_owners,
+          capability: comment_capability,
+          **options,
+        )
+      end
+
+      # Check whether an owner's leading normalized comment attachment contains a freeze directive.
+      #
+      # @param owner [Object] structural owner
+      # @param freeze_token [String, nil] token to detect (defaults to this analysis token)
+      # @param options [Hash] attachment metadata
+      # @return [Boolean]
+      def owner_leading_comment_freeze?(owner, freeze_token: self.freeze_token, **options)
+        attachment = comment_attachment_for(owner, **options)
+        attachment.respond_to?(:leading_freeze?) && attachment.leading_freeze?(freeze_token)
+      end
+
+      # Check whether an owner's leading normalized comment attachment contains an unfreeze directive.
+      #
+      # @param owner [Object] structural owner
+      # @param freeze_token [String, nil] token to detect (defaults to this analysis token)
+      # @param options [Hash] attachment metadata
+      # @return [Boolean]
+      def owner_leading_comment_unfreeze?(owner, freeze_token: self.freeze_token, **options)
+        attachment = comment_attachment_for(owner, **options)
+        attachment.respond_to?(:leading_unfreeze?) && attachment.leading_unfreeze?(freeze_token)
+      end
+
       # Generate signature for a node.
       #
       # Signatures are used to match nodes between template and destination files.
@@ -305,6 +411,12 @@ module Ast
       # @abstract
       def compute_node_signature(node)
         raise NotImplementedError, "#{self.class} must implement #compute_node_signature"
+      end
+
+      private
+
+      def comment_augmenter_default_owners
+        statements.select { |statement| statement.respond_to?(:start_line) && statement.respond_to?(:end_line) }
       end
     end
   end

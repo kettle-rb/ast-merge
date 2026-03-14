@@ -116,7 +116,6 @@ Controls which version wins when matched nodes have different content:
 
 ## Related
 
-- [markdown-merge](../../vendor/markdown-merge/README.md) - Core merge library
-- [markly-merge](../../vendor/markly-merge/README.md) - Markly-specific wrapper
+- [markdown-merge](../../../markdown-merge/README.md) - Core merge library
+- [markly-merge](../../../markly-merge/README.md) - Markly-specific wrapper
 - [GEM_FAMILY_SECTION.md](../../GEM_FAMILY_SECTION.md) - Canonical template
-

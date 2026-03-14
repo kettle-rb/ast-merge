@@ -52,7 +52,7 @@ __END__
 #
 # targets:
 #   - "README.md"
-#   - "vendor/*/README.md"
+#   - "../*/README.md"
 #
 # section:
 #   # Start is auto-inferred from template's first node (H3 heading)
@@ -64,5 +64,3 @@ __END__
 #   add_missing: true
 #
 # when_missing: skip
-
-
