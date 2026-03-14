@@ -18,6 +18,7 @@
 # - "Ast::Merge::FreezeNodeBase" - validates freeze node base implementation
 # - "Ast::Merge::MergeResultBase" - validates merge result implementation
 # - "Ast::Merge::MergerConfig" - validates merger configuration
+# - "Ast::Merge::RemovalModeCompliance" - validates generic remove_template_missing_nodes behavior
 # - "a reproducible merge" - validates merge scenarios with fixtures and idempotency
 
 require_relative "shared_examples/comment_attachment"
@@ -29,4 +30,5 @@ require_relative "shared_examples/file_analyzable"
 require_relative "shared_examples/freeze_node_base"
 require_relative "shared_examples/merge_result_base"
 require_relative "shared_examples/merger_config"
+require_relative "shared_examples/removal_mode_compliance"
 require_relative "shared_examples/reproducible_merge"

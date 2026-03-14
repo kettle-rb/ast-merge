@@ -21,8 +21,14 @@ Please file a bug if you notice a violation of semantic versioning.
 ### Added
 
 - Primary documentation of merge presets, configs, and recipes
+- Added `Ast::Merge::Comment::Capability`, `Region`, `Attachment`, `Augmenter`, and `RegionMergePolicy` as the shared merge-facing comment model for the `*-merge` family
+- Added shared adapter helpers and RSpec coverage for normalized comment regions, attachments, augmenters, and the first removal-mode compliance example for downstream merge gems
 
 ### Changed
+
+- Normalized `FileAnalyzable`, `NodeWrapperBase`, and `EmitterBase` comment hooks and emitters (`comment_attachment`, `leading_comment_region`, `inline_comment_region`, `emit_comment_region`, `emit_comment_attachment`) so format gems can consume one shared comment surface
+- Normalized freeze detection and `Ast::Merge::Text` sub-merge eligibility around shared comment lines, blocks, regions, and attachments instead of format-specific ad hoc plumbing
+- Clarified shared removal-mode normalization with a documented compliance helper for top-level vs recursive expectations, separator blank lines, and explicit N/A handling where a format does not support inline or recursive removal parity
 
 ### Fixed
 
