@@ -1,44 +1,31 @@
 # frozen_string_literal: true
 
-# To retain during kettle-dev templating:
-#     kettle-dev:freeze
-#     # ... your code
-#     kettle-dev:unfreeze
-#
+gem "toml"
+gem "parslet"
+gem "prism", "~> 1.6"
+gem "unparser", "~> 0.8", ">= 0.8.1"
 
-# AST parsing for advanced templating
-unless ENV.fetch("KETTLE_RB_DEV", "false").casecmp("false").zero?
-  # Inner-merge dependencies for CodeBlockMerger
-  # These are loaded on-demand when merging fenced code blocks
-  gem "bash-merge", path: "../../vendor/bash-merge"                 # dotenv code blocks
-  gem "dotenv-merge", path: "../../vendor/dotenv-merge"             # dotenv code blocks
-  gem "json-merge", path: "../../vendor/json-merge"                 # JSON code blocks
-  gem "jsonc-merge", path: "../../vendor/jsonc-merge"               # JSONC code blocks
-  gem "kettle-jem", path: "../../vendor/kettle-jem"                 # gem templating engine
-  gem "markdown-merge", path: "../../vendor/markdown-merge"         # generic markdown tools
-  gem "prism-merge", path: "../../vendor/prism-merge"               # Ruby code blocks
-  gem "psych-merge", path: "../../vendor/psych-merge"               # YAML code blocks
-  gem "rbs-merge", path: "../../vendor/rbs-merge"                   # RBS code blocks
-  gem "toml-merge", path: "../../vendor/toml-merge"                 # TOML code blocks
-
-  platform :mri do
-    gem "commonmarker-merge", path: "../../vendor/commonmarker-merge" # commonmarker markdown merging
-    gem "markly-merge", path: "../../vendor/markly-merge"             # markly markdown merging
+# All *-merge gems are runtime dependencies declared in the gemspec.
+# They are listed here only when we need to pin a specific version
+# that differs from the gemspec constraint, e.g. for pre-release testing.
+platform :mri do
+  # AST parsing for advanced templating.
+  # Set KETTLE_RB_DEV=true (or path) for local development with path-based dependencies.
+  # When false (default / CI), gemspec runtime dependencies are used (no extras needed here).
+  if ENV.fetch("KETTLE_RB_DEV", "false").casecmp("false").zero?
+    # AST parsing for advanced templating (remote/released)
+    gem "kettle-jem"      # Kettle-rb's Merge Recipes
+  else
+    eval_gemfile "templating_local.gemfile"
   end
-else
-  # Not all of these are released yet, but eventually we will add integration specs to ensure future changes work downstream.
-  # gem "bash-merge"          # dotenv code blocks
-  # gem "dotenv-merge"        # dotenv code blocks
-  # gem "json-merge"          # JSON code blocks
-  # gem "jsonc-merge"         # JSONC code blocks
-  # gem "markdown-merge"      # generic markdown tools
-  # gem "prism-merge"         # Ruby code blocks
-  # gem "psych-merge"         # YAML code blocks
-  # gem "rbs-merge"           # RBS code blocks
-  # gem "toml-merge"          # TOML code blocks
 
-  # platform :mri do
-  #   gem "commonmarker-merge"  # commonmarker markdown merging
-  #   gem "markly-merge"        # markly markdown merging
-  # end
+  # MRI only Parsers:
+  # kettle-jem currently uses markly instead of commonmarker, but these can easily be swapped.
+  # gem "commonmarker"
+  gem "markly", "~> 0.15", ">= 0.15.2"
+  gem "rbs", ">= 3.10"   # ruby >= 3.1.0
+
+  # MRI Backend
+  gem "ruby_tree_sitter", "~> 2.1",
+      require: false # DO NOT LOAD, because conflicts with FFI
 end

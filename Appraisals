@@ -69,9 +69,6 @@ end
 appraise "dep-heads" do
   eval_gemfile "modular/rspec.gemfile"
   eval_gemfile "modular/runtime_heads.gemfile"
-
-  # runtime dependencies that we can't add to gemspec due to platform differences
-  eval_gemfile "modular/tree_sitter.gemfile"
 end
 
 appraise "ruby-3-2" do
