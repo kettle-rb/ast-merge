@@ -1,146 +1,47 @@
 # Ast::Merge::Text
 
-Plain text-based AST parsing and merging for any text file format.
+`Ast::Merge::Text` is the concrete, line-oriented merger that ships with `ast-merge`.
+It serves two purposes:
 
-## Overview
+- a working reference implementation for new `*-merge` gems
+- a lightweight merger for plain-text content
 
-The `Text` namespace provides a simple line/word-based AST that can be used with any text file. This serves as:
+## Core types
 
-1. **Reference Implementation** - A complete example of how to build a `*-merge` gem
-2. **Testing Tool** - For validating merge behavior with simple text
-3. **Fallback Parser** - When no specialized parser is available
+### `LineNode`
 
-## Components
+Top-level statements are `LineNode` instances. A line node carries its source line number, raw content, normalized content, and child `WordNode` instances.
 
-### LineNode
+### `WordNode`
 
-Represents a single line of text.
+`WordNode` is the leaf node used by the text AST. It gives the text implementation nested structure without requiring a format-specific parser.
+
+### `FileAnalysis`
+
+`Ast::Merge::Text::FileAnalysis` includes `Ast::Merge::FileAnalyzable` and turns source text into mergeable statements.
+
+It also detects freeze blocks using the `text-merge` token by default.
 
 ```ruby
-line = Ast::Merge::Text::LineNode.new(
-  content: "Hello, world!",
-  line_number: 1,
-)
-
-line.type       # => :line
-line.text       # => "Hello, world!"
-line.start_line # => 1
-line.children   # => [WordNode, WordNode]
+analysis = Ast::Merge::Text::FileAnalysis.new("one\ntwo\n")
+analysis.statements
+analysis.valid?
 ```
 
-### WordNode
+## Merge flow
 
-Represents a single word within a line.
+### `SmartMerger`
 
-```ruby
-word = Ast::Merge::Text::WordNode.new(
-  content: "Hello",
-  line_number: 1,
-  column: 0,
-)
+`Ast::Merge::Text::SmartMerger` subclasses `SmartMergerBase` and delegates the batch merge to `Text::ConflictResolver`.
 
-word.type  # => :word
-word.text  # => "Hello"
-```
+Important return values:
 
-### FileAnalysis
-
-Parses text content into an AST of lines and words.
+- `merge` returns the merged text as a `String`
+- `merge_result` returns the `Ast::Merge::Text::MergeResult` object
 
 ```ruby
-content = "Line one\nLine two\nLine three"
-analysis = Ast::Merge::Text::FileAnalysis.new(content)
-
-analysis.statements      # => [LineNode, LineNode, LineNode]
-analysis.line_count      # => 3
-analysis.valid?          # => true
-analysis.content         # => original content
-```
-
-### SmartMerger
-
-Merges two text documents intelligently.
-
-```ruby
-template = "Line one\nLine two\nLine three"
-dest = "Line one modified\nLine two\nCustom line"
-
-merger = Ast::Merge::Text::SmartMerger.new(
-  template,
-  dest,
-  preference: :destination,
-  add_template_only_nodes: true,
-)
-
-result = merger.merge
-# => "Line one modified\nLine two\nLine three\nCustom line"
-```
-
-### ConflictResolver
-
-Resolves conflicts between matching lines.
-
-```ruby
-resolver = Ast::Merge::Text::ConflictResolver.new(
-  preference: :template,
-)
-
-resolution = resolver.resolve(
-  template_node,
-  dest_node,
-  template_index: 0,
-  dest_index: 0,
-)
-# => { decision: :template, source: :template, reason: "..." }
-```
-
-### MergeResult
-
-Contains the result of a text merge operation.
-
-```ruby
-result = merger.merge_result
-
-result.content       # => merged text
-result.stats         # => { nodes_added: 1, nodes_removed: 0, ... }
-result.changed?      # => true
-result.frozen_blocks # => [] or freeze block info
-```
-
-### Section & SectionSplitter
-
-Split text into logical sections for section-aware merging.
-
-```ruby
-splitter = Ast::Merge::Text::SectionSplitter.new(
-  section_pattern: /^##\s+/,  # Split on markdown H2 headings
-)
-
-sections = splitter.split(content)
-# => [Section, Section, ...]
-```
-
-## Usage Example
-
-```ruby
-require "ast/merge/text"
-
-template = <<~TEXT
-  # Configuration File
-
-  setting1 = value1
-  setting2 = value2
-  setting3 = value3
-TEXT
-
-destination = <<~TEXT
-  # Configuration File
-
-  setting1 = custom_value
-  setting2 = value2
-  # Custom comment
-  custom_setting = my_value
-TEXT
+template = "alpha\nbeta\ngamma\n"
+destination = "alpha\ncustom\nbeta\n"
 
 merger = Ast::Merge::Text::SmartMerger.new(
   template,
@@ -149,25 +50,78 @@ merger = Ast::Merge::Text::SmartMerger.new(
   add_template_only_nodes: true,
 )
 
+merged_text = merger.merge
 result = merger.merge_result
-puts result.content
-# Merges intelligently, keeping custom values and adding missing settings
 ```
 
-## Freeze Markers
+### `ConflictResolver`
 
-Text files support freeze markers to prevent sections from being merged:
+`Ast::Merge::Text::ConflictResolver` uses batch resolution with destination-order preservation:
 
-```
-# text-merge:freeze Don't touch this section
-Frozen content here
-Will not be changed by merge
+- matching lines are resolved by preference
+- destination-only lines are preserved
+- template-only lines are appended when `add_template_only_nodes: true`
+- destination freeze blocks are always preserved
+
+### `MergeResult`
+
+`Ast::Merge::Text::MergeResult` extends `MergeResultBase` with line-oriented helpers:
+
+- `add_line`
+- `add_lines`
+- `record_decision`
+
+## Freeze blocks
+
+The text merger recognizes hash-comment freeze markers:
+
+```text
+# text-merge:freeze keep this block
+custom content
 # text-merge:unfreeze
 ```
 
-## See Also
+You can supply a different token through `freeze_token:`.
 
-- [ast-merge README](../../../README.md) - Main documentation
-- [Comment namespace](../comment/README.md) - Comment parsing
-- [SmartMergerBase](../smart_merger_base.rb) - Base merger class
+## Section splitting
 
+The text namespace also includes utilities for splitting text into named sections.
+
+### `Section`
+
+`Ast::Merge::Text::Section` is a small value object with:
+
+- `name`
+- `header`
+- `body`
+- `start_line`
+- `end_line`
+- `metadata`
+
+### `SectionSplitter`
+
+`Ast::Merge::Text::SectionSplitter` is an abstract base for section-based text merging.
+
+### `LineSectionSplitter`
+
+`Ast::Merge::Text::LineSectionSplitter` is the concrete splitter included in this gem.
+It splits text using a line regex and capture group.
+
+```ruby
+splitter = Ast::Merge::Text::LineSectionSplitter.new(
+  pattern: /^##\s+(.+)$/,
+)
+
+sections = splitter.split(markdown_text)
+merged = splitter.merge(template_text, destination_text, add_template_only: true)
+```
+
+## When to reach for this namespace
+
+Use `Ast::Merge::Text` when you want:
+
+- a small end-to-end example of an `ast-merge` implementation
+- a merger for line-oriented formats
+- section splitting driven by regular expressions rather than a full parser
+
+For structured formats such as Ruby, YAML, JSON, or Markdown, the format-specific `*-merge` gem remains the better fit.

@@ -195,18 +195,16 @@ The `*-merge` gem family is built on a two-layer architecture:
 
 Ast::Merge builds on tree\_haver to provide:
 
-- **Base Classes**: `FreezeNode`, `MergeResult` base classes with unified constructors
-- **Shared Modules**: `FileAnalysisBase`, `FileAnalyzable`, `MergerConfig`, `DebugLogger`
-- **Freeze Block Support**: Configurable marker patterns for multiple comment syntaxes (preserve sections during merge)
-- **Node Typing System**: `NodeTyping` for canonical node type identification across different parsers
-- **Conflict Resolution**: `ConflictResolverBase` with pluggable strategies
-- **Error Classes**: `ParseError`, `TemplateParseError`, `DestinationParseError`
-- **Region Detection**: `RegionDetectorBase`, `FencedCodeBlockDetector` for text-based analysis
+- **Base Classes**: `SmartMergerBase`, `ConflictResolverBase`, `MergeResultBase`, `FreezeNodeBase`, `PartialTemplateMergerBase`, and `DiffMapperBase`
+- **Shared Modules and helpers**: `FileAnalyzable`, `MergerConfig`, `DebugLogger`, `NodeTyping`, `SectionTyping`, and `TrailingGroups`
+- **Freeze Block Support**: Configurable marker patterns for multiple comment syntaxes
+- **Region Detection**: `Ast::Merge::Detector::Base`, `FencedCodeBlock`, `YamlFrontmatter`, `TomlFrontmatter`, and `Detector::Mergeable`
+- **Error Classes**: `ParseError`, `TemplateParseError`, `DestinationParseError`, and `PlaceholderCollisionError`
 - **RSpec Shared Examples**: Test helpers for implementing new merge gems
 
 ### Building a New `*-merge` Gem
 
-`ast-merge` is the authoring foundation for the `*-merge` family, but the full implementation guide now lives in one place:
+`ast-merge` is the authoring foundation for the `*-merge` family, and the implementation guide is organized across these references:
 
 - **Canonical guide**: [`BUILD_A_MERGE_GEM.md`](BUILD_A_MERGE_GEM.md)
 - **Per-gem architecture reference**: [`MERGE_APPROACH.md`](MERGE_APPROACH.md)
@@ -229,9 +227,13 @@ If you are creating a new merge gem, the usual path is:
 | `SmartMergerBase`      | Main merge orchestration    | `analysis_class`, `perform_merge`      |
 | `ConflictResolverBase` | Resolve node conflicts      | `resolve_batch` or `resolve_node_pair` |
 | `MergeResultBase`      | Track merge results         | `to_s`, format-specific output         |
+| `PartialTemplateMergerBase` | Section-scoped merges | `create_analysis`, `create_smart_merger`, `find_section_end`, `node_to_text` |
+| `DiffMapperBase`       | Unified diff parsing + AST path mapping foundation | `create_analysis`, `map_hunk_to_paths`, `build_path_for_node` |
 | `MatchRefinerBase`     | Fuzzy node matching         | `similarity`                           |
 | `ContentMatchRefiner`  | Text content fuzzy matching | Ready to use                           |
 | `FileAnalyzable`       | File parsing/analysis       | `compute_node_signature`               |
+
+`DiffMapperBase` and `PartialTemplateMergerBase` are opt-in authoring primitives. Format-specific gems provide the path-mapping and section-rendering logic that makes those workflows concrete for a particular syntax.
 
 ### ContentMatchRefiner
 
@@ -299,9 +301,9 @@ The `Ast::Merge` module is organized into several namespaces, each with detailed
 **Key Classes by Namespace:**
 
 - **Detector**: `Region`, `Base`, `Mergeable`, `FencedCodeBlock`, `YamlFrontmatter`, `TomlFrontmatter`
-- **Recipe**: `Config`, `Runner`, `ScriptLoader`
+- **Recipe**: `Preset`, `Config`, `Runner`, `ScriptLoader`
 - **Comment**: `Line`, `Block`, `Empty`, `Parser`, `Style`
-- **Text**: `SmartMerger`, `FileAnalysis`, `LineNode`, `WordNode`, `Section`
+- **Text**: `SmartMerger`, `FileAnalysis`, `LineNode`, `WordNode`, `Section`, `LineSectionSplitter`
 - **RSpec**: Shared examples and dependency tags for testing `*-merge` implementations
 
 ## 💡 Info you can shake a stick at
@@ -674,7 +676,9 @@ ast-merge includes a YAML-based recipe system for defining portable, distributab
 The recipe system provides two levels of configuration:
 
 - **`Ast::Merge::Recipe::Preset`** — Merge configuration only (preference, signature generator, node typing, freeze token). Use when you have your own template/destination handling and just need the merge settings.
-- **`Ast::Merge::Recipe::Config`** — Full recipe extending Preset with template file, target glob patterns, injection point configuration, and when_missing behavior. Use for standalone merge operations that know their own inputs and outputs.
+- **`Ast::Merge::Recipe::Config`** — Full recipe extending Preset with template file, target glob patterns, injection point configuration, and when_missing behavior.
+
+`Recipe::Preset` is parser-agnostic and can be passed to any format-specific `SmartMerger`. `Recipe::Runner` is narrower: in the stock `ast-merge` gem it drives parser-specific partial-template mergers for Markdown via `:markly` and `:commonmarker`.
 
 ### Minimal Recipe (Preset)
 
@@ -700,7 +704,7 @@ result = merger.merge
 
 ### Full Recipe (Config)
 
-A full recipe adds template, targets, and injection point configuration:
+A full recipe adds template, targets, and injection point configuration. In `ast-merge`, the built-in runner uses this flow for Markdown section updates:
 
 ```yaml
 name: gem_family_section
@@ -743,6 +747,8 @@ puts runner.summary
 # => { total: 10, updated: 5, unchanged: 3, skipped: 2 }
 ```
 
+For non-Markdown formats, the durable interface in this gem is `Preset#to_h`; callers pass that option hash to the format-specific merger they are using.
+
 Or via CLI:
 
 ```bash
@@ -757,14 +763,14 @@ bin/ast-merge-recipe path/to/gem_family_section.yml --dry-run --parser=markly
 |-------|----------|-------------|
 | `name` | Yes | Recipe identifier |
 | `description` | No | Human-readable description |
-| `parser` | No | Parser to use (`prism`, `markly`, `psych`, etc.). Default: `prism` |
+| `parser` | No | Parser identifier stored on the preset/config. `Preset` defaults to `prism`; `Recipe::Runner` takes its parser separately and currently supports `markly` and `commonmarker`. |
 | `merge.preference` | No | `:template` or `:destination`. Default: `:template` |
 | `merge.add_missing` | No | `true`, `false`, or path to a Ruby script returning a callable filter. Default: `true` |
 | `merge.signature_generator` | No | Path to companion Ruby script (relative to recipe folder) |
 | `merge.node_typing` | No | Hash mapping node class names to companion Ruby script paths |
 | `merge.match_refiner` | No | Path to companion Ruby script for match refinement |
-| `merge.normalize_whitespace` | No | `true` to collapse excessive blank lines |
-| `merge.rehydrate_link_references` | No | `true` to convert inline links to reference style |
+| `merge.normalize_whitespace` | No | `true` to collapse excessive blank lines in markdown recipe flows |
+| `merge.rehydrate_link_references` | No | `true` to convert inline links to reference style in markdown recipe flows |
 | `freeze_token` | No | Token for freeze block preservation (e.g., `"my-project"`) |
 
 #### Config-Only Fields (full recipes)
@@ -827,15 +833,8 @@ When matching nodes by text content (e.g., heading anchors), the `.text` method 
 
 Write patterns that match the plain text:
 
-```yaml
-# ❌ WRONG - backticks won't appear in .text
-anchor:
-  text: "/`\\*-merge` Gem Family/"
-
-# ✅ CORRECT - match plain text
-anchor:
-  text: "/\\*-merge Gem Family/"
-```
+- Wrong: ``text: "/`\*-merge` Gem Family/"``
+- Correct: ``text: "/\\*-merge Gem Family/"``
 
 ### Distributing Recipes
 

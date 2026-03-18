@@ -1,136 +1,110 @@
 # Ast::Merge::Comment
 
-Language-agnostic comment parsing and representation for AST merge operations.
+`Ast::Merge::Comment` provides a generic comment model that merge implementations can reuse across languages.
 
-## Overview
+## Comment styles
 
-The `Comment` namespace provides generic, language-agnostic comment representation that supports multiple comment syntax styles. This is used throughout the `*-merge` gem family to handle comment nodes consistently.
+Built-in styles are registered in `Ast::Merge::Comment::Style`:
 
-## Supported Styles
+- `:hash_comment`
+- `:html_comment`
+- `:c_style_line`
+- `:c_style_block`
+- `:semicolon_comment`
+- `:double_dash_comment`
 
-| Style | Syntax | Languages |
-|-------|--------|-----------|
-| `:hash_comment` | `# comment` | Ruby, Python, YAML, Shell, Perl |
-| `:html_comment` | `<!-- comment -->` | HTML, XML, Markdown |
-| `:c_style_line` | `// comment` | C, JavaScript, Go, Rust, Java |
-| `:c_style_block` | `/* comment */` | C, JavaScript, CSS, Java |
-| `:semicolon_comment` | `; comment` | Lisp, Clojure, Assembly, INI |
-| `:double_dash_comment` | `-- comment` | SQL, Haskell, Lua |
-
-## Components
-
-### Style
-
-Defines comment syntax patterns and delimiters.
+Lookup uses `Style.for`:
 
 ```ruby
-# Get style configuration
-style = Ast::Merge::Comment::Style.get(:hash_comment)
-style.line_prefix   # => "#"
-style.block_start   # => nil (no block comments)
-
-style = Ast::Merge::Comment::Style.get(:c_style_block)
-style.block_start   # => "/*"
-style.block_end     # => "*/"
+style = Ast::Merge::Comment::Style.for(:hash_comment)
+style.line_start # => "#"
 ```
 
-### Line
+You can inspect available styles with `Style.available_styles` and register custom ones with `Style.register(...)`.
 
-Represents a single-line comment.
+## Core node types
+
+### `Line`
+
+`Ast::Merge::Comment::Line` represents a single comment line.
 
 ```ruby
-comment = Ast::Merge::Comment::Line.new(
-  content: "frozen_string_literal: true",
+line = Ast::Merge::Comment::Line.new(
+  text: "# frozen_string_literal: true",
   line_number: 1,
   style: :hash_comment,
 )
 
-comment.to_source  # => "# frozen_string_literal: true"
-comment.type       # => :comment_line
+line.content
+line.signature
+line.freeze_action("ast-merge")
 ```
 
-### Block
+### `Block`
 
-Represents a multi-line block comment.
+`Ast::Merge::Comment::Block` groups contiguous comment content.
+It can be built either from child line nodes or from raw block-comment text.
 
 ```ruby
-comment = Ast::Merge::Comment::Block.new(
-  content: "This is a\nmulti-line comment",
-  start_line: 1,
-  end_line: 3,
-  style: :c_style_block,
+block = Ast::Merge::Comment::Block.new(
+  children: [
+    Ast::Merge::Comment::Line.new(text: "# one", line_number: 1),
+    Ast::Merge::Comment::Line.new(text: "# two", line_number: 2),
+  ],
 )
-
-comment.to_source  # => "/* This is a\nmulti-line comment */"
-comment.type       # => :comment_block
 ```
 
-### Empty
+### `Empty`
 
-Represents an empty/blank line (preserved during merging).
+`Ast::Merge::Comment::Empty` represents a blank line that should be preserved as part of comment structure.
 
 ```ruby
-empty = Ast::Merge::Comment::Empty.new(line_number: 5)
-empty.to_source  # => ""
-empty.type       # => :empty_line
+empty = Ast::Merge::Comment::Empty.new(line_number: 3, text: "")
 ```
 
-### Parser
+## Parsing comment content
 
-Parses source lines into comment nodes.
+`Ast::Merge::Comment::Parser` turns an array of lines into comment nodes.
 
 ```ruby
-# Parse Ruby-style comments
-lines = ["# frozen_string_literal: true", "", "# Main comment"]
-nodes = Ast::Merge::Comment::Parser.parse(lines, style: :hash_comment)
-
-# Auto-detect style
-lines = ["<!-- HTML comment -->"]
-nodes = Ast::Merge::Comment::Parser.parse(lines, style: :auto)
-
-# Parse with line numbers
-nodes = Ast::Merge::Comment::Parser.parse(lines, start_line: 10)
+nodes = Ast::Merge::Comment::Parser.parse(
+  ["# heading", "", "# details"],
+  style: :hash_comment,
+)
 ```
 
-## Usage in Merge Operations
+Use `style: :auto` to detect the style from the first non-empty line.
 
-Comment nodes implement the `TreeHaver::Node` protocol, making them compatible with all `*-merge` gems:
+## Merge-facing helpers in this namespace
 
-```ruby
-comment.type        # Node type
-comment.text        # Source text
-comment.start_line  # Starting line number
-comment.end_line    # Ending line number
-comment.children    # Child nodes (usually empty)
-```
+The namespace also contains reusable helpers for comment-aware mergers:
 
-## Freeze Markers
+- `Attachment`
+- `Augmenter`
+- `Capability`
+- `Region`
+- `RegionMergePolicy`
+- `TrackedHashAdapter`
 
-Comments are also used for freeze markers that prevent merging of specific sections:
+These support comment attachment and region-aware merge behavior in format-specific gems.
 
-### Ruby example
+## Freeze markers
 
-```ruby
-# In Ruby:
-# ast-merge:freeze Reason for freezing
-# ... frozen content ...
-# the unfreeze statement below is optional
-# In Ruby the entire node the freeze is part of will always be frozen
-# ast-merge:unfreeze
-```
+Comment nodes expose helpers for freeze-marker detection:
 
-### Markdown example
+- `freeze_action(token)`
+- `freeze_marker?(token)`
+- `freeze?(token)`
+- `unfreeze?(token)`
 
-```markdown
-# In Markdown:
-<!-- ast-merge:freeze Reason for freezing -->
-... frozen content ...
-<!-- ast-merge:unfreeze -->
-```
+That keeps freeze detection consistent across comment syntaxes.
 
-## See Also
+## When to use this namespace
 
-- [ast-merge README](../../../README.md) - Main documentation
-- [Freezable module](../freezable.rb) - Freeze marker handling
-- [Text namespace](../text/README.md) - Plain text parsing
+Use `Ast::Merge::Comment` when a merge implementation needs:
 
+- normalized comment nodes with signatures
+- shared handling for line comments, block comments, and blank lines
+- comment-aware freeze markers or attachment logic
+
+Format-specific comment semantics still belong in the corresponding `*-merge` gem.

@@ -1,204 +1,157 @@
 # Ast::Merge::Recipe
 
-YAML-based recipe system for defining and executing merge operations across multiple files.
+`Ast::Merge::Recipe` provides declarative merge configuration that can live in YAML instead of Ruby call sites.
 
-## Overview
+## The four pieces
 
-The `Recipe` namespace provides a declarative way to define merge operations using YAML configuration files. This is particularly useful for:
-- Updating template sections across many files
-- Maintaining consistent documentation sections
-- Automating repetitive merge tasks
+### `Preset`
 
-## Components
+`Ast::Merge::Recipe::Preset` stores reusable merge options such as:
 
-### Config
+- `preference`
+- `add_missing`
+- `signature_generator`
+- `node_typing`
+- `match_refiner`
+- `freeze_token`
+- `normalize_whitespace`
+- `rehydrate_link_references`
 
-Loads and represents a merge recipe from a YAML file.
-
-```ruby
-# Load a recipe from YAML
-recipe = Ast::Merge::Recipe::Config.load("path/to/recipe.yml")
-
-# Or create programmatically
-recipe = Ast::Merge::Recipe::Config.new({
-  "name" => "update_docs",
-  "template" => "template.md",
-  "targets" => ["README.md", "docs/*.md"],
-  "injection" => {
-    "anchor" => {"type" => "heading", "text" => "/My Section/"},
-    "position" => "replace",
-  },
-})
-```
-
-### Runner
-
-Executes recipes against target files.
+Use `Preset#to_h` when you want to pass those options directly to a format-specific `SmartMerger`.
 
 ```ruby
-recipe = Ast::Merge::Recipe::Config.load("recipe.yml")
-runner = Ast::Merge::Recipe::Runner.new(
-  recipe,
-  dry_run: true,      # Don't write files
-  verbose: true,      # Show detailed output
-  parser: :markly,    # Parser to use
-  base_dir: Dir.pwd,   # Base directory for paths
-)
-
-# Run and get results
-results = runner.run
-
-# Or run with a block for each file
-runner.run do |result|
-  puts "#{result.status}: #{result.relative_path}"
-end
-
-# Summary
-puts runner.summary
-# => { total: 10, updated: 5, unchanged: 3, skipped: 2 }
+preset = Ast::Merge::Recipe::Preset.load("recipes/my_merge.yml")
+options = preset.to_h
 ```
 
-### ScriptLoader
+### `Config`
 
-Loads Ruby scripts referenced by recipes for custom logic.
+`Ast::Merge::Recipe::Config` extends `Preset` with file-oriented recipe data:
 
-```ruby
-# Scripts are loaded from a folder matching the recipe basename
-# For recipe.yml, scripts go in recipe/
+- `template`
+- `targets`
+- `injection`
+- `when_missing`
 
-loader = Ast::Merge::Recipe::ScriptLoader.new(recipe_path: "my_recipe.yml")
+It also resolves template paths and expands target globs relative to the recipe file.
 
-# Load a callable from a script file
-filter = loader.load_callable("my_recipe/link_filter.rb")
-# => #<Proc:...>
-```
+### `Runner`
 
-## Recipe YAML Format
+`Ast::Merge::Recipe::Runner` executes a `Config` against target files.
+
+In the stock `ast-merge` gem, the built-in runner supports Markdown partial-template flows through:
+
+- `parser: :markly`
+- `parser: :commonmarker`
+
+For other formats, the stable API in this gem is still `Preset#to_h`; callers pass those options to the format-specific merger they are already using.
+
+### `ScriptLoader`
+
+`Ast::Merge::Recipe::ScriptLoader` loads companion Ruby scripts referenced by a recipe.
+
+A recipe named `my_recipe.yml` looks for scripts in a sibling directory named `my_recipe/`.
+
+## Minimal preset example
 
 ```yaml
-# Recipe name (required)
+name: my_merge
+parser: psych
+merge:
+  preference: destination
+  add_missing: true
+freeze_token: my-project
+```
+
+```ruby
+preset = Ast::Merge::Recipe::Preset.load("recipes/my_merge.yml")
+merger = Psych::Merge::SmartMerger.new(template, destination, **preset.to_h)
+```
+
+## Full recipe example
+
+```yaml
 name: gem_family_section
-
-# Description (optional)
-description: Update gem family section in README files
-
-# Template file path (required, relative to recipe file)
 template: GEM_FAMILY_SECTION.md
-
-# Target files (required, supports globs)
 targets:
   - README.md
-  - vendor/*/README.md
 
-# Injection point configuration (required)
 injection:
-  # Anchor defines where to inject/find the section
   anchor:
-    type: heading           # Node type to match
-    text: "/Gem Family/"    # Text pattern (regex if wrapped in //)
-    level: 3                # Optional: heading level
-
-  # Position relative to anchor
-  position: replace         # before, after, replace, first_child, last_child
-
-  # Boundary defines where the section ends (for replace)
+    type: heading
+    text: "/Gem Family/"
+  position: replace
   boundary:
-    type: heading           # Stop at next heading of same/higher level
+    type: heading
+    same_or_shallower: true
 
-# Merge preferences (optional)
 merge:
-  preference: template      # template, destination, or per-type hash
-  add_missing: true         # Add template-only nodes
+  preference: template
+  add_missing: true
 
-# Behavior when anchor not found (optional)
-when_missing: skip          # skip, append, prepend
+when_missing: skip
 ```
 
-## Text Matching Behavior
+```ruby
+recipe = Ast::Merge::Recipe::Config.load(".merge-recipes/gem_family_section.yml")
+runner = Ast::Merge::Recipe::Runner.new(recipe, dry_run: true, parser: :markly)
+results = runner.run
+```
 
-**Important**: When matching nodes by text content, the `.text` method returns **plain text without markdown formatting**. This is critical to understand when writing anchor patterns.
+## Script references
 
-For example:
-- Markdown source: `` ### The `*-merge` Gem Family ``
-- `.text` returns: `"The *-merge Gem Family\n"`
+Recipe values such as `signature_generator`, `node_typing`, and `add_missing` can point at Ruby files that return callables.
 
-The backticks are stripped because they are inline formatting.
+Example layout:
 
-**Affected formatting**:
-- Bold: `**text**` → `text`
-- Italic: `*text*` or `_text_` → `text`
-- Code: `` `code` `` → `code`
-- Links: `[text](url)` → `text`
-- Images: `![alt](src)` → `alt`
+```text
+recipes/
+  gem_family_section.yml
+  gem_family_section/
+    signature_generator.rb
+    heading_typing.rb
+```
 
-**Writing anchor patterns**:
+Example script:
+
+```ruby
+lambda do |node|
+  next node unless node.respond_to?(:text)
+
+  if node.text.include?("Gem Family")
+    [:gem_family_heading]
+  else
+    node
+  end
+end
+```
+
+Inline lambda expressions are also supported by `ScriptLoader`.
+
+## Anchor text matching
+
+Anchor matching uses node `.text`, which is plain text rather than source markup.
+
+For Markdown headings that means formatting is stripped:
+
+| Source | `.text` |
+|--------|---------|
+| `` ### The `*-merge` Gem Family `` | `The *-merge Gem Family` |
+| `[link text](url)` | `link text` |
+
+Write anchor patterns against the plain-text form:
 
 ```yaml
-# ❌ WRONG - backticks are not in .text output
-anchor:
-  type: heading
-  text: "/`\\*-merge` Gem Family/"
-
-# ✅ CORRECT - match plain text content
 anchor:
   type: heading
   text: "/\\*-merge Gem Family/"
-
-# ✅ CORRECT - use ^ to anchor at start
-anchor:
-  type: heading
-  text: "/^The \\*-merge Gem Family/"
 ```
 
-**Note**: Different parsers (Commonmarker, Markly) may have slightly different behavior for:
-- Trailing newlines
-- Whitespace normalization
-- Entity encoding
+## Markdown-specific recipe options
 
-Always test your patterns against actual parsed content when developing recipes.
+The built-in runner forwards these options to Markdown partial-template mergers when present:
 
-## CLI Usage
+- `merge.normalize_whitespace`
+- `merge.rehydrate_link_references`
 
-```bash
-# Run a recipe in dry-run mode
-bin/ast-merge-recipe .merge-recipes/gem_family_section.yml --dry-run
-
-# Run with verbose output
-bin/ast-merge-recipe recipe.yml --verbose
-
-# Specify parser
-bin/ast-merge-recipe recipe.yml --parser=commonmarker
-
-# Specify base directory
-bin/ast-merge-recipe recipe.yml --base-dir=/path/to/project
-```
-
-## Advanced: Custom Scripts
-
-Recipes can reference Ruby scripts for custom logic:
-
-```yaml
-# In recipe.yml
-merge:
-  add_missing: link_filter.rb  # Loads from recipe_name/link_filter.rb
-```
-
-```ruby
-# In recipe_name/link_filter.rb
-# Must return a callable
-->(node, entry) {
-  # Only add link reference definitions
-  entry[:signature].is_a?(Array) &&
-    entry[:signature].first == :link_ref
-}
-```
-
-## Example: Gem Family Section Updater
-
-See `.merge-recipes/gem_family_section.yml` for a real-world example that updates the gem family documentation section across all README files in a monorepo.
-
-## See Also
-
-- [ast-merge README](../../../README.md) - Main documentation
-- [Detector namespace](../detector/README.md) - Region detection
-- [bin/ast-merge-recipe](../../../bin/ast-merge-recipe) - CLI implementation
+Those options stay in the recipe model so callers can keep a single YAML representation even when execution happens elsewhere.

@@ -11,7 +11,7 @@ This guide covers:
 - how to choose the right merge architecture
 - which classes and modules a new gem should implement
 - the core matching and ordering contracts every `*-merge` gem must follow
-- the shared helpers now available in `ast-merge`
+- the shared helpers available in `ast-merge`
 - how to test and register a new gem in the family
 
 Specialized details live in these companion docs:
@@ -87,6 +87,22 @@ end
 ```
 
 This lets the family evolve shared options without forcing every downstream gem to update at the same time.
+
+### 2.4 Nodes should already satisfy the merge node contract
+
+`ast-merge` expects mergeable nodes to expose a stable, normalized interface.
+
+If your parser already returns `TreeHaver::Base::Node` instances, that contract is in place.
+If it does not, adapt the parser output before it reaches the merge layer.
+
+At minimum, merge-facing nodes should provide:
+
+- `#text`
+- `#type`
+- `#source_position`
+- `#children`
+
+Keep that normalization in the parser or adapter layer. Merge orchestration, navigation, and match refinement should be able to trust the node interface they receive.
 
 ---
 
@@ -247,6 +263,26 @@ Needed if the format has explicit freeze markers or frozen opaque regions.
 
 Needed when exact signatures are insufficient and you want fuzzy matching between structurally similar nodes.
 
+### Optional infrastructure supplied by `ast-merge`
+
+#### `PartialTemplateMergerBase`
+
+Use this when the format supports section-scoped or anchor-based updates. The format-specific merger is responsible for:
+
+- creating analyses for template and destination content
+- finding section boundaries
+- turning matched nodes back into source text
+
+When a format can recover exact source ranges, prefer source-based section extraction over AST re-rendering so the merger preserves source formatting.
+
+#### `DiffMapperBase`
+
+Use this when a format needs to translate unified diffs into format-specific paths or node selections. `DiffMapperBase` handles generic diff parsing; the format-specific class maps changed lines to paths in its own syntax tree.
+
+#### `TrailingGroups`
+
+Use `Ast::Merge::TrailingGroups` when template-only nodes must be inserted relative to surrounding matches instead of being blindly prepended or appended.
+
 ---
 
 ## 5. Recommended implementation order
@@ -270,7 +306,7 @@ Needed when exact signatures are insufficient and you want fuzzy matching betwee
 
 ## 6. Position-aware template-only insertion
 
-This used to be reimplemented in many gems. It is now centralized in `Ast::Merge::TrailingGroups`.
+`Ast::Merge::TrailingGroups` provides the shared helpers for position-aware template-only insertion.
 
 ### Why this exists
 

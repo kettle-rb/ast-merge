@@ -129,8 +129,7 @@ tree-path scoping — signatures are only compared within the same container.
   [[fruits]]
   name = "banana"
   ```
-  The old Set-based approach would have collapsed these into one entry.
-  Cursor-based matching preserves both.
+  Cursor-based matching preserves both entries.
 
 ### dotenv-merge (dotenv)
 
