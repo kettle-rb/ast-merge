@@ -161,6 +161,7 @@ module Ast
     autoload :SectionTyping, "ast/merge/section_typing"
     autoload :SmartMergerBase, "ast/merge/smart_merger_base"
     autoload :Text, "ast/merge/text"
+    autoload :TrailingGroups, "ast/merge/trailing_groups"
 
     # Namespaces
     autoload :Detector, "ast/merge/detector/base"  # Detector::Region, Detector::Base, Detector::Mergeable, etc.
