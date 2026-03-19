@@ -128,6 +128,77 @@ module Ast
         end
       end
 
+      # Emit a shared layout gap when the requesting owner controls output.
+      #
+      # @param gap [Layout::Gap, nil] Gap to emit
+      # @param owner [Object, nil] Owner requesting emission; defaults to the gap's effective controller
+      # @param source_lines [Array<String>, nil] Original source lines for exact whitespace preservation
+      # @param retained_owners [Array<Object>, nil] Explicit retained owners for controller fallback
+      # @param removed_owners [Array<Object>, nil] Explicit removed owners for controller fallback
+      # @param last_emitted_source_line [Integer, nil] Skip gap lines up to and including this source line
+      # @return [Integer, nil] Last emitted source line number
+      def emit_layout_gap(gap, owner: nil, source_lines: nil, retained_owners: nil, removed_owners: nil, last_emitted_source_line: nil)
+        return unless gap
+
+        emitting_owner = owner || gap.effective_controller(retained_owners: retained_owners, removed_owners: removed_owners) || gap.controller
+        return unless emitting_owner
+        return unless gap.controls_output_for?(emitting_owner, retained_owners: retained_owners, removed_owners: removed_owners)
+
+        start_line = if last_emitted_source_line
+          [gap.start_line, last_emitted_source_line + 1].max
+        else
+          gap.start_line
+        end
+        return if start_line > gap.end_line
+
+        emit_layout_gap_lines(gap, source_lines: source_lines, line_numbers: start_line..gap.end_line)
+      end
+
+      # Emit selected leading/trailing layout gaps from an attachment.
+      #
+      # Works with both Layout::Attachment and Comment::Attachment because both
+      # expose owner/leading_gap/trailing_gap.
+      #
+      # @param attachment [Layout::Attachment, Comment::Attachment, nil]
+      # @param leading [Boolean] Whether to emit the leading gap
+      # @param trailing [Boolean] Whether to emit the trailing gap
+      # @param source_lines [Array<String>, nil] Original source lines for exact whitespace preservation
+      # @param retained_owners [Array<Object>, nil] Explicit retained owners for controller fallback
+      # @param removed_owners [Array<Object>, nil] Explicit removed owners for controller fallback
+      # @param leading_last_emitted_source_line [Integer, nil] Skip leading gap lines up to and including this source line
+      # @param trailing_last_emitted_source_line [Integer, nil] Skip trailing gap lines up to and including this source line
+      # @return [Hash{Symbol=>Integer}] Last emitted source line by selected gap side
+      def emit_layout_attachment(attachment, leading: true, trailing: false, source_lines: nil, retained_owners: nil, removed_owners: nil, leading_last_emitted_source_line: nil, trailing_last_emitted_source_line: nil)
+        return {} unless attachment
+        return {} unless attachment.respond_to?(:owner) && attachment.respond_to?(:leading_gap) && attachment.respond_to?(:trailing_gap)
+
+        emitted_lines = {}
+
+        if leading && attachment.leading_gap
+          emitted_lines[:leading] = emit_layout_gap(
+            attachment.leading_gap,
+            owner: attachment.owner,
+            source_lines: source_lines,
+            retained_owners: retained_owners,
+            removed_owners: removed_owners,
+            last_emitted_source_line: leading_last_emitted_source_line,
+          )
+        end
+
+        if trailing && attachment.trailing_gap
+          emitted_lines[:trailing] = emit_layout_gap(
+            attachment.trailing_gap,
+            owner: attachment.owner,
+            source_lines: source_lines,
+            retained_owners: retained_owners,
+            removed_owners: removed_owners,
+            last_emitted_source_line: trailing_last_emitted_source_line,
+          )
+        end
+
+        emitted_lines.compact
+      end
+
       # Emit raw lines as-is (for preserving exact formatting)
       #
       # @param raw_lines [Array<String>] Lines to emit without modification
@@ -214,6 +285,27 @@ module Ast
           emit_raw_lines(blank_lines) if blank_lines.any?
         else
           (current_line - previous_line - 1).times { emit_blank_line }
+        end
+      end
+
+      def emit_layout_gap_lines(gap, source_lines:, line_numbers:)
+        last_emitted_line = nil
+
+        layout_gap_line_values(gap, source_lines: source_lines, line_numbers: line_numbers).each do |line_num, line|
+          next unless line.to_s.strip.empty?
+
+          @lines << line.to_s.chomp
+          last_emitted_line = line_num
+        end
+
+        last_emitted_line
+      end
+
+      def layout_gap_line_values(gap, source_lines:, line_numbers:)
+        if source_lines
+          line_numbers.map { |line_num| [line_num, source_lines[line_num - 1]] }
+        else
+          line_numbers.map { |line_num| [line_num, gap.lines[line_num - gap.start_line]] }
         end
       end
 

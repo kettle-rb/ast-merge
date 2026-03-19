@@ -16,6 +16,8 @@
 # - "Ast::Merge::DebugLogger" - validates debug logging integration
 # - "Ast::Merge::FileAnalyzable" - validates file analysis mixin integration
 # - "Ast::Merge::FreezeNodeBase" - validates freeze node base implementation
+# - "Ast::Merge::Layout::Attachment" - validates merge-facing layout attachments
+# - "Ast::Merge::Layout::Augmenter" - validates shared layout gap inference
 # - "Ast::Merge::MergeResultBase" - validates merge result implementation
 # - "Ast::Merge::MergerConfig" - validates merger configuration
 # - "Ast::Merge::RemovalModeCompliance" - validates generic remove_template_missing_nodes behavior
@@ -28,6 +30,8 @@ require_relative "shared_examples/conflict_resolver_base"
 require_relative "shared_examples/debug_logger"
 require_relative "shared_examples/file_analyzable"
 require_relative "shared_examples/freeze_node_base"
+require_relative "shared_examples/layout_attachment"
+require_relative "shared_examples/layout_augmenter"
 require_relative "shared_examples/merge_result_base"
 require_relative "shared_examples/merger_config"
 require_relative "shared_examples/removal_mode_compliance"

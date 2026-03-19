@@ -146,6 +146,36 @@ RSpec.shared_examples("Ast::Merge::FileAnalyzable") do
     end
   end
 
+  describe "shared layout hooks" do
+    let(:analysis) { build_file_analysis.call(sample_source) }
+    let(:synthetic_owner) { Struct.new(:start_line, :end_line).new(2, 2) }
+
+    describe "#layout_attachment_for" do
+      it "responds to the method" do
+        expect(analysis).to respond_to(:layout_attachment_for)
+      end
+
+      it "returns a shared layout attachment" do
+        attachment = analysis.layout_attachment_for(synthetic_owner)
+
+        expect(attachment).to be_a(Ast::Merge::Layout::Attachment)
+        expect(attachment.owner).to eq(synthetic_owner)
+      end
+    end
+
+    describe "#layout_augmenter" do
+      it "responds to the method" do
+        expect(analysis).to respond_to(:layout_augmenter)
+      end
+
+      it "returns a shared layout augmenter" do
+        augmenter = analysis.layout_augmenter
+
+        expect(augmenter).to be_a(Ast::Merge::Layout::Augmenter)
+      end
+    end
+  end
+
   describe "#generate_signature" do
     let(:analysis) { build_file_analysis.call(sample_source) }
 

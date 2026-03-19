@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::EmitterBase do
+  LayoutOwner = Struct.new(:start_line, :end_line, :label, keyword_init: true)
+
   let(:emitter_class) do
     Class.new(described_class) do
       def emit_tracked_comment(comment)
@@ -21,6 +23,9 @@ RSpec.describe Ast::Merge::EmitterBase do
   end
 
   let(:emitter) { emitter_class.new }
+  let(:before_owner) { LayoutOwner.new(start_line: 1, end_line: 1, label: :before) }
+  let(:owner) { LayoutOwner.new(start_line: 3, end_line: 3, label: :owner) }
+  let(:after_owner) { LayoutOwner.new(start_line: 4, end_line: 4, label: :after) }
 
   describe "#emit_comment_region" do
     it "emits full-line regions and preserves blank gaps from source lines" do
@@ -96,6 +101,112 @@ RSpec.describe Ast::Merge::EmitterBase do
       )
 
       expect(emitter.lines).to eq(["key: value", "# Trailing", "", "# Orphan"])
+    end
+  end
+
+  describe "#emit_layout_gap" do
+    it "emits controller-owned interstitial gaps for the requesting owner" do
+      gap = Ast::Merge::Layout::Gap.new(
+        kind: :interstitial,
+        start_line: 2,
+        end_line: 3,
+        lines: ["", ""],
+        before_owner: before_owner,
+        after_owner: after_owner,
+      )
+
+      emitted_line = emitter.emit_layout_gap(gap, owner: after_owner)
+
+      expect(emitted_line).to eq(3)
+      expect(emitter.lines).to eq(["", ""])
+    end
+
+    it "does not emit shared gaps for a non-controlling owner" do
+      gap = Ast::Merge::Layout::Gap.new(
+        kind: :interstitial,
+        start_line: 2,
+        end_line: 2,
+        lines: [""],
+        before_owner: before_owner,
+        after_owner: after_owner,
+      )
+
+      emitted_line = emitter.emit_layout_gap(gap, owner: before_owner)
+
+      expect(emitted_line).to be_nil
+      expect(emitter.lines).to eq([])
+    end
+
+    it "lets the fallback owner emit when the primary controller was removed" do
+      gap = Ast::Merge::Layout::Gap.new(
+        kind: :interstitial,
+        start_line: 2,
+        end_line: 2,
+        lines: [""],
+        before_owner: before_owner,
+        after_owner: after_owner,
+      )
+
+      emitted_line = emitter.emit_layout_gap(gap, owner: before_owner, removed_owners: [after_owner])
+
+      expect(emitted_line).to eq(2)
+      expect(emitter.lines).to eq([""])
+    end
+
+    it "preserves exact whitespace-only lines from source lines" do
+      gap = Ast::Merge::Layout::Gap.new(
+        kind: :preamble,
+        start_line: 1,
+        end_line: 2,
+        lines: ["", ""],
+        after_owner: owner,
+      )
+
+      emitter.emit_layout_gap(gap, owner: owner, source_lines: ["  ", "\t", "body"])
+
+      expect(emitter.lines).to eq(["  ", "\t"])
+    end
+
+    it "can resume emitting a gap after earlier source lines were already emitted" do
+      gap = Ast::Merge::Layout::Gap.new(
+        kind: :preamble,
+        start_line: 2,
+        end_line: 4,
+        lines: ["", "", ""],
+        after_owner: owner,
+      )
+
+      emitted_line = emitter.emit_layout_gap(gap, owner: owner, last_emitted_source_line: 2)
+
+      expect(emitted_line).to eq(4)
+      expect(emitter.lines).to eq(["", ""])
+    end
+  end
+
+  describe "#emit_layout_attachment" do
+    it "emits selected leading and trailing gaps from a shared attachment" do
+      attachment = Ast::Merge::Layout::Attachment.new(
+        owner: owner,
+        leading_gap: Ast::Merge::Layout::Gap.new(
+          kind: :preamble,
+          start_line: 1,
+          end_line: 2,
+          lines: ["", ""],
+          after_owner: owner,
+        ),
+        trailing_gap: Ast::Merge::Layout::Gap.new(
+          kind: :postlude,
+          start_line: 4,
+          end_line: 5,
+          lines: ["", ""],
+          before_owner: owner,
+        ),
+      )
+
+      emitted_lines = emitter.emit_layout_attachment(attachment, leading: true, trailing: true)
+
+      expect(emitted_lines).to eq({leading: 2, trailing: 5})
+      expect(emitter.lines).to eq(["", "", "", ""])
     end
   end
 end

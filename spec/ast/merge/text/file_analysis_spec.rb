@@ -132,6 +132,52 @@ RSpec.describe Ast::Merge::Text::FileAnalysis do
     end
   end
 
+  describe "shared layout compliance" do
+    subject(:analysis) { described_class.new(layout_source) }
+
+    let(:layout_source) do
+      <<~TEXT
+
+        alpha
+
+        beta
+
+      TEXT
+    end
+
+    let(:first_owner) { analysis.statements.reject(&:blank?).first }
+    let(:second_owner) { analysis.statements.reject(&:blank?)[1] }
+    let(:layout_augmenter) { analysis.layout_augmenter(owners: [first_owner, second_owner].compact) }
+    let(:layout_attachment) { layout_augmenter.attachment_for(first_owner) }
+
+    it "finds stable non-blank line owners for layout inference" do
+      expect(first_owner).not_to be_nil
+      expect(second_owner).not_to be_nil
+      expect(first_owner.content).to eq("alpha")
+      expect(second_owner.content).to eq("beta")
+      expect(first_owner.start_line).to eq(2)
+      expect(second_owner.start_line).to eq(4)
+    end
+
+    it_behaves_like "Ast::Merge::Layout::Attachment" do
+      let(:expected_attachment_owner) { first_owner }
+      let(:expected_leading_gap_kind) { :preamble }
+      let(:expected_trailing_gap_kind) { :interstitial }
+      let(:expected_gap_ranges) { [1..1, 3..3] }
+      let(:expected_leading_controls_output) { true }
+      let(:expected_trailing_controls_output) { false }
+    end
+
+    it_behaves_like "Ast::Merge::Layout::Augmenter" do
+      let(:augmenter_owner) { first_owner }
+      let(:expected_preamble_range) { 1..1 }
+      let(:expected_postlude_range) { 5..5 }
+      let(:expected_interstitial_ranges) { [3..3] }
+      let(:expected_owner_leading_gap_kind) { :preamble }
+      let(:expected_owner_trailing_gap_kind) { :interstitial }
+    end
+  end
+
   describe "#fallthrough_node?" do
     it "returns true for LineNode" do
       source = "Hello world"
