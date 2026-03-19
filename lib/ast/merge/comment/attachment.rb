@@ -10,14 +10,17 @@ module Ast
       # gems can describe leading, inline, trailing, and orphan comment regions
       # around a structural owner node.
       class Attachment
-        attr_reader :owner, :leading_region, :inline_region, :trailing_region, :orphan_regions, :metadata
+        attr_reader :owner, :leading_region, :inline_region, :trailing_region, :orphan_regions,
+          :leading_gap, :trailing_gap, :metadata
 
-        def initialize(owner: nil, leading_region: nil, inline_region: nil, trailing_region: nil, orphan_regions: [], metadata: {}, **options)
+        def initialize(owner: nil, leading_region: nil, inline_region: nil, trailing_region: nil, orphan_regions: [], leading_gap: nil, trailing_gap: nil, metadata: {}, **options)
           @owner = owner
           @leading_region = leading_region
           @inline_region = inline_region
           @trailing_region = trailing_region
           @orphan_regions = Array(orphan_regions).freeze
+          @leading_gap = leading_gap
+          @trailing_gap = trailing_gap
           @metadata = metadata.merge(options).freeze
         end
 
@@ -27,6 +30,10 @@ module Ast
 
         def empty?
           regions.empty?
+        end
+
+        def layout_gaps
+          [leading_gap, trailing_gap].compact.uniq
         end
 
         def leading_freeze?(freeze_token)
@@ -58,7 +65,7 @@ module Ast
             owner.class.name
           end
 
-          "#<#{self.class.name} owner=#{owner_desc.inspect} regions=#{regions.size}>"
+          "#<#{self.class.name} owner=#{owner_desc.inspect} regions=#{regions.size} layout_gaps=#{layout_gaps.size}>"
         end
       end
     end

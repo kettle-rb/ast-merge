@@ -72,6 +72,35 @@ RSpec.describe Ast::Merge::Comment::Augmenter do
       expect(postlude&.normalized_content).to eq("trailing doc comment")
     end
 
+    it "wires shared layout gaps onto comment attachments when owners are separated by blank lines" do
+      gap_owners = [
+        Owner.new(start_line: 2, end_line: 2, label: :first),
+        Owner.new(start_line: 5, end_line: 5, label: :second),
+      ]
+
+      augmenter = described_class.new(
+        lines: [
+          "# First docs",
+          "first:",
+          "",
+          "",
+          "second:",
+        ],
+        comments: [
+          {line: 1, indent: 0, text: "First docs", full_line: true, raw: "# First docs"},
+        ],
+        owners: gap_owners,
+      )
+
+      first_attachment = augmenter.attachment_for(gap_owners.first)
+      second_attachment = augmenter.attachment_for(gap_owners.last)
+
+      expect(first_attachment.trailing_gap).not_to be_nil
+      expect(first_attachment.trailing_gap.start_line).to eq(3)
+      expect(first_attachment.trailing_gap.end_line).to eq(4)
+      expect(second_attachment.leading_gap).to equal(first_attachment.trailing_gap)
+    end
+
     it "preserves blank lines inside a leading region span" do
       owner = Owner.new(start_line: 5, end_line: 5, label: :settings)
       augmenter = described_class.new(

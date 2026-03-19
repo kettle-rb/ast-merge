@@ -150,6 +150,7 @@ module Ast
     autoload :FileAnalyzable, "ast/merge/file_analyzable"
     autoload :Freezable, "ast/merge/freezable"
     autoload :FreezeNodeBase, "ast/merge/freeze_node_base"
+    autoload :Layout, "ast/merge/layout"
     autoload :MatchRefinerBase, "ast/merge/match_refiner_base"
     autoload :MatchScoreBase, "ast/merge/match_score_base"
     autoload :MergeResultBase, "ast/merge/merge_result_base"

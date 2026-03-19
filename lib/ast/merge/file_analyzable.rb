@@ -173,8 +173,12 @@ module Ast
       # @param options [Hash] attachment metadata
       # @return [Comment::Attachment]
       def comment_attachment_for(owner, **options)
+        layout_attachment = layout_attachment_for(owner, **options)
+
         Comment::Attachment.new(
           owner: owner,
+          leading_gap: layout_attachment.leading_gap,
+          trailing_gap: layout_attachment.trailing_gap,
           metadata: {
             source: :file_analyzable_default,
           }.merge(options),
@@ -196,6 +200,54 @@ module Ast
           comments: [],
           owners: owners || comment_augmenter_default_owners,
           capability: comment_capability,
+          **options,
+        )
+      end
+
+      # Return a passive shared layout attachment for a structural owner.
+      #
+      # Analyses with explicit blank-line ownership data should override this to
+      # return meaningful leading/trailing gap attachments. The default
+      # implementation returns an empty attachment so callers can migrate
+      # incrementally.
+      #
+      # @param owner [Object] structural owner
+      # @param options [Hash] attachment metadata
+      # @return [Layout::Attachment]
+      def layout_attachment_for(owner, **options)
+        owners = layout_augmenter_default_owners
+        augmenter = if owners.any? { |candidate| candidate.equal?(owner) }
+          layout_augmenter(**options)
+        else
+          layout_augmenter(owners: [owner], **options)
+        end
+
+        inferred_attachment = augmenter.attachment_for(owner)
+
+        Layout::Attachment.new(
+          owner: owner,
+          leading_gap: inferred_attachment&.leading_gap,
+          trailing_gap: inferred_attachment&.trailing_gap,
+          metadata: {
+            source: :file_analyzable_default,
+          }.merge(options),
+        )
+      end
+
+      # Build a passive shared layout augmenter for the current analysis.
+      #
+      # Format-specific analyses should override this when they can provide a
+      # stronger ownership model for blank-line gaps. The default implementation
+      # preserves the shared hook surface while inferring only directly adjacent
+      # blank-line runs from source lines and owner ranges.
+      #
+      # @param owners [Array<#start_line,#end_line>, nil] owners for gap inference
+      # @param options [Hash] augmenter metadata
+      # @return [Layout::Augmenter]
+      def layout_augmenter(owners: nil, **options)
+        Layout::Augmenter.new(
+          lines: lines,
+          owners: owners || layout_augmenter_default_owners,
           **options,
         )
       end
@@ -416,6 +468,10 @@ module Ast
       private
 
       def comment_augmenter_default_owners
+        statements.select { |statement| statement.respond_to?(:start_line) && statement.respond_to?(:end_line) }
+      end
+
+      def layout_augmenter_default_owners
         statements.select { |statement| statement.respond_to?(:start_line) && statement.respond_to?(:end_line) }
       end
     end

@@ -48,15 +48,19 @@ module Ast
 
         def build!
           claimed = Set.new
+          layout_attachments = build_layout_attachments_by_owner
 
           owners.each do |owner|
             leading_comments = infer_leading_comments(owner, claimed)
             inline_comments = infer_inline_comments(owner, claimed)
+            layout_attachment = layout_attachments[owner]
 
             attachments_by_owner[owner] = Attachment.new(
               owner: owner,
               leading_region: build_region(:leading, leading_comments),
               inline_region: build_region(:inline, inline_comments, include_blank_lines: false),
+              leading_gap: layout_attachment&.leading_gap,
+              trailing_gap: layout_attachment&.trailing_gap,
             )
 
             leading_comments.each { |comment| claimed << comment.object_id }
@@ -198,6 +202,12 @@ module Ast
               tracked_hashes: comments,
             },
           )
+        end
+
+        def build_layout_attachments_by_owner
+          return {} if owners.empty?
+
+          Ast::Merge::Layout::Augmenter.new(lines: lines, owners: owners).attachments_by_owner
         end
 
         def normalize_lines(lines, source)

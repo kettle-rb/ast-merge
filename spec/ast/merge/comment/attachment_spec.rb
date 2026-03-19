@@ -20,6 +20,24 @@ RSpec.describe Ast::Merge::Comment::Attachment do
       nodes: [Ast::Merge::Comment::Line.new(text: "# Orphan", line_number: 50)],
     )
   end
+  let(:leading_gap) do
+    Ast::Merge::Layout::Gap.new(
+      kind: :preamble,
+      start_line: 19,
+      end_line: 19,
+      lines: [""],
+      after_owner: owner,
+    )
+  end
+  let(:trailing_gap) do
+    Ast::Merge::Layout::Gap.new(
+      kind: :postlude,
+      start_line: 21,
+      end_line: 21,
+      lines: [""],
+      before_owner: owner,
+    )
+  end
 
   describe "#regions" do
     it "returns all non-nil regions in a stable order" do
@@ -56,6 +74,19 @@ RSpec.describe Ast::Merge::Comment::Attachment do
 
       expect(attachment.freeze_marker?("psych-merge")).to be(true)
       expect(attachment.freeze_marker?("prism-merge")).to be(false)
+    end
+  end
+
+  describe "#layout_gaps" do
+    it "exposes adjacent layout gaps without changing comment emptiness semantics" do
+      attachment = described_class.new(
+        owner: owner,
+        leading_gap: leading_gap,
+        trailing_gap: trailing_gap,
+      )
+
+      expect(attachment.layout_gaps).to eq([leading_gap, trailing_gap])
+      expect(attachment).to be_empty
     end
   end
 

@@ -53,6 +53,18 @@ RSpec.describe Ast::Merge::FileAnalyzable do
       expect(attachment.metadata[:repository]).to eq(:ast_merge)
     end
 
+    it "wires adjacent layout gaps into the default comment attachment" do
+      owner_with_gap = Struct.new(:start_line, :end_line).new(3, 3)
+      gap_analysis = analysis_class.new("header\n\nbody\n", statements: [owner_with_gap])
+
+      attachment = gap_analysis.comment_attachment_for(owner_with_gap)
+
+      expect(attachment.leading_gap).not_to be_nil
+      expect(attachment.leading_gap).to be_preamble
+      expect(attachment.layout_gaps).to eq([attachment.leading_gap])
+      expect(attachment).to be_empty
+    end
+
     it "builds an empty augmenter that preserves the no-comment capability" do
       augmenter = analysis.comment_augmenter(repository: :ast_merge)
 
@@ -68,6 +80,29 @@ RSpec.describe Ast::Merge::FileAnalyzable do
     it "reports no leading freeze directives by default" do
       expect(analysis.owner_leading_comment_freeze?(owner)).to be(false)
       expect(analysis.owner_leading_comment_unfreeze?(owner)).to be(false)
+    end
+  end
+
+  describe "default shared layout hooks" do
+    it "returns an empty layout attachment for any owner" do
+      attachment = analysis.layout_attachment_for(owner, repository: :ast_merge)
+
+      expect(attachment).to be_a(Ast::Merge::Layout::Attachment)
+      expect(attachment.owner).to eq(owner)
+      expect(attachment.empty?).to be(true)
+      expect(attachment.metadata[:source]).to eq(:file_analyzable_default)
+      expect(attachment.metadata[:repository]).to eq(:ast_merge)
+    end
+
+    it "builds an empty layout augmenter when no adjacent blank-line runs exist" do
+      augmenter = analysis.layout_augmenter(repository: :ast_merge)
+
+      expect(augmenter).to be_a(Ast::Merge::Layout::Augmenter)
+      expect(augmenter.attachment_for(owner)).to be_a(Ast::Merge::Layout::Attachment)
+      expect(augmenter.attachment_for(owner)).to be_empty
+      expect(augmenter.preamble_gap).to be_nil
+      expect(augmenter.postlude_gap).to be_nil
+      expect(augmenter.interstitial_gaps).to eq([])
     end
   end
 
