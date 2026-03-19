@@ -24,6 +24,7 @@ Please file a bug if you notice a violation of semantic versioning.
 - Added `Ast::Merge::Comment::Capability`, `Region`, `Attachment`, `Augmenter`, and `RegionMergePolicy` as the shared merge-facing comment model for the `*-merge` family
 - Added shared adapter helpers and RSpec coverage for normalized comment regions, attachments, augmenters, and the first removal-mode compliance example for downstream merge gems
 - Added `Ast::Merge::TrailingGroups::{Core,DestIterate,AlignmentSort}` as shared infrastructure for position-aware template-only insertion across destination-iterate and alignment-based merge implementations
+- Added the shared `Ast::Merge::Layout` namespace, owner-side layout compliance coverage, and README documentation for the blank-line/layout contract adopted across the `*-merge` family
 - Document how to build a gem in the *-merge gem family.
 
 ### Changed

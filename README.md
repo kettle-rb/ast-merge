@@ -208,6 +208,7 @@ Ast::Merge builds on tree\_haver to provide:
 
 - **Canonical guide**: [`BUILD_A_MERGE_GEM.md`](BUILD_A_MERGE_GEM.md)
 - **Per-gem architecture reference**: [`MERGE_APPROACH.md`](MERGE_APPROACH.md)
+- **Shared blank-line/layout model**: [`lib/ast/merge/layout/README.md`](lib/ast/merge/layout/README.md)
 - **RSpec shared examples and registration**: [`lib/ast/merge/rspec/README.md`](lib/ast/merge/rspec/README.md)
 - **Reference implementation**: [`lib/ast/merge/text/README.md`](lib/ast/merge/text/README.md)
 
@@ -295,6 +296,7 @@ The `Ast::Merge` module is organized into several namespaces, each with detailed
 | `Ast::Merge::Detector` | Region detection and merging       | [lib/ast/merge/detector/README.md](lib/ast/merge/detector/README.md) |
 | `Ast::Merge::Recipe`   | YAML-based merge recipes           | [lib/ast/merge/recipe/README.md](lib/ast/merge/recipe/README.md)     |
 | `Ast::Merge::Comment`  | Comment parsing and representation | [lib/ast/merge/comment/README.md](lib/ast/merge/comment/README.md)   |
+| `Ast::Merge::Layout`   | Shared blank-line layout ownership | [lib/ast/merge/layout/README.md](lib/ast/merge/layout/README.md)     |
 | `Ast::Merge::Text`     | Plain text AST parsing             | [lib/ast/merge/text/README.md](lib/ast/merge/text/README.md)         |
 | `Ast::Merge::RSpec`    | Shared RSpec examples              | [lib/ast/merge/rspec/README.md](lib/ast/merge/rspec/README.md)       |
 
@@ -303,6 +305,7 @@ The `Ast::Merge` module is organized into several namespaces, each with detailed
 - **Detector**: `Region`, `Base`, `Mergeable`, `FencedCodeBlock`, `YamlFrontmatter`, `TomlFrontmatter`
 - **Recipe**: `Preset`, `Config`, `Runner`, `ScriptLoader`
 - **Comment**: `Line`, `Block`, `Empty`, `Parser`, `Style`
+- **Layout**: `Gap`, `Attachment`, `Augmenter`
 - **Text**: `SmartMerger`, `FileAnalysis`, `LineNode`, `WordNode`, `Section`, `LineSectionSplitter`
 - **RSpec**: Shared examples and dependency tags for testing `*-merge` implementations
 
