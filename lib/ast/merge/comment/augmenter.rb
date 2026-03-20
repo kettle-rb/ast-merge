@@ -12,8 +12,15 @@ module Ast
       # it only infers normalized `Comment::Region` and `Comment::Attachment`
       # objects that format gems can adopt incrementally.
       class Augmenter
-        attr_reader :lines, :owners, :tracked_comments, :style, :capability, :attachments_by_owner,
-          :preamble_region, :postlude_region, :orphan_regions
+        attr_reader :lines,
+          :owners,
+          :tracked_comments,
+          :style,
+          :capability,
+          :attachments_by_owner,
+          :preamble_region,
+          :postlude_region,
+          :orphan_regions
 
         def self.call(**options)
           new(**options)

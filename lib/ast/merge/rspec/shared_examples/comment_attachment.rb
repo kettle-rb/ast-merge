@@ -15,22 +15,21 @@
 #   end
 #
 RSpec.shared_examples("Ast::Merge::Comment::Attachment") do
-
   it "preserves the structural owner" do
-    expect(comment_attachment.owner).to eq(expected_attachment_owner)
+    expect(comment_attachment.owner).to(eq(expected_attachment_owner))
   end
 
   it "exposes normalized leading, inline, and trailing regions" do
-    expect(comment_attachment.leading_region&.normalized_content).to eq(expected_leading_content)
-    expect(comment_attachment.inline_region&.normalized_content).to eq(expected_inline_content)
-    expect(comment_attachment.trailing_region&.normalized_content).to eq(expected_trailing_content)
+    expect(comment_attachment.leading_region&.normalized_content).to(eq(expected_leading_content))
+    expect(comment_attachment.inline_region&.normalized_content).to(eq(expected_inline_content))
+    expect(comment_attachment.trailing_region&.normalized_content).to(eq(expected_trailing_content))
   end
 
   it "preserves orphan region ordering" do
-    expect(comment_attachment.orphan_regions.map(&:normalized_content)).to eq(expected_orphan_contents)
+    expect(comment_attachment.orphan_regions.map(&:normalized_content)).to(eq(expected_orphan_contents))
   end
 
   it "detects freeze markers across all attached regions" do
-    expect(comment_attachment.freeze_marker?(freeze_token)).to be(freeze_marker_expected)
+    expect(comment_attachment.freeze_marker?(freeze_token)).to(be(freeze_marker_expected))
   end
 end

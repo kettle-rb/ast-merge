@@ -48,18 +48,98 @@ plan.before_content
 plan.removed_content
 plan.after_content
 plan.merged_content
+plan.apply_to(other_source)
 ```
 
-## Current scope
+### `RemovePlan`
 
-Today the shared primitive is contiguous `:replace` by line range.
+`Ast::Merge::StructuralEdit::RemovePlan` builds on `SplicePlan` for contiguous structural removal.
 
-That is already useful because it lets callers such as `Ast::Merge::PartialTemplateMergerBase` stop normalizing separators through ad hoc string surgery when the destination analysis exposes real source line ranges.
+It keeps the source-preserving removal behavior passive while also recording:
+
+- which owners were removed
+- which adjacent owners survived
+- which removed comment/layout attachments should be promoted rather than dropped
+
+Minimal example:
+
+```ruby
+plan = Ast::Merge::StructuralEdit::RemovePlan.new(
+  source: source,
+  remove_start_line: 10,
+  remove_end_line: 14,
+  leading_boundary: leading_boundary,
+  trailing_boundary: trailing_boundary,
+  removed_attachments: [removed_attachment],
+)
+
+plan.merged_content
+plan.apply_to(other_source)
+plan.rehome_plans
+plan.promoted_comment_regions
+plan.promoted_layout_gaps
+```
+
+### `PlanSet`
+
+`Ast::Merge::StructuralEdit::PlanSet` batches multiple non-overlapping
+splice-compatible edits against one shared original source.
+
+It is the shared general-purpose replacement facade for downstream callers that
+need to apply more than one exact structural line-range edit without falling
+back to ad hoc line-array surgery.
+
+Minimal example:
+
+```ruby
+replace_title = Ast::Merge::StructuralEdit::SplicePlan.new(
+  source: source,
+  replacement: "# New title\n",
+  replace_start_line: 1,
+  replace_end_line: 1,
+)
+
+remove_old_block = Ast::Merge::StructuralEdit::RemovePlan.new(
+  source: source,
+  remove_start_line: 10,
+  remove_end_line: 14,
+)
+
+plan_set = Ast::Merge::StructuralEdit::PlanSet.new(
+  source: source,
+  plans: [replace_title, remove_old_block],
+)
+
+plan_set.merged_content
+plan_set.rehome_plans
+```
+
+### `RehomePlan`
+
+`Ast::Merge::StructuralEdit::RehomePlan` is the passive transfer record produced by removal planning.
+
+It answers:
+
+- which surviving boundary should receive preserved fragments
+- which comment regions survive
+- which layout gaps survive
+- how those fragments should be exposed as a passive shared attachment for the surviving owner
+
+## Scope
+
+The shared primitives cover:
+
+- contiguous `:replace` by line range (`SplicePlan`)
+- contiguous `:remove` plus passive promotion planning (`RemovePlan`)
+- passive attachment retargeting to surviving owners (`RehomePlan`)
+- batching multiple non-overlapping replace/remove plans against one source (`PlanSet`)
+
+These primitives let callers such as `Ast::Merge::PartialTemplateMergerBase` express source-preserving replacement and removed-section planning without ad hoc separator surgery when the destination analysis exposes real line ranges and attachments.
 
 ## Intended next steps
 
 This namespace is the staging ground for richer shared edit operations, including:
 
-- remove primitives that preserve or reassign surrounding layout ownership
-- rehome primitives that move preserved comment/layout attachments to a surviving owner
-- edit plans that can reason explicitly about shared `Comment::Region` and `Layout::Gap` ownership
+- adoption of `RemovePlan` / `RehomePlan` in real removal-mode consumers
+- richer edit plans that can distinguish recursive removal, sibling promotion, and explicit ownership-transfer strategies
+- edit plans that can reason explicitly about shared `Comment::Region` and `Layout::Gap` ownership in downstream emitters

@@ -103,7 +103,7 @@ merger = SomeMerger.new(
     {
       detector: Ast::Merge::Detector::YamlFrontmatter.new,
       merger_class: Psych::Merge::SmartMerger,
-      merger_options: { preference: :destination },
+      merger_options: {preference: :destination},
     },
     {
       detector: Ast::Merge::Detector::FencedCodeBlock.ruby,

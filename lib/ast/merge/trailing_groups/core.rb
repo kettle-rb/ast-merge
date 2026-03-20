@@ -159,7 +159,7 @@ module Ast
         # @param groups [Hash] Trailing groups hash
         # @return [Array<Symbol,Integer>] Sorted keys
         def sorted_anchors(groups)
-          groups.keys.sort_by { |k| k == :prefix ? -1 : k }
+          groups.keys.sort_by { |k| (k == :prefix) ? -1 : k }
         end
       end
     end

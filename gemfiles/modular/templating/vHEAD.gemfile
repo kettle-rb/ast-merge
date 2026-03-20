@@ -9,6 +9,6 @@ platform :mri do
   gem "markly", github: "ioquatix/markly"
 
   gem "ruby_tree_sitter",
-      github: "Faveod/ruby-tree-sitter",
-      branch: "master"
+    github: "Faveod/ruby-tree-sitter",
+    branch: "master"
 end

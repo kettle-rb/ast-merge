@@ -83,7 +83,7 @@ RSpec.describe Ast::Merge::TrailingGroups::DestIterate do
     context "with custom entry_builder" do
       it "passes the builder through to Core" do
         nodes = [mock_node(:m), mock_node(:t)]
-        groups, _matched = instance.build_dest_iterate_trailing_groups(
+        _, _matched = instance.build_dest_iterate_trailing_groups(
           template_nodes: nodes,
           dest_sigs: Set[nodes[0].sig],
           signature_for: ->(node) { node.name },

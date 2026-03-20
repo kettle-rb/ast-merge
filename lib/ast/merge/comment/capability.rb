@@ -115,7 +115,7 @@ module Ast
           return normalized if LEVELS.include?(normalized)
 
           raise ArgumentError,
-            "Unknown comment capability level: #{level.inspect}. Expected one of: #{LEVELS.join(', ')}"
+            "Unknown comment capability level: #{level.inspect}. Expected one of: #{LEVELS.join(", ")}"
         end
       end
     end

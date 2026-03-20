@@ -80,7 +80,7 @@ RSpec.describe Ast::Merge::TrailingGroups::Core do
           matched_predicate: ->(_node, idx) { [0, 3, 5].include?(idx) },
         )
         expect(matched).to eq(Set[0, 3, 5])
-        expect(groups.keys.sort_by { |k| k == :prefix ? -1 : k }).to eq([0, 3, 5])
+        expect(groups.keys.sort_by { |k| (k == :prefix) ? -1 : k }).to eq([0, 3, 5])
         expect(groups[0].map { |e| e[:index] }).to eq([1, 2])
         expect(groups[3].map { |e| e[:index] }).to eq([4])
         expect(groups[5].map { |e| e[:index] }).to eq([6])
@@ -245,7 +245,7 @@ RSpec.describe Ast::Merge::TrailingGroups::Core do
   describe "#emit_remaining_trailing_groups" do
     it "emits all unconsumed non-prefix groups in anchor order" do
       groups = {
-        prefix: [{node: :p, index: 0}],
+        :prefix => [{node: :p, index: 0}],
         1 => [{node: :a, index: 2}],
         5 => [{node: :b, index: 6}, {node: :c, index: 7}],
       }

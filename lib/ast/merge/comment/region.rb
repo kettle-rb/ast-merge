@@ -125,7 +125,7 @@ module Ast
           return normalized if KINDS.include?(normalized)
 
           raise ArgumentError,
-            "Unknown comment region kind: #{kind.inspect}. Expected one of: #{KINDS.join(', ')}"
+            "Unknown comment region kind: #{kind.inspect}. Expected one of: #{KINDS.join(", ")}"
         end
       end
     end

@@ -8,6 +8,19 @@ RSpec.describe Ast::Merge::Recipe::Config do
     }
   end
 
+  let(:content_only_config) do
+    {
+      "name" => "content_recipe",
+      "parser" => "markly",
+      "steps" => [
+        {
+          "kind" => "ruby_script",
+          "script" => "finalize.rb",
+        },
+      ],
+    }
+  end
+
   let(:full_config) do
     {
       "name" => "gem_family_section",
@@ -77,10 +90,13 @@ RSpec.describe Ast::Merge::Recipe::Config do
       expect(recipe.when_missing).to eq(:skip)
     end
 
-    it "raises without template" do
-      expect {
-        described_class.new({"name" => "test"})
-      }.to raise_error(ArgumentError, /template/)
+    it "allows content-only recipes without a template path" do
+      recipe = described_class.new(content_only_config)
+
+      expect(recipe.template_path).to be_nil
+      expect(recipe.targets).to eq([])
+      expect(recipe.content_recipe?).to be(true)
+      expect(recipe.file_recipe?).to be(false)
     end
 
     it "preserves append when_missing behavior" do
@@ -207,7 +223,154 @@ RSpec.describe Ast::Merge::Recipe::Config do
     end
   end
 
+  describe "#execution_steps" do
+    it "synthesizes an implicit partial_merge step for legacy injection recipes" do
+      recipe = described_class.new(full_config)
+
+      expect(recipe.execution_steps).to eq([
+        {
+          kind: :partial_merge,
+          parser: nil,
+          partial_target: recipe.partial_target,
+          when_missing: :skip,
+          merge_config: recipe.merge_config,
+        },
+      ])
+    end
+
+    it "synthesizes an implicit smart_merge step when no injection is configured" do
+      recipe = described_class.new(minimal_config.merge("merge" => {"preference" => "destination"}))
+
+      expect(recipe.execution_steps).to eq([
+        {
+          kind: :smart_merge,
+          parser: nil,
+          merge_config: recipe.merge_config,
+        },
+      ])
+    end
+
+    it "returns explicit steps when configured" do
+      recipe = described_class.new(
+        minimal_config.merge(
+          "steps" => [
+            {
+              "kind" => "smart_merge",
+            },
+            {
+              "kind" => "ruby_script",
+              "script" => "finalize.rb",
+            },
+          ],
+        ),
+      )
+
+      expect(recipe.explicit_steps?).to be(true)
+      expect(recipe.partial_target).to be_nil
+      expect(recipe.execution_steps.map { |step| step[:kind] }).to eq([:smart_merge, :ruby_script])
+      expect(recipe.execution_steps.last[:script]).to eq("finalize.rb")
+    end
+
+    it "lets partial_merge steps inherit top-level when_missing and merge config" do
+      recipe = described_class.new(
+        minimal_config.merge(
+          "when_missing" => "append",
+          "merge" => {
+            "preference" => "destination",
+            "add_missing" => false,
+          },
+          "steps" => [
+            {
+              "kind" => "partial_merge",
+              "injection" => {
+                "anchor" => {
+                  "type" => "heading",
+                  "text" => "Section",
+                },
+              },
+            },
+          ],
+        ),
+      )
+
+      step = recipe.execution_steps.first
+      expect(step[:when_missing]).to eq(:append)
+      expect(step[:merge_config][:preference]).to eq(:destination)
+      expect(step[:merge_config][:add_missing]).to be(false)
+    end
+
+    it "lets steps override top-level merge config" do
+      recipe = described_class.new(
+        minimal_config.merge(
+          "merge" => {
+            "preference" => "destination",
+            "add_missing" => false,
+          },
+          "steps" => [
+            {
+              "kind" => "smart_merge",
+              "merge" => {
+                "preference" => "template",
+                "add_missing" => true,
+              },
+            },
+          ],
+        ),
+      )
+
+      step = recipe.execution_steps.first
+      expect(step[:merge_config][:preference]).to eq(:template)
+      expect(step[:merge_config][:add_missing]).to be(true)
+    end
+  end
+
+  describe "explicit step validation" do
+    it "rejects mixing top-level injection with explicit steps" do
+      expect do
+        described_class.new(
+          minimal_config.merge(
+            "injection" => {
+              "anchor" => {"type" => "heading"},
+            },
+            "steps" => [
+              {"kind" => "smart_merge"},
+            ],
+          ),
+        )
+      end.to raise_error(ArgumentError, /top-level injection or explicit steps/)
+    end
+
+    it "rejects empty explicit step arrays" do
+      expect do
+        described_class.new(minimal_config.merge("steps" => []))
+      end.to raise_error(ArgumentError, /steps cannot be empty/)
+    end
+
+    it "rejects unsupported step kinds" do
+      expect do
+        described_class.new(minimal_config.merge("steps" => [{"kind" => "mystery"}]))
+      end.to raise_error(ArgumentError, /step kind must be one of/)
+    end
+
+    it "requires injection for partial_merge steps" do
+      expect do
+        described_class.new(minimal_config.merge("steps" => [{"kind" => "partial_merge"}]))
+      end.to raise_error(ArgumentError, /partial_merge step requires injection/)
+    end
+
+    it "requires script for ruby_script steps" do
+      expect do
+        described_class.new(minimal_config.merge("steps" => [{"kind" => "ruby_script"}]))
+      end.to raise_error(ArgumentError, /ruby_script step requires script/)
+    end
+  end
+
   describe "#template_absolute_path" do
+    it "returns nil for content-only recipes" do
+      recipe = described_class.new(content_only_config)
+      expect(recipe.template_absolute_path).to be_nil
+    end
+
     it "returns absolute path unchanged" do
       config = minimal_config.merge("template" => "/absolute/path/template.md")
       recipe = described_class.new(config)
@@ -248,6 +411,12 @@ RSpec.describe Ast::Merge::Recipe::Config do
       expect(paths.size).to eq(3)
       expect(paths).to include(File.join(base_dir, "README.md"))
       expect(paths).to include(File.join(base_dir, "vendor", "gem1", "README.md"))
+    end
+
+    it "returns an empty list for content-only recipes" do
+      recipe = described_class.new(content_only_config)
+
+      expect(recipe.expand_targets(base_dir: base_dir)).to eq([])
     end
   end
 

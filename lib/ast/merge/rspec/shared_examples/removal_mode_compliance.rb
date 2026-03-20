@@ -21,7 +21,7 @@
 # - :options      Additional merge options (remove_template_missing_nodes: true is forced)
 #
 # The shared example validates both exact output and idempotency for each case.
-RSpec.shared_examples "Ast::Merge::RemovalModeCompliance" do
+RSpec.shared_examples("Ast::Merge::RemovalModeCompliance") do
   def merge_removal_mode_case(example_case, destination_override: nil)
     options = {remove_template_missing_nodes: true}.merge(example_case.fetch(:options, {}))
 
@@ -52,7 +52,7 @@ RSpec.shared_examples "Ast::Merge::RemovalModeCompliance" do
       example_case = removal_mode_case_for(case_name)
       skip unsupported_removal_mode_case_reason(case_name) unless example_case
 
-      expect(merge_removal_mode_case(example_case)).to eq(example_case.fetch(:expected))
+      expect(merge_removal_mode_case(example_case)).to(eq(example_case.fetch(:expected)))
     end
 
     it "#{description} idempotently" do
@@ -60,7 +60,7 @@ RSpec.shared_examples "Ast::Merge::RemovalModeCompliance" do
       skip unsupported_removal_mode_case_reason(case_name) unless example_case
       first_result = merge_removal_mode_case(example_case)
 
-      expect(merge_removal_mode_case(example_case, destination_override: first_result)).to eq(first_result)
+      expect(merge_removal_mode_case(example_case, destination_override: first_result)).to(eq(first_result))
     end
   end
 end

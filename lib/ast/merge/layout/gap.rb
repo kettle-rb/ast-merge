@@ -56,7 +56,7 @@ module Ast
         def fallback_side
           return unless controller_side
 
-          controller_side == :before ? :after : :before
+          (controller_side == :before) ? :after : :before
         end
 
         def fallback_controller
@@ -111,7 +111,11 @@ module Ast
           when :postlude
             :before
           else
-            after_owner ? :after : (before_owner ? :before : nil)
+            if after_owner
+              :after
+            else
+              (before_owner ? :before : nil)
+            end
           end
         end
 
@@ -120,17 +124,17 @@ module Ast
           return normalized if KINDS.include?(normalized)
 
           raise ArgumentError,
-            "Unknown layout gap kind: #{kind.inspect}. Expected one of: #{KINDS.join(', ')}"
+            "Unknown layout gap kind: #{kind.inspect}. Expected one of: #{KINDS.join(", ")}"
         end
 
         def normalize_controller_side(side)
-          return nil if side.nil?
+          return if side.nil?
 
           normalized = side.to_sym
           return normalized if SIDES.include?(normalized)
 
           raise ArgumentError,
-            "Unknown controller side: #{side.inspect}. Expected one of: #{SIDES.join(', ')}"
+            "Unknown controller side: #{side.inspect}. Expected one of: #{SIDES.join(", ")}"
         end
 
         def validate_range!

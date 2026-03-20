@@ -28,7 +28,7 @@ class TestPartialTemplateMerger
       content: merged_content,
       changed: merged_content != @destination,
       has_section: true,
-      message: merged_content == @destination ? "Section unchanged" : "Section merged successfully",
+      message: (merged_content == @destination) ? "Section unchanged" : "Section merged successfully",
     )
   end
 end

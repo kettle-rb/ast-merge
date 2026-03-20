@@ -152,26 +152,26 @@ RSpec.shared_examples("Ast::Merge::FileAnalyzable") do
 
     describe "#layout_attachment_for" do
       it "responds to the method" do
-        expect(analysis).to respond_to(:layout_attachment_for)
+        expect(analysis).to(respond_to(:layout_attachment_for))
       end
 
       it "returns a shared layout attachment" do
         attachment = analysis.layout_attachment_for(synthetic_owner)
 
-        expect(attachment).to be_a(Ast::Merge::Layout::Attachment)
-        expect(attachment.owner).to eq(synthetic_owner)
+        expect(attachment).to(be_a(Ast::Merge::Layout::Attachment))
+        expect(attachment.owner).to(eq(synthetic_owner))
       end
     end
 
     describe "#layout_augmenter" do
       it "responds to the method" do
-        expect(analysis).to respond_to(:layout_augmenter)
+        expect(analysis).to(respond_to(:layout_augmenter))
       end
 
       it "returns a shared layout augmenter" do
         augmenter = analysis.layout_augmenter
 
-        expect(augmenter).to be_a(Ast::Merge::Layout::Augmenter)
+        expect(augmenter).to(be_a(Ast::Merge::Layout::Augmenter))
       end
     end
   end

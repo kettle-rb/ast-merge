@@ -10,8 +10,14 @@ module Ast
       # gems can describe leading, inline, trailing, and orphan comment regions
       # around a structural owner node.
       class Attachment
-        attr_reader :owner, :leading_region, :inline_region, :trailing_region, :orphan_regions,
-          :leading_gap, :trailing_gap, :metadata
+        attr_reader :owner,
+          :leading_region,
+          :inline_region,
+          :trailing_region,
+          :orphan_regions,
+          :leading_gap,
+          :trailing_gap,
+          :metadata
 
         def initialize(owner: nil, leading_region: nil, inline_region: nil, trailing_region: nil, orphan_regions: [], leading_gap: nil, trailing_gap: nil, metadata: {}, **options)
           @owner = owner

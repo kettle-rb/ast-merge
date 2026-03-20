@@ -99,7 +99,7 @@ module Ast
         return emit_inline_comment_region(region) if inline
 
         previous_line = nil
-        region.nodes.each do |node|
+        comment_region_nodes(region).each do |node|
           current_line = comment_region_line_number(node)
           emit_region_gap_lines(previous_line, current_line, source_lines)
           emit_comment_node(node)
@@ -261,15 +261,36 @@ module Ast
       private
 
       def emit_inline_comment_region(region)
-        text = Array(region.nodes).filter_map do |node|
+        text = inline_comment_region_text(region)
+        return if text.empty? || @lines.empty?
+
+        emit_inline_comment_text(
+          text,
+          region: region,
+          target_column: inline_comment_region_target_column(region, current_line: @lines[-1].to_s),
+        )
+      end
+
+      def comment_region_nodes(region)
+        Array(region.nodes)
+      end
+
+      def inline_comment_region_text(region)
+        comment_region_nodes(region).filter_map do |node|
           if node.respond_to?(:normalized_content)
             node.normalized_content
           else
             node.to_s
           end
         end.join(" ").strip
+      end
 
-        emit_comment(text, inline: true) unless text.empty?
+      def inline_comment_region_target_column(region, current_line:)
+        nil
+      end
+
+      def emit_inline_comment_text(text, region:, target_column: nil)
+        emit_comment(text, inline: true)
       end
 
       def emit_comment_node(node)

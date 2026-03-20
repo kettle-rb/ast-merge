@@ -25,6 +25,9 @@ Please file a bug if you notice a violation of semantic versioning.
 - Added shared adapter helpers and RSpec coverage for normalized comment regions, attachments, augmenters, and the first removal-mode compliance example for downstream merge gems
 - Added `Ast::Merge::TrailingGroups::{Core,DestIterate,AlignmentSort}` as shared infrastructure for position-aware template-only insertion across destination-iterate and alignment-based merge implementations
 - Added the shared `Ast::Merge::Layout` namespace, owner-side layout compliance coverage, and README documentation for the blank-line/layout contract adopted across the `*-merge` family
+- Added `Ast::Merge::KeyPathPartialTemplateMergerBase` as shared substrate for parser-backed partial merges that target structured key paths instead of navigable anchor/boundary sections
+- Added `Ast::Merge::FileAlignerBase` as shared substrate for signature-based alignment pipelines that pair matched entries, support optional fuzzy refinement, and leave payload / alias / positioning hooks to leaf gems
+- Added Prism-backed recipe-runner dispatch for navigable partial-template merges, alongside the shared adaptation hook concrete parsers can use when their analysis statements need a thin wrapper before entering the shared navigable substrate
 - Document how to build a gem in the *-merge gem family.
 
 ### Changed

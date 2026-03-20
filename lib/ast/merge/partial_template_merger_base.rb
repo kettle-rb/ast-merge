@@ -135,7 +135,7 @@ module Ast
       def merge
         # Parse destination and find injection point
         d_analysis = create_analysis(destination)
-        d_statements = Navigable::Statement.build_list(d_analysis.statements)
+        d_statements = Navigable::Statement.build_list(navigable_statements_for(d_analysis))
 
         finder = Navigable::InjectionPointFinder.new(d_statements)
         injection_point = finder.find(
@@ -174,6 +174,20 @@ module Ast
       # @return [Object] A SmartMerger instance
       def create_smart_merger(template_content, destination_content)
         raise NotImplementedError, "#{self.class} must implement #create_smart_merger"
+      end
+
+      # Return the raw statement-like nodes that should participate in navigable
+      # partial-target matching.
+      #
+      # The default contract uses `analysis.statements` directly. Subclasses may
+      # override when their parser-backed analysis exposes statements that need a
+      # thin adapter layer before they satisfy the navigable `type` / `text` /
+      # `source_position` contract.
+      #
+      # @param analysis [Object] The parser-specific analysis
+      # @return [Array<Object>] Statement-like nodes suitable for Navigable::Statement
+      def navigable_statements_for(analysis)
+        analysis.statements
       end
 
       # Find where the section ends.
@@ -263,9 +277,17 @@ module Ast
         section_statements = d_statements[section_start_idx..section_end_idx]
         after_statements = d_statements[(section_end_idx + 1)..]
 
+        section_context = build_section_merge_context(
+          analysis: d_analysis,
+          statements: d_statements,
+          section_start_idx: section_start_idx,
+          section_end_idx: section_end_idx,
+          injection_point: injection_point,
+        )
+
         # Determine the merged section content
         section_content = statements_to_content(section_statements, d_analysis)
-        merged_section, stats = merge_section_content(section_content)
+        merged_section, stats = merge_section_content(section_content, section_context: section_context)
 
         # Reconstruct the document using source-based extraction
         before_content = statements_to_content(before_statements, d_analysis)
@@ -293,7 +315,7 @@ module Ast
         )
       end
 
-      def merge_section_content(section_content)
+      def merge_section_content(section_content, section_context: nil)
         # Use SmartMerger for intelligent merging of the section
         # The behavior depends on preference setting:
         # - :template with replace_mode: true -> full replacement
@@ -309,6 +331,23 @@ module Ast
           result = merger.merge_result
           [result.content, result.stats.merge(mode: :merge)]
         end
+      end
+
+      def build_section_merge_context(analysis:, statements:, section_start_idx:, section_end_idx:, injection_point: nil)
+        {
+          analysis: analysis,
+          statements: statements,
+          section_statements: statements[section_start_idx..section_end_idx],
+          section_start_idx: section_start_idx,
+          section_end_idx: section_end_idx,
+          injection_point: injection_point,
+          source_remove_plan: source_remove_plan_for(
+            analysis: analysis,
+            statements: statements,
+            section_start_idx: section_start_idx,
+            section_end_idx: section_end_idx,
+          ),
+        }
       end
 
       # Check if we're in replace mode (vs merge mode)
@@ -382,10 +421,10 @@ module Ast
         return unless first_statement && last_statement
 
         previous_statement = section_start_idx.positive? ? statements[section_start_idx - 1] : nil
-        next_statement = (section_end_idx + 1) < statements.length ? statements[section_end_idx + 1] : nil
+        next_statement = ((section_end_idx + 1) < statements.length) ? statements[section_end_idx + 1] : nil
 
-        replace_start_line = statement_start_line(first_statement)
-        replace_end_line = statement_end_line(last_statement)
+        replace_start_line = StructuralEdit::BoundarySupport.statement_start_line(first_statement)
+        replace_end_line = StructuralEdit::BoundarySupport.statement_end_line(last_statement)
         return if replace_start_line.nil? || replace_end_line.nil?
 
         Ast::Merge::StructuralEdit::SplicePlan.new(
@@ -393,42 +432,35 @@ module Ast
           replacement: merged_section,
           replace_start_line: replace_start_line,
           replace_end_line: replace_end_line,
-          leading_boundary: build_splice_boundary(analysis, previous_statement, edge: :leading),
-          trailing_boundary: build_splice_boundary(analysis, next_statement, edge: :trailing),
+          leading_boundary: StructuralEdit::BoundarySupport.build_splice_boundary(
+            analysis,
+            previous_statement,
+            edge: :leading,
+            source: :partial_template_merger_base,
+          ),
+          trailing_boundary: StructuralEdit::BoundarySupport.build_splice_boundary(
+            analysis,
+            next_statement,
+            edge: :trailing,
+            source: :partial_template_merger_base,
+          ),
           metadata: {source: :partial_template_merger_base},
         )
       rescue ArgumentError
         nil
       end
 
-      def build_splice_boundary(analysis, statement, edge:)
-        return unless statement
+      def source_remove_plan_for(analysis:, statements:, section_start_idx:, section_end_idx:)
+        previous_statement = section_start_idx.positive? ? statements[section_start_idx - 1] : nil
+        next_statement = ((section_end_idx + 1) < statements.length) ? statements[section_end_idx + 1] : nil
 
-        owner = statement.respond_to?(:node) ? statement.node : statement
-
-        Ast::Merge::StructuralEdit::Boundary.new(
-          edge: edge,
-          owner: owner,
-          layout_attachment: analysis.respond_to?(:layout_attachment_for) ? analysis.layout_attachment_for(owner) : nil,
-          comment_attachment: analysis.respond_to?(:comment_attachment_for) ? analysis.comment_attachment_for(owner) : nil,
+        StructuralEdit::RemovePlanSupport.build_remove_plan(
+          analysis: analysis,
+          statements: statements[section_start_idx..section_end_idx],
+          leading_statement: previous_statement,
+          trailing_statement: next_statement,
           source: :partial_template_merger_base,
         )
-      end
-
-      def statement_start_line(statement)
-        if statement.respond_to?(:start_line)
-          statement.start_line
-        elsif statement.respond_to?(:source_position)
-          statement.source_position&.dig(:start_line)
-        end
-      end
-
-      def statement_end_line(statement)
-        if statement.respond_to?(:end_line)
-          statement.end_line
-        elsif statement.respond_to?(:source_position)
-          statement.source_position&.dig(:end_line)
-        end
       end
     end
   end

@@ -8,17 +8,17 @@ RSpec.shared_examples("a reproducible partial merge") do
   it "produces the expected partial-merge result" do
     result = build_partial_merger(destination: destination_content).merge
 
-    expect(partial_merge_result_content(result)).to eq(expected_merged_content)
+    expect(partial_merge_result_content(result)).to(eq(expected_merged_content))
   end
 
   it "is idempotent (merging the merged content again produces the same result)" do
     first_result = build_partial_merger(destination: destination_content).merge
     second_result = build_partial_merger(destination: partial_merge_result_content(first_result)).merge
 
-    expect(partial_merge_result_content(second_result)).to eq(partial_merge_result_content(first_result))
+    expect(partial_merge_result_content(second_result)).to(eq(partial_merge_result_content(first_result)))
 
     second_changed = partial_merge_result_changed(second_result)
-    expect(second_changed).to be(false) if expect_second_merge_unchanged && !second_changed.nil?
+    expect(second_changed).to(be(false)) if expect_second_merge_unchanged && !second_changed.nil?
   end
 
   it "reports partial-target discovery consistently when the result exposes it" do
@@ -28,7 +28,7 @@ RSpec.shared_examples("a reproducible partial merge") do
     skip "Partial merge result does not expose a target-found indicator" if discovered_target.nil?
     skip "Target-found assertions intentionally skipped for this contract consumer" if expected_target_found == :skip
 
-    expect(discovered_target).to eq(expected_target_found)
+    expect(discovered_target).to(eq(expected_target_found))
   end
 
   def build_partial_merger(destination:)

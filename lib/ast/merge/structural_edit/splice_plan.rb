@@ -11,16 +11,23 @@ module Ast
       # such as PartialTemplateMergerBase and gives future remove/rehome work a
       # stable place to grow richer ownership-transfer rules.
       class SplicePlan
-        attr_reader :source, :replacement, :replace_start_line, :replace_end_line,
-          :leading_boundary, :trailing_boundary, :metadata
+        attr_reader :source,
+          :replacement,
+          :replace_start_line,
+          :replace_end_line,
+          :leading_boundary,
+          :trailing_boundary,
+          :preserve_removed_trailing_blank_lines,
+          :metadata
 
-        def initialize(source:, replacement:, replace_start_line:, replace_end_line:, leading_boundary: nil, trailing_boundary: nil, metadata: {}, **options)
+        def initialize(source:, replacement:, replace_start_line:, replace_end_line:, leading_boundary: nil, trailing_boundary: nil, preserve_removed_trailing_blank_lines: true, metadata: {}, **options)
           @source = source.to_s
           @replacement = replacement.to_s
           @replace_start_line = Integer(replace_start_line)
           @replace_end_line = Integer(replace_end_line)
           @leading_boundary = leading_boundary
           @trailing_boundary = trailing_boundary
+          @preserve_removed_trailing_blank_lines = preserve_removed_trailing_blank_lines
           @metadata = metadata.merge(options).freeze
 
           validate_range!
@@ -32,6 +39,10 @@ module Ast
 
         def before_content
           line_chunks[0...(replace_start_line - 1)].to_a.join
+        end
+
+        def line_range
+          replace_start_line..replace_end_line
         end
 
         def removed_content
@@ -48,6 +59,25 @@ module Ast
 
         def changed?
           merged_content != source
+        end
+
+        def to_splice_plan
+          self
+        end
+
+        def apply_to(alternate_source = source)
+          alternate_text = alternate_source.to_s
+          return merged_content if alternate_text == source
+
+          self.class.new(
+            source: alternate_text,
+            replacement: replacement,
+            replace_start_line: replace_start_line,
+            replace_end_line: replace_end_line,
+            leading_boundary: leading_boundary,
+            trailing_boundary: trailing_boundary,
+            metadata: metadata,
+          ).merged_content
         end
 
         def inspect
@@ -67,6 +97,8 @@ module Ast
         end
 
         def preserve_removed_trailing_blank_lines?
+          return false unless preserve_removed_trailing_blank_lines
+
           !after_content.empty? &&
             !missing_trailing_blank_line_chunks.empty?
         end

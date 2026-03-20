@@ -105,6 +105,129 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 
+  describe "#run_content" do
+    let(:content_recipe_path) { File.join(base_dir, "recipes", "content_recipe.yml") }
+    let(:content_recipe) do
+      Ast::Merge::Recipe::Config.new(
+        {
+          "name" => "content_recipe",
+          "parser" => "markly",
+          "steps" => [
+            {
+              "kind" => "ruby_script",
+              "name" => "seed_from_template",
+              "script" => "seed_from_template.rb",
+            },
+            {
+              "kind" => "ruby_script",
+              "name" => "append_path",
+              "script" => "append_path.rb",
+            },
+          ],
+        },
+        recipe_path: content_recipe_path,
+      )
+    end
+
+    before do
+      scripts_dir = File.join(base_dir, "recipes", "content_recipe")
+      FileUtils.mkdir_p(scripts_dir)
+      File.write(
+        File.join(scripts_dir, "seed_from_template.rb"),
+        <<~'RUBY',
+          lambda do |template_content:, destination_content:, **|
+            "#{template_content}\n\nDEST=#{destination_content.strip}"
+          end
+        RUBY
+      )
+      File.write(
+        File.join(scripts_dir, "append_path.rb"),
+        <<~'RUBY',
+          lambda do |content:, relative_path:, **|
+            "#{content}\nPATH=#{relative_path}"
+          end
+        RUBY
+      )
+      File.write(
+        File.join(scripts_dir, "append_min_ruby.rb"),
+        <<~'RUBY',
+          lambda do |content:, context:, **|
+            min_ruby = context.fetch(:min_ruby, "none")
+            "#{content}\nMIN_RUBY=#{min_ruby}"
+          end
+        RUBY
+      )
+    end
+
+    it "executes content-only recipes in memory" do
+      runner = described_class.new(content_recipe, dry_run: true, base_dir: base_dir)
+
+      result = runner.run_content(
+        template_content: "# Template",
+        destination_content: "# Destination",
+        relative_path: "README.md",
+      )
+
+      expect(result.status).to eq(:would_update)
+      expect(result.content).to eq("# Template\n\nDEST=# Destination\nPATH=README.md")
+      expect(result.changed).to be(true)
+      expect(result.relative_path).to eq("README.md")
+    end
+
+    it "passes runtime context through to ruby_script steps" do
+      context_recipe = Ast::Merge::Recipe::Config.new(
+        {
+          "name" => "context_recipe",
+          "parser" => "prism",
+          "steps" => [
+            {
+              "kind" => "ruby_script",
+              "name" => "append_min_ruby",
+              "script" => "append_min_ruby.rb",
+            },
+          ],
+        },
+        recipe_path: content_recipe_path,
+      )
+
+      runner = described_class.new(
+        context_recipe,
+        dry_run: true,
+        base_dir: base_dir,
+        context: {"min_ruby" => "3.2"},
+      )
+
+      result = runner.run_content(
+        template_content: "appraise \"ruby-3-2\" do\nend\n",
+        destination_content: "appraise \"ruby-2-7\" do\nend\n",
+        relative_path: "Appraisals",
+      )
+
+      expect(result.content).to end_with("MIN_RUBY=3.2")
+      expect(result.changed).to be(true)
+    end
+  end
+
+  describe "content-only recipe guards" do
+    it "requires run_content for recipes without a template path" do
+      recipe = Ast::Merge::Recipe::Config.new(
+        {
+          "name" => "content_recipe",
+          "steps" => [
+            {
+              "kind" => "ruby_script",
+              "script" => "noop.rb",
+            },
+          ],
+        },
+        recipe_path: File.join(base_dir, "recipes", "content_recipe.yml"),
+      )
+
+      runner = described_class.new(recipe, dry_run: true, base_dir: base_dir)
+      expect { runner.run }.to raise_error(ArgumentError, /use run_content/)
+    end
+  end
+
   describe "#results_by_status", :markly_merge do
     let(:runner) { described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :markly) }
 
@@ -614,6 +737,161 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 
+  describe "explicit steps execution" do
+    let(:step_recipe_path) { File.join(base_dir, "recipes", "step_recipe.yml") }
+    let(:step_scripts_dir) { File.join(base_dir, "recipes", "step_recipe") }
+
+    before do
+      FileUtils.mkdir_p(step_scripts_dir)
+    end
+
+    describe "ruby_script steps" do
+      let(:script_target_path) { File.join(base_dir, "recipes", "script_target.md") }
+      let(:script_recipe) do
+        Ast::Merge::Recipe::Config.new(
+          {
+            "name" => "step_recipe",
+            "template" => "template.md",
+            "targets" => ["script_target.md"],
+            "steps" => [
+              {"kind" => "ruby_script", "script" => "append_template.rb"},
+              {"kind" => "ruby_script", "script" => "append_relative_path.rb"},
+            ],
+          },
+          recipe_path: step_recipe_path,
+        )
+      end
+
+      before do
+        File.write(script_target_path, "Original destination\n")
+        File.write(File.join(step_scripts_dir, "append_template.rb"), <<~'RUBY')
+          lambda do |content:, template_content:, **|
+            "#{content.chomp}\n--\n#{template_content}\n"
+          end
+        RUBY
+        File.write(File.join(step_scripts_dir, "append_relative_path.rb"), <<~'RUBY')
+          lambda do |content:, relative_path:, **|
+            {
+              content: "#{content}from=#{relative_path}\n",
+              message: "Script step updated content",
+              stats: {kind: :ruby_script},
+            }
+          end
+        RUBY
+      end
+
+      it "executes steps sequentially against the current content" do
+        runner = described_class.new(script_recipe, dry_run: true, base_dir: base_dir)
+        results = runner.run
+
+        expect(results.size).to eq(1)
+        expect(results.first.status).to eq(:would_update)
+        expect(results.first.changed).to be true
+        expect(results.first.has_anchor).to be true
+        expect(results.first.message).to eq("Script step updated content")
+        expect(results.first.stats[:steps].size).to eq(2)
+        expect(File.read(script_target_path)).to eq("Original destination\n")
+      end
+
+      it "writes the final transformed content when not dry_run" do
+        runner = described_class.new(script_recipe, dry_run: false, base_dir: base_dir)
+        runner.run
+
+        expect(File.read(script_target_path)).to include("--\n# Template\n\nTemplate content.")
+        expect(File.read(script_target_path)).to include("from=recipes/script_target.md")
+      end
+    end
+
+    describe "smart_merge step dispatch", :prism_merge do
+      let(:smart_target_path) { File.join(base_dir, "recipes", "smart_target.rb") }
+      let(:smart_recipe) do
+        Ast::Merge::Recipe::Config.new(
+          {
+            "name" => "smart_recipe",
+            "template" => "template.md",
+            "targets" => ["smart_target.rb"],
+            "parser" => "prism",
+            "steps" => [
+              {"kind" => "smart_merge"},
+            ],
+          },
+          recipe_path: step_recipe_path,
+        )
+      end
+
+      before do
+        File.write(smart_target_path, "class Example; end\n")
+      end
+
+      it "dispatches to the parser-family smart merger" do
+        merge_result = instance_double("MergeResult", content: "class Example\n  VALUE = 1\nend\n", stats: {mode: :smart}, problems: nil)
+        smart_merger = instance_double(Prism::Merge::SmartMerger, merge_result: merge_result)
+        allow(Prism::Merge::SmartMerger).to receive(:new).and_return(smart_merger)
+
+        runner = described_class.new(smart_recipe, dry_run: true, base_dir: base_dir, parser: :prism)
+        results = runner.run
+
+        expect(results.first.status).to eq(:would_update)
+        expect(results.first.changed).to be true
+        expect(results.first.has_anchor).to be true
+        expect(Prism::Merge::SmartMerger).to have_received(:new).with(
+          template_content,
+          "class Example; end\n",
+          hash_including(preference: :template, add_template_only_nodes: true),
+        )
+      end
+
+      it "coerces array-backed merge_result content to a string via #to_s" do
+        merge_result = instance_double(
+          "MergeResult",
+          content: ["class Example", "  VALUE = 1", "end"],
+          to_s: "class Example\n  VALUE = 1\nend\n",
+          stats: {mode: :smart},
+          problems: nil,
+        )
+        smart_merger = instance_double(Prism::Merge::SmartMerger, merge_result: merge_result)
+        allow(Prism::Merge::SmartMerger).to receive(:new).and_return(smart_merger)
+
+        runner = described_class.new(smart_recipe, dry_run: true, base_dir: base_dir, parser: :prism)
+        results = runner.run
+
+        expect(results.first.content).to eq("class Example\n  VALUE = 1\nend\n")
+      end
+    end
+
+    describe "legacy recipes without injection use an implicit smart_merge step", :prism_merge do
+      let(:smart_target_path) { File.join(base_dir, "recipes", "implicit_smart_target.rb") }
+      let(:legacy_smart_recipe) do
+        Ast::Merge::Recipe::Config.new(
+          {
+            "name" => "legacy_smart_recipe",
+            "template" => "template.md",
+            "targets" => ["implicit_smart_target.rb"],
+            "parser" => "prism",
+          },
+          recipe_path: step_recipe_path,
+        )
+      end
+
+      before do
+        File.write(smart_target_path, "class Example; end\n")
+      end
+
+      it "synthesizes a smart_merge execution path instead of requiring injection" do
+        merge_result = instance_double("MergeResult", content: "class Example\n  VALUE = 2\nend\n", stats: {mode: :smart}, problems: nil)
+        smart_merger = instance_double(Prism::Merge::SmartMerger, merge_result: merge_result)
+        allow(Prism::Merge::SmartMerger).to receive(:new).and_return(smart_merger)
+
+        runner = described_class.new(legacy_smart_recipe, dry_run: true, base_dir: base_dir, parser: :prism)
+        results = runner.run
+
+        expect(legacy_smart_recipe.execution_steps.map { |step| step[:kind] }).to eq([:smart_merge])
+        expect(results.first.status).to eq(:would_update)
+        expect(results.first.has_anchor).to be true
+      end
+    end
+  end
+
   describe "psych partial merge dispatch", :psych_merge do
     let(:psych_template_content) do
       <<~YAML
@@ -715,21 +993,85 @@ RSpec.describe Ast::Merge::Recipe::Runner do
     end
   end
 
-  describe "unsupported parser partial merge dispatch", :prism_merge do
-    it "keeps prism partial merges explicitly unsupported" do
+  describe "prism partial merge dispatch", :prism_merge do
+    it "uses Prism::Merge::PartialTemplateMerger for navigable prism targets" do
+      runner = described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :prism)
+
+      merger = runner.send(
+        :create_partial_template_merger,
+        template: "class Example\nend\n",
+        destination: "class Example\nend\n",
+        partial_target: {
+          kind: :navigable,
+          anchor: {type: :class, text: /class Example/},
+        },
+      )
+
+      expect(merger).to be_a(Prism::Merge::PartialTemplateMerger)
+    end
+
+    it "runs prism partial merges through the stock runner" do
+      prism_recipe = Ast::Merge::Recipe::Config.new(
+        {
+          "name" => "prism_partial_recipe",
+          "parser" => "prism",
+          "template" => "template.rb",
+          "targets" => ["example.rb"],
+          "injection" => {
+            "anchor" => {
+              "type" => "class",
+              "text" => "/class Example/",
+            },
+          },
+          "merge" => {
+            "preference" => "template",
+            "replace_mode" => true,
+          },
+          "when_missing" => "skip",
+        },
+        recipe_path: File.join(base_dir, "recipes", "prism_partial_recipe.yml"),
+      )
+
+      File.write(File.join(base_dir, "recipes", "template.rb"), <<~RUBY)
+        class Example
+          def template_method
+            :template
+          end
+        end
+      RUBY
+      File.write(File.join(base_dir, "recipes", "example.rb"), <<~RUBY)
+        class Example
+          def old_method
+            :old
+          end
+        end
+      RUBY
+
+      runner = described_class.new(prism_recipe, dry_run: false, base_dir: base_dir)
+      results = runner.run
+
+      expect(results.size).to eq(1)
+      expect(results.first.status).to eq(:updated)
+      expect(results.first.changed).to be(true)
+      expect(results.first.has_anchor).to be(true)
+      expect(File.read(File.join(base_dir, "recipes", "example.rb"))).to include("def template_method")
+      expect(File.read(File.join(base_dir, "recipes", "example.rb"))).not_to include("def old_method")
+    end
+
+    it "rejects key-path targets for the prism runner contract" do
       runner = described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :prism)
 
       expect {
         runner.send(
           :create_partial_template_merger,
-          template: "class Example; end\n",
-          destination: "class Example; end\n",
+          template: "class Example\nend\n",
+          destination: "class Example\nend\n",
           partial_target: {
-            kind: :navigable,
-            anchor: {type: :class},
+            kind: :key_path,
+            key_path: ["Example"],
           },
         )
-      }.to raise_error(NotImplementedError, /Prism PartialTemplateMerger not yet implemented/)
+      }.to raise_error(ArgumentError, /Parser :prism currently requires a navigable partial target/)
     end
   end
 

@@ -61,7 +61,7 @@ Available merge-gem tags include:
 Example:
 
 ```ruby
-RSpec.describe MyMarkdownFeature, :markly_merge do
+RSpec.describe(MyMarkdownFeature, :markly_merge) do
   it "runs only when markly-merge is available" do
     # ...
   end
@@ -137,7 +137,7 @@ Or load a single file if you only need one example.
 Typical setup:
 
 ```ruby
-RSpec.describe My::Merge::SmartMerger do
+RSpec.describe(My::Merge::SmartMerger) do
   it_behaves_like "a reproducible merge" do
     let(:fixtures_path) { File.expand_path("../fixtures/merge_cases", __dir__) }
     let(:merger_class) { described_class }
@@ -157,7 +157,7 @@ end
 Typical setup:
 
 ```ruby
-RSpec.describe "my recipe preset" do
+RSpec.describe("my recipe preset") do
   it_behaves_like "Ast::Merge::Recipe::PresetContract" do
     let(:preset_config) do
       {
@@ -178,7 +178,7 @@ RSpec.describe "my recipe preset" do
 
     let(:verify_loaded_preset) do
       lambda do |preset|
-        expect(preset.signature_generator.call("node")).to eq([:sig, "node"])
+        expect(preset.signature_generator.call("node")).to(eq([:sig, "node"]))
       end
     end
   end
@@ -192,7 +192,7 @@ end
 Typical setup:
 
 ```ruby
-RSpec.describe Markdown::Merge::PartialTemplateMerger, :markly_merge do
+RSpec.describe(Markdown::Merge::PartialTemplateMerger, :markly_merge) do
   it_behaves_like "a reproducible partial merge" do
     let(:partial_merger_class) { described_class }
     let(:template_content) { "New section\n" }

@@ -35,28 +35,28 @@ RSpec.shared_examples("Ast::Merge::Recipe::PresetContract") do
   it "loads the preset from disk and preserves recipe metadata" do
     preset = Ast::Merge::Recipe::Preset.load(preset_path)
 
-    expect(preset.parser).to eq(expected_parser)
-    expect(preset.parser_explicit?).to eq(expected_parser_explicit)
-    expect(preset.preference).to eq(expected_preference)
+    expect(preset.parser).to(eq(expected_parser))
+    expect(preset.parser_explicit?).to(eq(expected_parser_explicit))
+    expect(preset.preference).to(eq(expected_preference))
   end
 
   it "converts the preset into SmartMerger-compatible options" do
     preset = Ast::Merge::Recipe::Preset.load(preset_path)
     preset_options = preset.to_h
 
-    expect(preset_options[:preference]).to eq(expected_preference)
-    expect(preset_options).to include(:add_template_only_nodes)
-    expect(preset_options).to include(expected_to_h_including) unless expected_to_h_including.empty?
+    expect(preset_options[:preference]).to(eq(expected_preference))
+    expect(preset_options).to(include(:add_template_only_nodes))
+    expect(preset_options).to(include(expected_to_h_including)) unless expected_to_h_including.empty?
   end
 
   it "resolves companion scripts through the shared ScriptLoader" do
     preset = Ast::Merge::Recipe::Preset.load(preset_path)
 
     if preset_script_files.empty?
-      expect(preset.script_loader.scripts_available?).to be(false)
+      expect(preset.script_loader.scripts_available?).to(be(false))
     else
-      expect(preset.script_loader.scripts_available?).to be(true)
-      expect(preset.script_loader.available_scripts).to match_array(preset_script_files.keys)
+      expect(preset.script_loader.scripts_available?).to(be(true))
+      expect(preset.script_loader.available_scripts).to(match_array(preset_script_files.keys))
     end
 
     verify_loaded_preset.call(preset)

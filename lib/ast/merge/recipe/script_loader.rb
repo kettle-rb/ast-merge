@@ -65,6 +65,18 @@ module Ast
           load_script_file(reference)
         end
 
+        # Load a callable used by an explicit recipe `ruby_script` step.
+        #
+        # This is currently an alias of `#load_callable`, but kept separate so
+        # the step-script contract can evolve without conflating it with merge
+        # option callables like `signature_generator` or `add_missing`.
+        #
+        # @param reference [String, Proc, nil]
+        # @return [Proc, nil]
+        def load_step_callable(reference)
+          load_callable(reference)
+        end
+
         # Load a hash of callables (e.g., node_typing config).
         #
         # @param config [Hash, nil] Hash with script references as values

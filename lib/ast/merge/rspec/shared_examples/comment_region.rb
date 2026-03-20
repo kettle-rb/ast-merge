@@ -13,21 +13,20 @@
 #   end
 #
 RSpec.shared_examples("Ast::Merge::Comment::Region") do
-
   it "preserves the region kind" do
-    expect(comment_region.kind).to eq(expected_region_kind)
+    expect(comment_region.kind).to(eq(expected_region_kind))
   end
 
   it "exposes normalized content" do
-    expect(comment_region.normalized_content).to eq(expected_region_content)
+    expect(comment_region.normalized_content).to(eq(expected_region_content))
   end
 
   it "tracks line range from its child nodes" do
-    expect(comment_region.start_line).to eq(expected_region_lines.begin)
-    expect(comment_region.end_line).to eq(expected_region_lines.end)
+    expect(comment_region.start_line).to(eq(expected_region_lines.begin))
+    expect(comment_region.end_line).to(eq(expected_region_lines.end))
   end
 
   it "detects freeze markers across region nodes" do
-    expect(comment_region.freeze_marker?(freeze_token)).to be(freeze_marker_expected)
+    expect(comment_region.freeze_marker?(freeze_token)).to(be(freeze_marker_expected))
   end
 end

@@ -195,7 +195,7 @@ The `*-merge` gem family is built on a layered architecture:
 
 Ast::Merge builds on tree\_haver to provide:
 
-- **Base Classes**: `SmartMergerBase`, `ConflictResolverBase`, `MergeResultBase`, `FreezeNodeBase`, `PartialTemplateMergerBase`, and `DiffMapperBase`
+- **Base Classes**: `SmartMergerBase`, `ConflictResolverBase`, `MergeResultBase`, `FreezeNodeBase`, `FileAlignerBase`, `PartialTemplateMergerBase`, `KeyPathPartialTemplateMergerBase`, and `DiffMapperBase`
 - **Shared Modules and helpers**: `FileAnalyzable`, `MergerConfig`, `DebugLogger`, `NodeTyping`, `SectionTyping`, and `TrailingGroups`
 - **Freeze Block Support**: Configurable marker patterns for multiple comment syntaxes
 - **Region Detection**: `Ast::Merge::Detector::Base`, `FencedCodeBlock`, `YamlFrontmatter`, `TomlFrontmatter`, and `Detector::Mergeable`
@@ -238,8 +238,10 @@ These are the first shared capabilities to check before building a bespoke helpe
 | `Ast::Merge::Layout::*` | `ast-merge` | blank-line ownership, shared gap control, or edit-safe layout preservation |
 | `Ast::Merge::StructuralEdit::*` | `ast-merge` | contiguous structural replace/remove/rehome primitives that preserve untouched source and can carry comment/layout boundary metadata |
 | `Ast::Merge::TrailingGroups::*` | `ast-merge` | position-aware insertion of template-only nodes |
+| `Ast::Merge::FileAlignerBase` | `ast-merge` | signature-based alignment pipelines with shared pairwise matching, optional fuzzy refinement, and overridable entry payload / alias / sort hooks |
 | `Ast::Merge::NodeTyping` / `SectionTyping` | `ast-merge` | type-aware preferences or section-aware merge policy |
 | `Ast::Merge::PartialTemplateMergerBase` | `ast-merge` | section-scoped or region-scoped merges driven by structural boundaries |
+| `Ast::Merge::KeyPathPartialTemplateMergerBase` | `ast-merge` | partial merges that target hierarchical key paths in structured documents |
 | `Ast::Merge::Recipe::{Preset, Config, Runner}` | `ast-merge` | reusable recipe-backed merge policies, normalized partial-target contracts (`anchor`/`boundary` or `key_path`), and parser-family dispatch |
 | `markdown-merge` shared layer | `markdown-merge` | behavior shared across Markdown parsers but not appropriate for the cross-format substrate |
 
@@ -272,11 +274,11 @@ It is **not** automatically the right place for things like:
 
 If a normalization rule depends on one syntax family's rendering semantics, keep it in that family layer or leaf emitter unless it clearly proves reusable across unrelated formats.
 
-### Current family hotspot focus
+### Family hotspot focus
 
 These are the highest-value places to look before adding new bespoke merge logic:
 
-| Repo / layer | Current hotspot | Prefer to reuse or extend... |
+| Repo / layer | Hotspot | Prefer to reuse or extend... |
 |---|---|---|
 | `ast-merge` | parser-family partial-template routing, structural edit primitives, shared capability discoverability | `ast-merge` substrate |
 | `markdown-merge` | boundary between Markdown-family behavior and cross-format substrate | `markdown-merge` first, `ast-merge` only for proven cross-format needs |
@@ -305,6 +307,23 @@ If you are creating a new merge gem, the usual path is:
 5. add comments, freeze markers, recursive merge, regions, or partial-template support only as the format requires
 6. wire the gem into the shared RSpec support and `MergeGemRegistry`
 
+### Downstream stability contract
+
+For the current AST-over-regex rollout, the following `ast-merge` seams are the intended **stable downstream extension points** for new or existing `*-merge` gems:
+
+- authoring bases: `SmartMergerBase`, `ConflictResolverBase`, `MergeResultBase`, `FileAlignerBase`, `PartialTemplateMergerBase`, `KeyPathPartialTemplateMergerBase`, `DiffMapperBase`
+- shared capability families: `Comment::*`, `Layout::*`, `StructuralEdit::*`, `TrailingGroups::*`, `NodeTyping`, `SectionTyping`
+- recipe/preset surface: `Recipe::{Preset, Config, Runner}` and the normalized partial-target contract (`anchor` / `boundary` or `key_path`)
+- test/registration surface: shared RSpec support and `MergeGemRegistry`
+
+What is **not** frozen as a downstream contract:
+
+- parser-local leaf behavior (`prism-merge`, `psych-merge`, `markdown-merge`, etc.)
+- family-layer behavior that intentionally lives above `ast-merge`
+- private helper methods inside concrete leaf gems that are not documented here or in `BUILD_A_MERGE_GEM.md`
+
+If a future change needs to reshape one of the stable seams above, it should be treated as a contract change and called out explicitly in release notes rather than happening implicitly during another migration.
+
 ### Base Classes Reference
 
 | Base Class             | Purpose                     | Key Methods to Implement               |
@@ -312,13 +331,15 @@ If you are creating a new merge gem, the usual path is:
 | `SmartMergerBase`      | Main merge orchestration    | `analysis_class`, `perform_merge`      |
 | `ConflictResolverBase` | Resolve node conflicts      | `resolve_batch` or `resolve_node_pair` |
 | `MergeResultBase`      | Track merge results         | `to_s`, format-specific output         |
+| `FileAlignerBase`      | Signature-based file/declaration alignment | `template_entry_key`, `dest_entry_key`, `add_signature_aliases`, `template_only_entry_context` |
 | `PartialTemplateMergerBase` | Section-scoped merges | `create_analysis`, `create_smart_merger`, `find_section_end`, `node_to_text` |
+| `KeyPathPartialTemplateMergerBase` | Key-path partial merges | `create_analysis`, `child_entries_for`, `create_smart_merger`, `parse_content_value`, `dump_content_value`, `deep_merge_content_value` |
 | `DiffMapperBase`       | Unified diff parsing + AST path mapping foundation | `create_analysis`, `map_hunk_to_paths`, `build_path_for_node` |
 | `MatchRefinerBase`     | Fuzzy node matching         | `similarity`                           |
 | `ContentMatchRefiner`  | Text content fuzzy matching | Ready to use                           |
 | `FileAnalyzable`       | File parsing/analysis       | `compute_node_signature`               |
 
-`DiffMapperBase` and `PartialTemplateMergerBase` are opt-in authoring primitives. Format-specific gems provide the path-mapping, section-rendering logic, and any syntax-aware output cleanup that makes those workflows concrete for a particular syntax.
+`DiffMapperBase`, `FileAlignerBase`, `PartialTemplateMergerBase`, and `KeyPathPartialTemplateMergerBase` are opt-in authoring primitives. Format-specific gems provide the path-mapping, alignment payload shapes, section-rendering logic, structured child traversal, serialization, and any syntax-aware output cleanup that makes those workflows concrete for a particular syntax.
 
 ### ContentMatchRefiner
 
@@ -765,7 +786,7 @@ The recipe system provides two levels of configuration:
 - **`Ast::Merge::Recipe::Preset`** — Merge configuration only (preference, signature generator, node typing, freeze token). Use when you have your own template/destination handling and just need the merge settings.
 - **`Ast::Merge::Recipe::Config`** — Full recipe extending Preset with template file, target glob patterns, injection point configuration, and when_missing behavior.
 
-`Recipe::Preset` is parser-agnostic and can be passed to any format-specific `SmartMerger`. `Recipe::Runner` is narrower: in the stock `ast-merge` gem it currently drives parser-specific partial-template mergers for Markdown via `:markly` / `:commonmarker` and for YAML via `:psych`.
+`Recipe::Preset` is parser-agnostic and can be passed to any format-specific `SmartMerger`. `Recipe::Runner` is narrower: in the stock `ast-merge` gem it currently drives parser-specific partial-template mergers for Markdown via `:markly` / `:commonmarker`, for Ruby via `:prism`, and for YAML via `:psych`.
 
 ### Minimal Recipe (Preset)
 
@@ -791,7 +812,7 @@ result = merger.merge
 
 ### Full Recipe (Config)
 
-A full recipe adds template, targets, and partial-target configuration. In `ast-merge`, the built-in runner uses this flow for Markdown section updates:
+A full recipe adds template, targets, and partial-target configuration. In `ast-merge`, the built-in runner uses this flow for section updates in parsers that expose navigable anchor/boundary targets (for example Markdown and Ruby):
 
 ```yaml
 name: gem_family_section
@@ -900,12 +921,12 @@ bin/ast-merge-recipe path/to/gem_family_section.yml --dry-run --parser=markly
 When a recipe needs custom signature matching or node categorization beyond the defaults, it can reference Ruby scripts in an optional companion folder. The folder name must match the recipe name (without `.yml`):
 
 ```
-my-project/
-  recipes/
-    my_format.yml                    # The recipe
+my - project /
+  recipes /
+  my_format.yml                    # The recipe
     my_format/                       # Optional companion folder
       signature_generator.rb         # Returns a lambda for node matching
-      typing/
+      typing /
         call_node.rb                 # Returns a lambda for node categorization
 ```
 

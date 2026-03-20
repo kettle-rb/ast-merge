@@ -615,6 +615,8 @@ end
 
 ## 8. Optional extension points
 
+The extension points in this section are the intended **stable downstream authoring contract** for new `*-merge` gems. Treat these as the supported seams to build on; if one of them needs to change, that should be an explicit contract change rather than an incidental side effect of unrelated refactors.
+
 ### `NodeTyping`
 
 Use when certain node types need different merge preferences or wrappers.

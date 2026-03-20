@@ -56,6 +56,25 @@ RSpec.describe Ast::Merge::StructuralEdit::SplicePlan do
 
       expect(plan.merged_content).to eq("## Section\nNew body\n\n## After\n")
     end
+
+    it "can disable preserved trailing blank-line separators for exact range deletion callers" do
+      source = <<~TEXT
+        ## Section
+        Old body
+
+        ## After
+      TEXT
+
+      plan = described_class.new(
+        source: source,
+        replacement: "## Section\nNew body\n",
+        replace_start_line: 1,
+        replace_end_line: 3,
+        preserve_removed_trailing_blank_lines: false,
+      )
+
+      expect(plan.merged_content).to eq("## Section\nNew body\n## After\n")
+    end
   end
 
   describe "validation" do

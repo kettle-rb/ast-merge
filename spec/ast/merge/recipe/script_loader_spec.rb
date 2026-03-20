@@ -135,6 +135,23 @@ RSpec.describe Ast::Merge::Recipe::ScriptLoader do
     end
   end
 
+  describe "#load_step_callable" do
+    let(:loader) { described_class.new(recipe_path: recipe_path) }
+
+    before do
+      File.write(File.join(scripts_dir, "step.rb"), <<~'RUBY')
+        lambda do |content:, template_content:, **|
+          "#{content}--#{template_content}"
+        end
+      RUBY
+    end
+
+    it "loads step scripts through the same companion-folder convention" do
+      callable = loader.load_step_callable("step.rb")
+      expect(callable.call(content: "dest", template_content: "tpl")).to eq("dest--tpl")
+    end
+  end
+
   describe "#load_callable_hash" do
     let(:loader) { described_class.new(recipe_path: recipe_path) }
 

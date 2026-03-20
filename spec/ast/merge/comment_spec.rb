@@ -284,7 +284,7 @@ RSpec.describe Ast::Merge::Comment do
         comments: [
           {line: 1, text: "preamble", raw: "# preamble", full_line: true},
           {line: 3, text: "docs", raw: "# docs", full_line: true},
-          {line: 4, text: "inline", raw: '# inline', full_line: false},
+          {line: 4, text: "inline", raw: "# inline", full_line: false},
           {line: 6, text: "postlude", raw: "# postlude", full_line: true},
         ],
         owners: [owner],

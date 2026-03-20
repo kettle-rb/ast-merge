@@ -55,6 +55,61 @@ RSpec.describe Ast::Merge::EmitterBase do
 
       expect(emitter.lines).to eq(["key: value # inline note"])
     end
+
+    it "lets subclasses normalize region nodes before emission" do
+      deduplicating_emitter_class = Class.new(emitter_class) do
+        private
+
+        def comment_region_nodes(region)
+          nodes = Array(region.nodes)
+          midpoint = nodes.length / 2
+          midpoint.positive? && nodes.first(midpoint) == nodes.last(midpoint) ? nodes.first(midpoint) : nodes
+        end
+      end
+
+      region = Ast::Merge::Comment::TrackedHashAdapter.region(
+        kind: :leading,
+        comments: [
+          {line: 1, indent: 0, text: "Header", full_line: true, raw: "# Header"},
+          {line: 2, indent: 0, text: "Details", full_line: true, raw: "# Details"},
+          {line: 1, indent: 0, text: "Header", full_line: true, raw: "# Header"},
+          {line: 2, indent: 0, text: "Details", full_line: true, raw: "# Details"},
+        ],
+      )
+
+      deduplicating_emitter = deduplicating_emitter_class.new
+      deduplicating_emitter.emit_comment_region(region)
+
+      expect(deduplicating_emitter.lines).to eq(["# Header", "# Details"])
+    end
+
+    it "lets subclasses align inline comment placement" do
+      aligning_emitter_class = Class.new(emitter_class) do
+        private
+
+        def inline_comment_region_target_column(region, current_line:)
+          16
+        end
+
+        def emit_inline_comment_text(text, region:, target_column: nil)
+          base = @lines[-1].to_s.rstrip
+          @lines[-1] = base.ljust(target_column) + "# #{text}"
+        end
+      end
+
+      region = Ast::Merge::Comment::TrackedHashAdapter.region(
+        kind: :inline,
+        comments: [
+          {line: 1, indent: 16, text: "note", full_line: false, raw: "key = 1 # note"},
+        ],
+      )
+
+      aligning_emitter = aligning_emitter_class.new
+      aligning_emitter.emit_raw_lines(["key = 1"])
+      aligning_emitter.emit_comment_region(region, inline: true)
+
+      expect(aligning_emitter.lines).to eq(["key = 1         # note"])
+    end
   end
 
   describe "#emit_comment_attachment" do

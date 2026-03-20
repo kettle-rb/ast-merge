@@ -29,6 +29,8 @@ module Ast
       autoload :Attachment, "ast/merge/comment/attachment"
       autoload :Augmenter, "ast/merge/comment/augmenter"
       autoload :Capability, "ast/merge/comment/capability"
+      autoload :CStyleTrackerBase, "ast/merge/comment/c_style_tracker_base"
+      autoload :HashTrackerBase, "ast/merge/comment/hash_tracker_base"
       autoload :Region, "ast/merge/comment/region"
       autoload :RegionMergePolicy, "ast/merge/comment/region_merge_policy"
       autoload :TrackedHashAdapter, "ast/merge/comment/tracked_hash_adapter"
