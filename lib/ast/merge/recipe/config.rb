@@ -54,10 +54,10 @@ module Ast
         # @return [Array<String>] Glob patterns for target files
         attr_reader :targets
 
-        # @return [Hash] Injection point configuration
+        # @return [Hash] Injection point / partial target configuration
         attr_reader :injection
 
-        # @return [Symbol] Behavior when injection anchor not found (:skip, :append, :prepend)
+        # @return [Symbol] Behavior when the partial target is not found (:skip, :append, :prepend, :add)
         attr_reader :when_missing
 
         # Alias for compatibility - recipe_path points to the same file as preset_path
@@ -128,6 +128,8 @@ module Ast
         #
         # @return [Hash] Arguments for InjectionPointFinder#find
         def finder_query
+          return {} unless navigable_partial_target?
+
           anchor = injection[:anchor] || {}
           boundary = injection[:boundary] || {}
 
@@ -148,6 +150,48 @@ module Ast
           query.compact
         end
 
+        # Get the normalized partial-target contract for this recipe.
+        #
+        # This is the shared shape used by the stock runner to dispatch between
+        # parser families without baking parser-specific YAML parsing logic into
+        # the runner itself.
+        #
+        # @return [Hash, nil]
+        def partial_target
+          case partial_target_kind
+          when :navigable
+            {
+              kind: :navigable,
+              anchor: injection[:anchor],
+              position: injection[:position] || :replace,
+              boundary: injection[:boundary],
+            }.compact
+          when :key_path
+            {
+              kind: :key_path,
+              key_path: injection[:key_path],
+            }
+          end
+        end
+
+        # @return [Symbol, nil] The normalized target selector kind
+        def partial_target_kind
+          return :key_path if injection[:key_path]
+          return :navigable if injection[:anchor]
+
+          nil
+        end
+
+        # @return [Boolean]
+        def navigable_partial_target?
+          partial_target_kind == :navigable
+        end
+
+        # @return [Boolean]
+        def key_path_partial_target?
+          partial_target_kind == :key_path
+        end
+
         # Whether to use replace mode (template replaces section entirely).
         #
         # @return [Boolean]
@@ -160,11 +204,32 @@ module Ast
         def parse_injection(config)
           return {} if config.empty?
 
-          {
-            anchor: parse_matcher(config["anchor"] || {}),
-            position: (config["position"] || "replace").to_sym,
-            boundary: parse_matcher(config["boundary"] || {}),
-          }
+          anchor = parse_matcher(config["anchor"] || {})
+          boundary = parse_matcher(config["boundary"] || {})
+          key_path = parse_key_path(config["key_path"])
+          position = config["position"]
+
+          validate_injection!(anchor: anchor, boundary: boundary, key_path: key_path, position: position)
+
+          if key_path
+            return {
+              key_path: key_path,
+            }
+          end
+
+          result = {}
+          result[:anchor] = anchor if anchor
+          result[:position] = (position || "replace").to_sym if anchor
+          result[:boundary] = boundary if boundary
+          result
+        end
+
+        def parse_key_path(config)
+          return if config.nil?
+
+          Array(config).map do |segment|
+            segment.is_a?(Symbol) ? segment.to_s : segment
+          end
         end
 
         def parse_matcher(config)
@@ -189,6 +254,29 @@ module Ast
             Regexp.new(text[1..-2])
           else
             text
+          end
+        end
+
+        def validate_injection!(anchor:, boundary:, key_path:, position:)
+          has_anchor = !anchor.nil?
+          has_key_path = !key_path.nil?
+
+          return unless has_anchor || has_key_path || boundary || !position.nil?
+
+          if has_anchor && has_key_path
+            raise ArgumentError, "Recipe injection must choose exactly one partial target shape: anchor/boundary or key_path"
+          end
+
+          if boundary && !has_anchor
+            raise ArgumentError, "Recipe injection.boundary requires injection.anchor"
+          end
+
+          if !position.nil? && !has_anchor
+            raise ArgumentError, "Recipe injection.position requires injection.anchor"
+          end
+
+          if has_key_path && key_path.empty?
+            raise ArgumentError, "Recipe injection.key_path cannot be empty"
           end
         end
       end

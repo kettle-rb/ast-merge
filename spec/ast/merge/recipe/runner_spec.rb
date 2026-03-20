@@ -56,6 +56,26 @@ RSpec.describe Ast::Merge::Recipe::Runner do
       runner = described_class.new(recipe, dry_run: true, base_dir: base_dir)
       expect(runner.dry_run).to be true
     end
+
+    it "defaults to :markly when the recipe parser was not explicitly configured" do
+      runner = described_class.new(recipe, base_dir: base_dir)
+      expect(runner.parser).to eq(:markly)
+    end
+
+    it "prefers an explicitly configured recipe parser when none is passed" do
+      psych_recipe = Ast::Merge::Recipe::Config.new(
+        recipe_config.merge(
+          "parser" => "psych",
+          "template" => "template.yml",
+          "targets" => [".rubocop.yml"],
+          "injection" => {"key_path" => ["AllCops", "Exclude"]},
+        ),
+        recipe_path: File.join(base_dir, "recipes", "recipe.yml"),
+      )
+
+      runner = described_class.new(psych_recipe, base_dir: base_dir)
+      expect(runner.parser).to eq(:psych)
+    end
   end
 
   describe "#run", :aggregate_failures, :markly_merge do
@@ -591,6 +611,140 @@ RSpec.describe Ast::Merge::Recipe::Runner do
         runner.run
         expect(runner.results.first.message).to eq("Parse failed")
       end
+    end
+  end
+
+  describe "psych partial merge dispatch", :psych_merge do
+    let(:psych_template_content) do
+      <<~YAML
+        - examples/**/*
+        - vendor/**/*
+      YAML
+    end
+
+    let(:psych_destination_content) do
+      <<~YAML
+        AllCops:
+          Exclude:
+            - tmp/**/*
+          TargetRubyVersion: 3.2
+      YAML
+    end
+
+    let(:psych_target_path) { File.join(base_dir, "recipes", ".rubocop.yml") }
+    let(:psych_recipe_config) do
+      {
+        "name" => "psych_recipe",
+        "parser" => "psych",
+        "template" => "template.yml",
+        "targets" => [".rubocop.yml"],
+        "injection" => {
+          "key_path" => ["AllCops", "Exclude"],
+        },
+        "merge" => {
+          "preference" => "destination",
+          "add_missing" => true,
+        },
+        "when_missing" => "skip",
+      }
+    end
+
+    let(:psych_recipe) { Ast::Merge::Recipe::Config.new(psych_recipe_config, recipe_path: File.join(base_dir, "recipes", "psych_recipe.yml")) }
+
+    before do
+      File.write(File.join(base_dir, "recipes", "template.yml"), psych_template_content)
+      File.write(psych_target_path, psych_destination_content)
+    end
+
+    it "uses Psych::Merge::PartialTemplateMerger when key_path is configured" do
+      runner = described_class.new(psych_recipe, dry_run: true, base_dir: base_dir)
+      results = runner.run
+
+      expect(results.size).to eq(1)
+      expect(results.first.status).to eq(:would_update)
+      expect(results.first.changed).to be true
+      expect(results.first.has_anchor).to be true
+      expect(File.read(psych_target_path)).to eq(psych_destination_content)
+    end
+
+    it "adds a missing key path when when_missing is add" do
+      recipe_with_add = Ast::Merge::Recipe::Config.new(
+        psych_recipe_config.merge(
+          "injection" => {"key_path" => ["AllCops", "NewCops"]},
+          "when_missing" => "add",
+        ),
+        recipe_path: File.join(base_dir, "recipes", "psych_recipe.yml"),
+      )
+
+      runner = described_class.new(recipe_with_add, dry_run: false, base_dir: base_dir, parser: :psych)
+      runner.run
+
+      updated_content = File.read(psych_target_path)
+      result = runner.results.first
+
+      expect(updated_content).to include("NewCops:\n")
+      expect(updated_content).to include("examples/**/*")
+      expect(result.status).to eq(:updated)
+      expect(result.changed).to be true
+      expect(result.has_anchor).to be false
+    end
+
+    it "rejects navigable targets for the psych runner contract" do
+      invalid_recipe = Ast::Merge::Recipe::Config.new(
+        psych_recipe_config.merge(
+          "injection" => {
+            "anchor" => {
+              "type" => "heading",
+              "text" => "Section",
+            },
+          },
+        ),
+        recipe_path: File.join(base_dir, "recipes", "psych_recipe.yml"),
+      )
+
+      runner = described_class.new(invalid_recipe, dry_run: true, base_dir: base_dir)
+
+      expect {
+        runner.send(
+          :create_partial_template_merger,
+          template: psych_template_content,
+          destination: psych_destination_content,
+          partial_target: invalid_recipe.partial_target,
+        )
+      }.to raise_error(ArgumentError, /Parser :psych currently requires injection\.key_path/)
+    end
+  end
+
+  describe "unsupported parser partial merge dispatch", :prism_merge do
+    it "keeps prism partial merges explicitly unsupported" do
+      runner = described_class.new(recipe, dry_run: true, base_dir: base_dir, parser: :prism)
+
+      expect {
+        runner.send(
+          :create_partial_template_merger,
+          template: "class Example; end\n",
+          destination: "class Example; end\n",
+          partial_target: {
+            kind: :navigable,
+            anchor: {type: :class},
+          },
+        )
+      }.to raise_error(NotImplementedError, /Prism PartialTemplateMerger not yet implemented/)
+    end
+  end
+
+  describe "invalid recipe runner target contract" do
+    it "requires a partial target for stock runner execution" do
+      runner = described_class.new(recipe, dry_run: true, base_dir: base_dir)
+
+      expect {
+        runner.send(
+          :create_partial_template_merger,
+          template: template_content,
+          destination: destination_with_anchor,
+          partial_target: nil,
+        )
+      }.to raise_error(ArgumentError, /requires injection\.anchor or injection\.key_path/)
     end
   end
 

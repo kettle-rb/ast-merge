@@ -92,6 +92,11 @@ RSpec.describe Ast::Merge::Recipe::Config do
       recipe = described_class.new(minimal_config.merge("when_missing" => "prepend"))
       expect(recipe.when_missing).to eq(:prepend)
     end
+
+    it "preserves add when_missing behavior" do
+      recipe = described_class.new(minimal_config.merge("when_missing" => "add"))
+      expect(recipe.when_missing).to eq(:add)
+    end
   end
 
   describe "#injection" do
@@ -113,6 +118,18 @@ RSpec.describe Ast::Merge::Recipe::Config do
     it "parses boundary config" do
       expect(recipe.injection[:boundary][:type]).to eq(:heading)
     end
+
+    it "parses parser-specific key_path config" do
+      psych_recipe = described_class.new(
+        full_config.merge(
+          "injection" => {
+            "key_path" => ["AllCops", "Exclude"],
+          },
+        ),
+      )
+
+      expect(psych_recipe.injection[:key_path]).to eq(["AllCops", "Exclude"])
+    end
   end
 
   describe "#finder_query" do
@@ -123,6 +140,70 @@ RSpec.describe Ast::Merge::Recipe::Config do
       expect(query[:type]).to eq(:heading)
       expect(query[:text]).to be_a(Regexp)
       expect(query[:position]).to eq(:replace)
+    end
+
+    it "returns an empty query for key_path partial targets" do
+      psych_recipe = described_class.new(
+        minimal_config.merge(
+          "injection" => {
+            "key_path" => ["AllCops", "Exclude"],
+          },
+        ),
+      )
+
+      expect(psych_recipe.finder_query).to eq({})
+    end
+  end
+
+  describe "#partial_target" do
+    it "returns a normalized navigable partial target" do
+      recipe = described_class.new(full_config)
+
+      expect(recipe.partial_target).to eq(
+        {
+          kind: :navigable,
+          anchor: {
+            type: :heading,
+            text: /Gem Family/,
+            same_or_shallower: false,
+          },
+          position: :replace,
+          boundary: {
+            type: :heading,
+            same_or_shallower: false,
+          },
+        },
+      )
+      expect(recipe.partial_target_kind).to eq(:navigable)
+      expect(recipe.navigable_partial_target?).to be(true)
+      expect(recipe.key_path_partial_target?).to be(false)
+    end
+
+    it "returns a normalized key_path partial target" do
+      recipe = described_class.new(
+        minimal_config.merge(
+          "injection" => {
+            "key_path" => ["AllCops", :Exclude, 0],
+          },
+        ),
+      )
+
+      expect(recipe.partial_target).to eq(
+        {
+          kind: :key_path,
+          key_path: ["AllCops", "Exclude", 0],
+        },
+      )
+      expect(recipe.partial_target_kind).to eq(:key_path)
+      expect(recipe.key_path_partial_target?).to be(true)
+      expect(recipe.navigable_partial_target?).to be(false)
+    end
+
+    it "returns nil when no partial target is configured" do
+      recipe = described_class.new(minimal_config)
+
+      expect(recipe.partial_target).to be_nil
+      expect(recipe.partial_target_kind).to be_nil
     end
   end
 
@@ -351,6 +432,86 @@ RSpec.describe Ast::Merge::Recipe::Config do
       it "handles nil text gracefully" do
         recipe = described_class.new(config_nil_text)
         expect(recipe.injection[:anchor][:text]).to be_nil
+      end
+    end
+
+    context "with key_path injection" do
+      let(:config_with_key_path) do
+        minimal_config.merge(
+          "injection" => {
+            "key_path" => ["AllCops", :Exclude, 0],
+          },
+        )
+      end
+
+      it "preserves key_path segments and stringifies symbols" do
+        recipe = described_class.new(config_with_key_path)
+        expect(recipe.injection[:key_path]).to eq(["AllCops", "Exclude", 0])
+      end
+    end
+
+    context "with both navigable and key_path targets" do
+      let(:config_with_mixed_targets) do
+        minimal_config.merge(
+          "injection" => {
+            "anchor" => {"type" => "heading", "text" => "Section"},
+            "key_path" => ["AllCops", "Exclude"],
+          },
+        )
+      end
+
+      it "raises a clear error" do
+        expect {
+          described_class.new(config_with_mixed_targets)
+        }.to raise_error(ArgumentError, /choose exactly one partial target shape/)
+      end
+    end
+
+    context "with boundary but no anchor" do
+      let(:config_with_boundary_only) do
+        minimal_config.merge(
+          "injection" => {
+            "boundary" => {"type" => "heading"},
+          },
+        )
+      end
+
+      it "raises a clear error" do
+        expect {
+          described_class.new(config_with_boundary_only)
+        }.to raise_error(ArgumentError, /boundary requires injection\.anchor/)
+      end
+    end
+
+    context "with position but no anchor" do
+      let(:config_with_position_only) do
+        minimal_config.merge(
+          "injection" => {
+            "position" => "replace",
+          },
+        )
+      end
+
+      it "raises a clear error" do
+        expect {
+          described_class.new(config_with_position_only)
+        }.to raise_error(ArgumentError, /position requires injection\.anchor/)
+      end
+    end
+
+    context "with an empty key_path" do
+      let(:config_with_empty_key_path) do
+        minimal_config.merge(
+          "injection" => {
+            "key_path" => [],
+          },
+        )
+      end
+
+      it "raises a clear error" do
+        expect {
+          described_class.new(config_with_empty_key_path)
+        }.to raise_error(ArgumentError, /key_path cannot be empty/)
       end
     end
   end

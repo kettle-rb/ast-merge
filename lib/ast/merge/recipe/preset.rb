@@ -48,6 +48,9 @@ module Ast
         # @return [String, nil] Path to the preset file (for script resolution)
         attr_reader :preset_path
 
+        # @return [Boolean] Whether the parser was explicitly configured in YAML/hash input
+        attr_reader :parser_explicit
+
         class << self
           # Load a preset from a YAML file.
           #
@@ -70,9 +73,21 @@ module Ast
           @preset_path = preset_path
           @name = config["name"] || "unnamed"
           @description = config["description"]
-          @parser = (config["parser"] || "prism").to_sym
+          @parser_explicit = config.key?("parser") || config.key?(:parser)
+          @parser = (config["parser"] || config[:parser] || "prism").to_sym
           @merge_config = parse_merge_config(config["merge"] || {})
           @freeze_token = config["freeze_token"]
+        end
+
+        # Whether the parser was explicitly configured.
+        #
+        # This lets callers distinguish between the recipe model's internal
+        # default (`:prism`) and a parser choice the recipe author intended the
+        # stock runner to honor automatically.
+        #
+        # @return [Boolean]
+        def parser_explicit?
+          parser_explicit == true
         end
 
         # Get the merge preference setting.

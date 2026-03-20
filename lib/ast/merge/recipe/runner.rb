@@ -51,14 +51,14 @@ module Ast
         # @param recipe [Config] The recipe to execute
         # @param dry_run [Boolean] If true, don't write files
         # @param base_dir [String, nil] Base directory for path resolution
-        # @param parser [Symbol] Which parser to use
+        # @param parser [Symbol, nil] Which parser to use; when omitted, prefer an explicitly configured recipe parser, otherwise default to :markly
         # @param verbose [Boolean] Enable verbose output
         # @param target_files [Array<String>, nil] Override recipe targets with these files
-        def initialize(recipe, dry_run: false, base_dir: nil, parser: :markly, verbose: false, target_files: nil, **options)
+        def initialize(recipe, dry_run: false, base_dir: nil, parser: nil, verbose: false, target_files: nil, **options)
           @recipe = recipe
           @dry_run = dry_run
           @base_dir = base_dir || Dir.pwd
-          @parser = parser
+          @parser = resolve_parser(parser)
           @verbose = verbose
           @target_files = target_files
           @results = []
@@ -155,13 +155,14 @@ module Ast
 
           begin
             destination_content = File.read(target_path)
+            partial_target = recipe.partial_target
 
-            # Use the appropriate PartialTemplateMerger based on parser
+            # Use the appropriate PartialTemplateMerger based on parser and
+            # the recipe's normalized partial-target contract.
             merger = create_partial_template_merger(
               template: template_content,
               destination: destination_content,
-              anchor: recipe.injection[:anchor] || {},
-              boundary: recipe.injection[:boundary],
+              partial_target: partial_target,
               preference: recipe.preference,
               add_missing: recipe.add_missing,
               when_missing: recipe.when_missing,
@@ -175,7 +176,7 @@ module Ast
 
             result = merger.merge
 
-            if result.section_found?
+            if merge_target_found?(result)
               create_result_from_merge(target_path, relative_path, destination_content, result)
             else
               handle_missing_anchor_result(target_path, relative_path, result)
@@ -198,19 +199,71 @@ module Ast
         # @param options [Hash] Merger options
         # @return [Object] A PartialTemplateMerger instance
         def create_partial_template_merger(**options)
+          partial_target = options[:partial_target]
+          raise ArgumentError, "Recipe runner requires injection.anchor or injection.key_path" unless partial_target
+
           case parser.to_sym
           when :markly, :commonmarker
+            unless partial_target[:kind] == :navigable
+              raise ArgumentError, "Parser #{parser.inspect} requires a navigable partial target (injection.anchor / injection.boundary)"
+            end
+
             require "markdown/merge" unless defined?(Markdown::Merge)
-            Markdown::Merge::PartialTemplateMerger.new(backend: parser, **options)
+            Markdown::Merge::PartialTemplateMerger.new(
+              template: options.fetch(:template),
+              destination: options.fetch(:destination),
+              anchor: partial_target.fetch(:anchor),
+              boundary: partial_target[:boundary],
+              backend: parser,
+              preference: options[:preference],
+              add_missing: options[:add_missing],
+              when_missing: options[:when_missing],
+              replace_mode: options[:replace_mode],
+              signature_generator: options[:signature_generator],
+              node_typing: options[:node_typing],
+              match_refiner: options[:match_refiner],
+              normalize_whitespace: options[:normalize_whitespace],
+              rehydrate_link_references: options[:rehydrate_link_references],
+            )
           when :prism
             require "prism/merge" unless defined?(Prism::Merge)
             raise NotImplementedError, "Prism PartialTemplateMerger not yet implemented"
           when :psych
             require "psych/merge" unless defined?(Psych::Merge)
-            raise NotImplementedError, "Psych PartialTemplateMerger not yet implemented"
+            unless partial_target[:kind] == :key_path
+              raise ArgumentError, "Parser :psych currently requires injection.key_path"
+            end
+
+            key_path = partial_target[:key_path]
+            raise ArgumentError, "Psych partial merge requires injection.key_path" if key_path.nil? || key_path.empty?
+
+            Psych::Merge::PartialTemplateMerger.new(
+              template: options.fetch(:template),
+              destination: options.fetch(:destination),
+              key_path: key_path,
+              preference: options[:preference],
+              add_missing: options[:add_missing],
+              when_missing: options[:when_missing],
+            )
           else
-            raise ArgumentError, "Unknown parser: #{parser}. Supported: :markly, :commonmarker"
+            raise ArgumentError, "Unknown parser: #{parser}. Supported: :markly, :commonmarker, :psych"
           end
+        end
+
+        def merge_target_found?(result)
+          return result.section_found? if result.respond_to?(:section_found?)
+          return result.key_path_found? if result.respond_to?(:key_path_found?)
+          return result.has_section if result.respond_to?(:has_section)
+          return result.has_key_path if result.respond_to?(:has_key_path)
+
+          raise ArgumentError, "Unsupported partial merge result: #{result.class}"
+        end
+
+        def resolve_parser(parser_override)
+          return parser_override.to_sym if parser_override
+          return recipe.parser.to_sym if recipe.respond_to?(:parser_explicit?) && recipe.parser_explicit?
+
+          :markly
         end
 
         def create_result_from_merge(target_path, relative_path, _destination_content, merge_result)

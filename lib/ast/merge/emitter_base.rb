@@ -9,6 +9,12 @@ module Ast
     # Subclasses implement format-specific emission methods (e.g., emit_pair for JSON,
     # emit_variable_assignment for Bash, etc.)
     #
+    # Ownership boundary:
+    # - shared structural recomposition and attachment preservation belong here
+    # - syntax-aware normalization and serializer polish belong in the relevant
+    #   family layer or concrete emitter subclass unless they prove reusable
+    #   across unrelated formats
+    #
     # @example Implementing a custom emitter
     #   class MyEmitter < Ast::Merge::EmitterBase
     #     def emit_my_construct(data)

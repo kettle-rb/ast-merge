@@ -177,9 +177,9 @@ tree_haver supports multiple parsing backends, but not all backends work on all 
 [citrus]: https://github.com/mjackson/citrus
 [parslet]: https://github.com/kschiess/parslet
 
-### Architecture: tree\_haver + ast-merge
+### Architecture: tree\_haver + ast-merge + family layers
 
-The `*-merge` gem family is built on a two-layer architecture:
+The `*-merge` gem family is built on a layered architecture:
 
 #### Layer 1: tree\_haver (Parsing Foundation)
 
@@ -191,7 +191,7 @@ The `*-merge` gem family is built on a two-layer architecture:
 - **Grammar Discovery**: Built-in `GrammarFinder` for platform-aware grammar library discovery
 - **Thread-Safe**: Language registry with thread-safe caching
 
-#### Layer 2: ast-merge (Merge Infrastructure)
+#### Layer 2: ast-merge (Cross-format Merge Substrate)
 
 Ast::Merge builds on tree\_haver to provide:
 
@@ -201,6 +201,90 @@ Ast::Merge builds on tree\_haver to provide:
 - **Region Detection**: `Ast::Merge::Detector::Base`, `FencedCodeBlock`, `YamlFrontmatter`, `TomlFrontmatter`, and `Detector::Mergeable`
 - **Error Classes**: `ParseError`, `TemplateParseError`, `DestinationParseError`, and `PlaceholderCollisionError`
 - **RSpec Shared Examples**: Test helpers for implementing new merge gems
+
+#### Layer 3: Family-specialized shared layers
+
+Some format families justify a shared middle layer above `ast-merge`.
+
+Current example:
+
+- **`markdown-merge`** — shared Markdown-family behavior such as parser-neutral Markdown orchestration, link-reference handling, and code-block delegation that should be shared across Markdown parser wrappers without forcing Markdown-specific logic into `ast-merge`
+
+#### Layer 4: Thin wrappers and leaf format gems
+
+- Thin wrappers such as `commonmarker-merge` and `markly-merge` provide backend-specific defaults on top of `markdown-merge`
+- Leaf gems such as `prism-merge`, `psych-merge`, `json-merge`, and `bash-merge` adapt `ast-merge` to a specific format and parser stack
+
+### AST-over-regex layer map
+
+When deciding where new behavior belongs, use this routing rule:
+
+| If the behavior is shared by... | Put it in... |
+|---|---|
+| multiple unrelated formats | `ast-merge` |
+| multiple Markdown parser wrappers | `markdown-merge` |
+| one wrapper's backend defaults only | that wrapper gem |
+| one format/parser combination only | that leaf `*-merge` gem |
+
+This keeps `ast-merge` focused on cross-format substrate while preserving room for intentional family-specialized layers.
+
+### Shared capability inventory
+
+These are the first shared capabilities to check before building a bespoke helper:
+
+| Capability | Shared owner | Reach for it when you need... |
+|---|---|---|
+| `Ast::Merge::Comment::*` | `ast-merge` | normalized comment nodes, attachments, tracked comment regions, or comment-aware merge behavior |
+| `Ast::Merge::Layout::*` | `ast-merge` | blank-line ownership, shared gap control, or edit-safe layout preservation |
+| `Ast::Merge::StructuralEdit::*` | `ast-merge` | contiguous structural replace/remove/rehome primitives that preserve untouched source and can carry comment/layout boundary metadata |
+| `Ast::Merge::TrailingGroups::*` | `ast-merge` | position-aware insertion of template-only nodes |
+| `Ast::Merge::NodeTyping` / `SectionTyping` | `ast-merge` | type-aware preferences or section-aware merge policy |
+| `Ast::Merge::PartialTemplateMergerBase` | `ast-merge` | section-scoped or region-scoped merges driven by structural boundaries |
+| `Ast::Merge::Recipe::{Preset, Config, Runner}` | `ast-merge` | reusable recipe-backed merge policies, normalized partial-target contracts (`anchor`/`boundary` or `key_path`), and parser-family dispatch |
+| `markdown-merge` shared layer | `markdown-merge` | behavior shared across Markdown parsers but not appropriate for the cross-format substrate |
+
+If a prospective solution fits one of these rows, prefer extending that shared layer before introducing regex- or line-oriented merge logic.
+
+For recipe-driven partial merges, the stock contract in `ast-merge` is now: exactly one normalized partial target per recipe, either a navigable structural target (`anchor` + optional `boundary`) or a hierarchical `key_path` target. That targeting contract is shared substrate; the parser-specific merger that fulfills it still belongs in the relevant leaf gem or family layer.
+
+### Normalization ownership boundary
+
+`ast-merge` deliberately does **not** treat every post-merge cleanup as shared substrate.
+
+Use this routing rule:
+
+- `ast-merge` owns **structural splice invariants** and **syntax-agnostic output guarantees**
+- family layers such as `markdown-merge` own **family-specific normalization**
+- leaf `*-merge` gems own **format/parser-local emitter polish**
+
+In practice, `ast-merge` is the right place for things like:
+
+- preserving structural ownership while recombining content
+- guaranteeing stable section replacement / insertion boundaries
+- preserving comment and layout attachments across edits
+- exposing normalized recipe contracts and partial-target routing
+
+It is **not** automatically the right place for things like:
+
+- Markdown link-reference rehydration
+- Markdown whitespace canon or other serializer-specific cleanup
+- parser-local quoting, delimiter, or formatter preferences
+
+If a normalization rule depends on one syntax family's rendering semantics, keep it in that family layer or leaf emitter unless it clearly proves reusable across unrelated formats.
+
+### Current family hotspot focus
+
+These are the highest-value places to look before adding new bespoke merge logic:
+
+| Repo / layer | Current hotspot | Prefer to reuse or extend... |
+|---|---|---|
+| `ast-merge` | parser-family partial-template routing, structural edit primitives, shared capability discoverability | `ast-merge` substrate |
+| `markdown-merge` | boundary between Markdown-family behavior and cross-format substrate | `markdown-merge` first, `ast-merge` only for proven cross-format needs |
+| `kettle-jem` | README/CHANGELOG section parsing, Gemfile/Gemspec/Appraisals post-merge surgery | recipes, shared partial merges, and shared AST edit primitives |
+| hash-comment family repos | repeated `comment_tracker.rb` implementations | `Ast::Merge::Comment::*` plus shared tracker bases |
+| JSONC / C-style comment flows | repeated line/block comment tracking logic | shared C-style tracker primitives |
+
+If your new work lands in one of these rows, assume there is probably a shared solution or a missing shared primitive worth extracting.
 
 ### Building a New `*-merge` Gem
 
@@ -234,7 +318,7 @@ If you are creating a new merge gem, the usual path is:
 | `ContentMatchRefiner`  | Text content fuzzy matching | Ready to use                           |
 | `FileAnalyzable`       | File parsing/analysis       | `compute_node_signature`               |
 
-`DiffMapperBase` and `PartialTemplateMergerBase` are opt-in authoring primitives. Format-specific gems provide the path-mapping and section-rendering logic that makes those workflows concrete for a particular syntax.
+`DiffMapperBase` and `PartialTemplateMergerBase` are opt-in authoring primitives. Format-specific gems provide the path-mapping, section-rendering logic, and any syntax-aware output cleanup that makes those workflows concrete for a particular syntax.
 
 ### ContentMatchRefiner
 
@@ -681,7 +765,7 @@ The recipe system provides two levels of configuration:
 - **`Ast::Merge::Recipe::Preset`** — Merge configuration only (preference, signature generator, node typing, freeze token). Use when you have your own template/destination handling and just need the merge settings.
 - **`Ast::Merge::Recipe::Config`** — Full recipe extending Preset with template file, target glob patterns, injection point configuration, and when_missing behavior.
 
-`Recipe::Preset` is parser-agnostic and can be passed to any format-specific `SmartMerger`. `Recipe::Runner` is narrower: in the stock `ast-merge` gem it drives parser-specific partial-template mergers for Markdown via `:markly` and `:commonmarker`.
+`Recipe::Preset` is parser-agnostic and can be passed to any format-specific `SmartMerger`. `Recipe::Runner` is narrower: in the stock `ast-merge` gem it currently drives parser-specific partial-template mergers for Markdown via `:markly` / `:commonmarker` and for YAML via `:psych`.
 
 ### Minimal Recipe (Preset)
 
@@ -707,7 +791,7 @@ result = merger.merge
 
 ### Full Recipe (Config)
 
-A full recipe adds template, targets, and injection point configuration. In `ast-merge`, the built-in runner uses this flow for Markdown section updates:
+A full recipe adds template, targets, and partial-target configuration. In `ast-merge`, the built-in runner uses this flow for Markdown section updates:
 
 ```yaml
 name: gem_family_section
@@ -750,7 +834,27 @@ puts runner.summary
 # => { total: 10, updated: 5, unchanged: 3, skipped: 2 }
 ```
 
-For non-Markdown formats, the durable interface in this gem is `Preset#to_h`; callers pass that option hash to the format-specific merger they are using.
+YAML partial recipes use `injection.key_path` instead of anchor/boundary targeting, for example:
+
+```yaml
+name: rubocop_excludes
+template: rubocop_excludes.yml
+targets:
+  - .rubocop.yml
+
+injection:
+  key_path:
+    - AllCops
+    - Exclude
+
+merge:
+  preference: destination
+  add_missing: true
+
+when_missing: add
+```
+
+For other formats, the durable interface in this gem is still `Preset#to_h`; callers pass that option hash to the format-specific merger they are using.
 
 Or via CLI:
 
@@ -766,7 +870,7 @@ bin/ast-merge-recipe path/to/gem_family_section.yml --dry-run --parser=markly
 |-------|----------|-------------|
 | `name` | Yes | Recipe identifier |
 | `description` | No | Human-readable description |
-| `parser` | No | Parser identifier stored on the preset/config. `Preset` defaults to `prism`; `Recipe::Runner` takes its parser separately and currently supports `markly` and `commonmarker`. |
+| `parser` | No | Parser identifier stored on the preset/config. `Preset` defaults to `prism`; `Recipe::Runner` takes its parser separately and currently supports `markly`, `commonmarker`, and `psych`. |
 | `merge.preference` | No | `:template` or `:destination`. Default: `:template` |
 | `merge.add_missing` | No | `true`, `false`, or path to a Ruby script returning a callable filter. Default: `true` |
 | `merge.signature_generator` | No | Path to companion Ruby script (relative to recipe folder) |
@@ -788,7 +892,8 @@ bin/ast-merge-recipe path/to/gem_family_section.yml --dry-run --parser=markly
 | `injection.position` | No | `replace`, `before`, `after`, `first_child`, `last_child`. Default: `replace` |
 | `injection.boundary.type` | No | Node type that marks the end of the section |
 | `injection.boundary.same_or_shallower` | No | `true` to end at next same-level-or-higher heading |
-| `when_missing` | No | `skip`, `append`, or `prepend`. Default: `skip` |
+| `injection.key_path` | No | Array path for parser-specific partial targets such as YAML keys (for example `['AllCops', 'Exclude']`) |
+| `when_missing` | No | `skip`, `append`, `prepend`, or parser-specific options such as YAML `add`. Default: `skip` |
 
 ### Companion Scripts (Optional)
 

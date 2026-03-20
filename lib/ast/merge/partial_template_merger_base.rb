@@ -9,6 +9,12 @@ module Ast
     # 2. Replaces/merges only that section with the template
     # 3. Leaves the rest of the destination unchanged
     #
+    # Ownership boundary:
+    # - this base class owns the shared structural contract for locating,
+    #   replacing, and recombining partial content
+    # - syntax-aware cleanup after recomposition belongs in the relevant family
+    #   layer or concrete partial merger unless it is truly syntax-agnostic
+    #
     # This is an abstract base class. Subclasses must implement:
     # - #create_analysis(content) - Create a FileAnalysis for the given content
     # - #create_smart_merger(template, section) - Create a SmartMerger for the section merge
@@ -265,7 +271,15 @@ module Ast
         before_content = statements_to_content(before_statements, d_analysis)
         after_content = statements_to_content(after_statements, d_analysis)
 
-        new_content = build_merged_content(before_content, merged_section, after_content)
+        new_content = build_spliced_content(
+          analysis: d_analysis,
+          statements: d_statements,
+          section_start_idx: section_start_idx,
+          section_end_idx: section_end_idx,
+          merged_section: merged_section,
+          before_content: before_content,
+          after_content: after_content,
+        )
 
         changed = new_content != destination
 
@@ -342,6 +356,79 @@ module Ast
 
         result << "\n" unless result.empty? || result.end_with?("\n")
         result
+      end
+
+      def build_spliced_content(analysis:, statements:, section_start_idx:, section_end_idx:, merged_section:, before_content:, after_content:)
+        splice_plan = source_splice_plan_for(
+          analysis: analysis,
+          statements: statements,
+          section_start_idx: section_start_idx,
+          section_end_idx: section_end_idx,
+          merged_section: merged_section,
+        )
+
+        if splice_plan
+          splice_plan.merged_content
+        else
+          build_merged_content(before_content, merged_section, after_content)
+        end
+      end
+
+      def source_splice_plan_for(analysis:, statements:, section_start_idx:, section_end_idx:, merged_section:)
+        return unless analysis.respond_to?(:source)
+
+        first_statement = statements[section_start_idx]
+        last_statement = statements[section_end_idx]
+        return unless first_statement && last_statement
+
+        previous_statement = section_start_idx.positive? ? statements[section_start_idx - 1] : nil
+        next_statement = (section_end_idx + 1) < statements.length ? statements[section_end_idx + 1] : nil
+
+        replace_start_line = statement_start_line(first_statement)
+        replace_end_line = statement_end_line(last_statement)
+        return if replace_start_line.nil? || replace_end_line.nil?
+
+        Ast::Merge::StructuralEdit::SplicePlan.new(
+          source: analysis.source,
+          replacement: merged_section,
+          replace_start_line: replace_start_line,
+          replace_end_line: replace_end_line,
+          leading_boundary: build_splice_boundary(analysis, previous_statement, edge: :leading),
+          trailing_boundary: build_splice_boundary(analysis, next_statement, edge: :trailing),
+          metadata: {source: :partial_template_merger_base},
+        )
+      rescue ArgumentError
+        nil
+      end
+
+      def build_splice_boundary(analysis, statement, edge:)
+        return unless statement
+
+        owner = statement.respond_to?(:node) ? statement.node : statement
+
+        Ast::Merge::StructuralEdit::Boundary.new(
+          edge: edge,
+          owner: owner,
+          layout_attachment: analysis.respond_to?(:layout_attachment_for) ? analysis.layout_attachment_for(owner) : nil,
+          comment_attachment: analysis.respond_to?(:comment_attachment_for) ? analysis.comment_attachment_for(owner) : nil,
+          source: :partial_template_merger_base,
+        )
+      end
+
+      def statement_start_line(statement)
+        if statement.respond_to?(:start_line)
+          statement.start_line
+        elsif statement.respond_to?(:source_position)
+          statement.source_position&.dig(:start_line)
+        end
+      end
+
+      def statement_end_line(statement)
+        if statement.respond_to?(:end_line)
+          statement.end_line
+        elsif statement.respond_to?(:source_position)
+          statement.source_position&.dig(:end_line)
+        end
       end
     end
   end

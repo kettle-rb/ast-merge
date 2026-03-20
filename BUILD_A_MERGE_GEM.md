@@ -201,6 +201,67 @@ Examples:
 
 If your new gem is really “a specialization of an existing merge gem”, prefer extending that higher-level abstraction rather than reimplementing all base plumbing.
 
+### Reuse before bespoke
+
+Before adding a new helper, ask these questions in order:
+
+1. Can this be expressed with existing `ast-merge` substrate primitives?
+2. If the behavior is Markdown-specific, does it belong in `markdown-merge` rather than a wrapper or consumer?
+3. Is this only a backend-default concern for a thin wrapper?
+4. Is this truly leaf-format-specific, with no realistic reuse path?
+
+Prefer a shared primitive over a new regex, line walker, or post-merge text surgery whenever the behavior is structural.
+
+#### Shared substrate checklist
+
+Check these `ast-merge` capabilities before inventing a bespoke solution:
+
+- `Ast::Merge::Comment::*` for comment nodes, attachments, and regions
+- `Ast::Merge::Layout::*` for blank-line ownership and gap control
+- `Ast::Merge::TrailingGroups::*` for position-aware template-only insertion
+- `Ast::Merge::NodeTyping` and `Ast::Merge::SectionTyping` for merge policy routing
+- `Ast::Merge::PartialTemplateMergerBase` for section-scoped and region-scoped merge flows
+- `Ast::Merge::Recipe::Preset` for reusable recipe-backed merge policies
+
+### Ownership routing rules
+
+Use this routing table when deciding where code should live:
+
+| Behavior shared by... | Put it in... |
+|---|---|
+| multiple unrelated formats | `ast-merge` |
+| multiple Markdown parser wrappers | `markdown-merge` |
+| one wrapper's backend defaults only | that wrapper gem |
+| one concrete format/parser combination only | that leaf `*-merge` gem |
+
+Examples:
+
+- A new blank-line ownership primitive belongs in `ast-merge`.
+- Markdown link-reference rehydration belongs in `markdown-merge`.
+- A Commonmarker backend default belongs in `commonmarker-merge`.
+- A Prism-specific AST node helper may belong in `prism-merge` unless it proves reusable at the cross-format substrate level.
+
+### Audit triggers: signs you are rebuilding shared infrastructure
+
+Stop and re-check the shared layers when you find yourself writing any of the following:
+
+- a new `comment_tracker.rb` with leading/inline/trailing attachment logic
+- blank-line ownership or “emit a separator line here” code
+- line-range surgery to remove, move, or rehome structural owners
+- regex-based heading, section, or block-boundary walkers for a format that already has structural analysis
+- post-merge cleanup whose real purpose is to correct a structural decision made too late
+
+Those are strong signals that the behavior may belong in:
+
+- `Ast::Merge::Comment::*`
+- `Ast::Merge::Layout::*`
+- `Ast::Merge::TrailingGroups::*`
+- `Ast::Merge::PartialTemplateMergerBase`
+- `Ast::Merge::Recipe::Preset`
+- or a family-specialized layer such as `markdown-merge`
+
+If none of those fit, document the gap and prefer extracting a new shared primitive before growing a one-off helper.
+
 ---
 
 ## 4. Minimum class set for a new gem
@@ -255,6 +316,14 @@ Choose an appropriate `ConflictResolverBase` strategy:
 
 Useful when the format has structural output rules, comment emission, separators, commas, indentation, or table headers.
 
+`Emitter` is also the default home for **syntax-aware normalization** that belongs to one format or one family layer. Keep these boundaries clear:
+
+- shared structural recomposition invariants belong in `ast-merge`
+- syntax-family cleanup belongs in the family layer (for example `markdown-merge`)
+- parser- or format-local polish belongs in the leaf gem's emitter / builder layer
+
+Do not promote a normalization hook into `ast-merge` unless it is both syntax-agnostic and reusable across unrelated formats.
+
 #### `FreezeNode`
 
 Needed if the format has explicit freeze markers or frozen opaque regions.
@@ -273,7 +342,15 @@ Use this when the format supports section-scoped or anchor-based updates. The fo
 - finding section boundaries
 - turning matched nodes back into source text
 
+`PartialTemplateMergerBase` should own the **structural** contract of partial replacement and document recomposition. It should not automatically absorb formatter-local cleanup. If a partial merge needs post-processing, route it like this:
+
+- if the behavior preserves structural ownership or can be shared across unrelated syntaxes, consider `ast-merge`
+- if it depends on one syntax family's rendering semantics, keep it in that family layer
+- if it depends on one parser or one output format only, keep it in the leaf merger / emitter
+
 When a format can recover exact source ranges, prefer source-based section extraction over AST re-rendering so the merger preserves source formatting.
+
+Recipe flags may still expose optional normalization requests, but the receiving family/leaf merger decides whether a given flag is meaningful. A recipe option existing in YAML does **not** mean the substrate should implement that cleanup generically.
 
 #### `DiffMapperBase`
 

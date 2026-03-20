@@ -35,14 +35,22 @@ options = preset.to_h
 
 It also resolves template paths and expands target globs relative to the recipe file.
 
+`Config` now normalizes `injection` into a shared partial-target contract so the runner can reason about partial merges without reparsing YAML shape details per parser family.
+
 ### `Runner`
 
 `Ast::Merge::Recipe::Runner` executes a `Config` against target files.
 
-In the stock `ast-merge` gem, the built-in runner supports Markdown partial-template flows through:
+In the stock `ast-merge` gem, the built-in runner supports parser-backed partial-template flows through:
 
 - `parser: :markly`
 - `parser: :commonmarker`
+- `parser: :psych`
+
+When parser selection is not passed directly:
+
+- an explicitly configured recipe parser is honored automatically
+- otherwise the stock runner defaults to `:markly` for backward compatibility
 
 For other formats, the stable API in this gem is still `Preset#to_h`; callers pass those options to the format-specific merger they are already using.
 
@@ -95,6 +103,56 @@ when_missing: skip
 ```ruby
 recipe = Ast::Merge::Recipe::Config.load(".merge-recipes/gem_family_section.yml")
 runner = Ast::Merge::Recipe::Runner.new(recipe, dry_run: true, parser: :markly)
+results = runner.run
+```
+
+## Shared partial-target contract
+
+Recipe `injection` is modeled as exactly one partial-target shape at a time.
+
+| Shared target kind | YAML shape | Meaning | Current stock runner support |
+|---|---|---|---|
+| `:navigable` | `anchor` + optional `boundary` + optional `position` | locate a structural region by node metadata and merge within that section | Markdown-family partial merges (`:markly`, `:commonmarker`) |
+| `:key_path` | `key_path` | locate a hierarchical path inside a structured document | Psych/YAML partial merges (`:psych`) |
+
+`key_path` is intentionally part of the shared `ast-merge` contract rather than a Psych-only escape hatch. Hierarchical path targeting is a cross-format pattern that can apply to YAML, XML, and other tree-shaped formats even when the concrete merger implementation remains format-specific.
+
+Invalid mixed shapes are rejected early. In particular:
+
+- do not combine `anchor`/`boundary` with `key_path` in one recipe
+- `boundary` and `position` require `anchor`
+- `key_path` cannot be empty
+
+Programmatic callers can inspect the normalized contract through:
+
+- `recipe.partial_target`
+- `recipe.partial_target_kind`
+- `recipe.navigable_partial_target?`
+- `recipe.key_path_partial_target?`
+
+## YAML key-path partial recipe example
+
+```yaml
+name: rubocop_excludes
+template: rubocop_excludes.yml
+targets:
+  - .rubocop.yml
+
+injection:
+  key_path:
+    - AllCops
+    - Exclude
+
+merge:
+  preference: destination
+  add_missing: true
+
+when_missing: add
+```
+
+```ruby
+recipe = Ast::Merge::Recipe::Config.load(".merge-recipes/rubocop_excludes.yml")
+runner = Ast::Merge::Recipe::Runner.new(recipe, dry_run: true, parser: :psych)
 results = runner.run
 ```
 
@@ -155,3 +213,21 @@ The built-in runner forwards these options to Markdown partial-template mergers 
 - `merge.rehydrate_link_references`
 
 Those options stay in the recipe model so callers can keep a single YAML representation even when execution happens elsewhere.
+
+## Stock runner extension boundaries
+
+The stable extension contract for downstream repos is:
+
+1. add new parser-family partial-target shapes to `Ast::Merge::Recipe::Config`
+2. normalize them through `partial_target` / `partial_target_kind`
+3. dispatch them in `Ast::Merge::Recipe::Runner`
+4. keep parser-specific merge behavior in the leaf format gem or family layer
+
+This keeps `ast-merge` responsible for the cross-format contract and routing surface while leaving syntax-specific analysis and emission in the appropriate downstream implementation.
+
+At the moment, the stock runner supports:
+
+- Markdown-family partial recipes through `injection.anchor`, optional `injection.boundary`, and `injection.position`
+- Psych/YAML partial recipes through `injection.key_path`
+
+If a parser family needs a different partial target shape later, the recipe model can carry that target without forcing all formats into one anchor model.

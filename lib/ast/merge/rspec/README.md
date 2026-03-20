@@ -117,8 +117,10 @@ The combined shared-examples loader exposes these examples:
 - `"Ast::Merge::FreezeNodeBase"`
 - `"Ast::Merge::MergeResultBase"`
 - `"Ast::Merge::MergerConfig"`
+- `"Ast::Merge::Recipe::PresetContract"`
 - `"Ast::Merge::RemovalModeCompliance"`
 - `"a reproducible merge"`
+- `"a reproducible partial merge"`
 
 Load them all:
 
@@ -140,6 +142,68 @@ RSpec.describe My::Merge::SmartMerger do
     let(:fixtures_path) { File.expand_path("../fixtures/merge_cases", __dir__) }
     let(:merger_class) { described_class }
     let(:file_extension) { ".myfmt" }
+  end
+end
+```
+
+### Recipe preset contract
+
+`"Ast::Merge::Recipe::PresetContract"` verifies the shared recipe-preset surface:
+
+- `Ast::Merge::Recipe::Preset.load`
+- `Preset#to_h`
+- companion-script resolution through `Ast::Merge::Recipe::ScriptLoader`
+
+Typical setup:
+
+```ruby
+RSpec.describe "my recipe preset" do
+  it_behaves_like "Ast::Merge::Recipe::PresetContract" do
+    let(:preset_config) do
+      {
+        "name" => "my_recipe",
+        "parser" => "psych",
+        "merge" => {
+          "preference" => "destination",
+          "signature_generator" => "signature_generator.rb",
+        },
+      }
+    end
+
+    let(:preset_script_files) do
+      {
+        "signature_generator.rb" => "->(node) { [:sig, node] }\n",
+      }
+    end
+
+    let(:verify_loaded_preset) do
+      lambda do |preset|
+        expect(preset.signature_generator.call("node")).to eq([:sig, "node"])
+      end
+    end
+  end
+end
+```
+
+### Reproducible partial merges
+
+`"a reproducible partial merge"` verifies parser-family partial mergers produce the expected merged content and remain idempotent.
+
+Typical setup:
+
+```ruby
+RSpec.describe Markdown::Merge::PartialTemplateMerger, :markly_merge do
+  it_behaves_like "a reproducible partial merge" do
+    let(:partial_merger_class) { described_class }
+    let(:template_content) { "New section\n" }
+    let(:destination_content) { "# Intro\n\n## Target\nOld section\n" }
+    let(:partial_merge_options) do
+      {
+        anchor: {type: :heading, text: /Target/},
+        backend: :markly,
+      }
+    end
+    let(:expected_merged_content) { "# Intro\n\n## Target\nNew section\n" }
   end
 end
 ```

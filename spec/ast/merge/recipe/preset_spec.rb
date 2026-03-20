@@ -52,6 +52,7 @@ RSpec.describe Ast::Merge::Recipe::Preset do
       it "sets defaults" do
         expect(preset.name).to eq("test_preset")
         expect(preset.parser).to eq(:prism)
+        expect(preset.parser_explicit?).to be(false)
         expect(preset.preference).to eq(:template)
         expect(preset.freeze_token).to be_nil
       end
@@ -63,6 +64,7 @@ RSpec.describe Ast::Merge::Recipe::Preset do
       it "uses provided values" do
         expect(preset.name).to eq("full_preset")
         expect(preset.parser).to eq(:markly)
+        expect(preset.parser_explicit?).to be(true)
         expect(preset.preference).to eq(:destination)
         expect(preset.freeze_token).to eq("my-freeze")
       end

@@ -161,6 +161,7 @@ module Ast
     autoload :PartialTemplateMergerBase, "ast/merge/partial_template_merger_base"
     autoload :SectionTyping, "ast/merge/section_typing"
     autoload :SmartMergerBase, "ast/merge/smart_merger_base"
+    autoload :StructuralEdit, "ast/merge/structural_edit"
     autoload :Text, "ast/merge/text"
     autoload :TrailingGroups, "ast/merge/trailing_groups"
 
