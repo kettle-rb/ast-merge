@@ -23,10 +23,12 @@ Please file a bug if you notice a violation of semantic versioning.
 - Primary documentation of merge presets, configs, and recipes
 - Added `Ast::Merge::Comment::Capability`, `Region`, `Attachment`, `Augmenter`, and `RegionMergePolicy` as the shared merge-facing comment model for the `*-merge` family
 - Added shared adapter helpers and RSpec coverage for normalized comment regions, attachments, augmenters, and the first removal-mode compliance example for downstream merge gems
+- Added shared `Ast::Merge::Comment::HashTrackerBase` and `Ast::Merge::Comment::CStyleTrackerBase` substrates so hash-comment and C-style merge gems can reuse scanning, lookup, and line-span ownership rules without duplicating tracker cores
 - Added `Ast::Merge::TrailingGroups::{Core,DestIterate,AlignmentSort}` as shared infrastructure for position-aware template-only insertion across destination-iterate and alignment-based merge implementations
 - Added the shared `Ast::Merge::Layout` namespace, owner-side layout compliance coverage, and README documentation for the blank-line/layout contract adopted across the `*-merge` family
 - Added `Ast::Merge::KeyPathPartialTemplateMergerBase` as shared substrate for parser-backed partial merges that target structured key paths instead of navigable anchor/boundary sections
 - Added `Ast::Merge::FileAlignerBase` as shared substrate for signature-based alignment pipelines that pair matched entries, support optional fuzzy refinement, and leave payload / alias / positioning hooks to leaf gems
+- Added shared structural-edit batching and boundary helpers via `Ast::Merge::StructuralEdit::PlanSet`, `BoundarySupport`, and `RemovePlanSupport` so downstream merge gems can assemble removal/edit plans without bespoke offset and adjacency plumbing
 - Added Prism-backed recipe-runner dispatch for navigable partial-template merges, alongside the shared adaptation hook concrete parsers can use when their analysis statements need a thin wrapper before entering the shared navigable substrate
 - Document how to build a gem in the *-merge gem family.
 
@@ -35,6 +37,7 @@ Please file a bug if you notice a violation of semantic versioning.
 - Normalized `FileAnalyzable`, `NodeWrapperBase`, and `EmitterBase` comment hooks and emitters (`comment_attachment`, `leading_comment_region`, `inline_comment_region`, `emit_comment_region`, `emit_comment_attachment`) so format gems can consume one shared comment surface
 - Normalized freeze detection and `Ast::Merge::Text` sub-merge eligibility around shared comment lines, blocks, regions, and attachments instead of format-specific ad hoc plumbing
 - Clarified shared removal-mode normalization with a documented compliance helper for top-level vs recursive expectations, separator blank lines, and explicit N/A handling where a format does not support inline or recursive removal parity
+- Expanded recipe execution around explicit sequential `steps:` flows and `ruby_script` runtime context passing so README, CHANGELOG, Appraisals, Prism partial-template, and YAML key-path recipe consumers can share one runner contract instead of caller-side post-processing
 
 ### Fixed
 
