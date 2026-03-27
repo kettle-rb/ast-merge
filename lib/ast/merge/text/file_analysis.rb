@@ -74,6 +74,30 @@ module Ast
           value.is_a?(LineNode) || value.is_a?(FreezeNodeBase) || super
         end
 
+        # Build a whitespace-normalized, searchable string from a set of line nodes.
+        #
+        # Joins each line's normalized content with a single space, collapsing all
+        # internal whitespace. This allows phrase-based content matching (e.g. MIT
+        # license detection) regardless of where the author chose to break lines.
+        #
+        # @example Detect MIT license regardless of line breaks
+        #   analysis = FileAnalysis.new(license_text)
+        #   analysis.searchable_text.downcase.include?("permission is hereby granted")
+        #
+        # @param nodes [Array<LineNode>, nil] Subset of nodes to search.
+        #   Defaults to all statements when nil.
+        # @return [String] Single-space-joined, stripped, whitespace-collapsed string
+        def searchable_text(nodes: nil)
+          source_nodes = nodes || @statements
+          source_nodes
+            .select { |n| n.is_a?(LineNode) }
+            .map(&:normalized_content)
+            .reject(&:empty?)
+            .join(" ")
+            .gsub(/\s+/, " ")
+            .strip
+        end
+
         private
 
         # Parse source into statements (LineNodes and FreezeNodes)
