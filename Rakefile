@@ -62,6 +62,17 @@ end
 
 # External gems that define tasks - add here!
 require "kettle/dev"
+
+### TEMPLATING TASKS
+begin
+  require "kettle/jem"
+rescue LoadError
+  desc("(stub) kettle:jem:selftest is unavailable")
+  task("kettle:jem:selftest") do
+    warn("NOTE: kettle-jem isn't installed, or is disabled for #{RUBY_VERSION} in the current environment")
+  end
+end
+
 require "kettle/jem"
 
 
