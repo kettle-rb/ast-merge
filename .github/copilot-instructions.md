@@ -269,7 +269,6 @@ This loads TreeHaver tags (parser backends) + Ast::Merge tags (merge gems) + sha
 - `:markdown_merge` - Requires markdown-merge gem
 - `:prism_merge` - Requires prism-merge gem
 - `:json_merge` - Requires json-merge gem
-- `:jsonc_merge` - Requires jsonc-merge gem
 - `:toml_merge` - Requires toml-merge gem
 - `:bash_merge` - Requires bash-merge gem
 - `:psych_merge` - Requires psych-merge gem

@@ -162,7 +162,6 @@ Examples:
 
 - `psych-merge`
 - `json-merge`
-- `jsonc-merge`
 - `toml-merge`
 
 Typical shape:
@@ -437,7 +436,6 @@ Typical gems:
 - `prism-merge`
 - `psych-merge`
 - `json-merge`
-- `jsonc-merge`
 - `toml-merge`
 - `bash-merge`
 
@@ -716,7 +714,6 @@ Use these as examples rather than starting from scratch.
 
 - `psych-merge` — recursive YAML mapping and sequence merge
 - `json-merge` — structural JSON object / array merge
-- `jsonc-merge` — JSONC plus comment-aware recursive merge
 - `toml-merge` — TOML tables and `[[array_of_tables]]`
 
 ### Shared foundation / specialization

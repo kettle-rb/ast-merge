@@ -52,7 +52,6 @@ Available merge-gem tags include:
 - `:bash_merge`
 - `:rbs_merge`
 - `:json_merge`
-- `:jsonc_merge`
 - `:toml_merge`
 - `:psych_merge`
 - `:dotenv_merge`

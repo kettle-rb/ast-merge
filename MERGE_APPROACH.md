@@ -92,7 +92,7 @@ tree-path scoping — signatures are only compared within the same container.
   merged in separate recursive calls. Within a single mapping, duplicate keys
   are invalid per YAML spec, but the cursor ensures correctness regardless.
 
-### json-merge / jsonc-merge (JSON / JSONC)
+### json-merge (JSON)
 
 - **Strategy**: ConflictResolver with cursor-based matching
 - **Recursive merge**: Yes — object pairs, nested objects
