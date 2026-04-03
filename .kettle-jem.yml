@@ -82,13 +82,15 @@ engines:
   - ruby
   - jruby
   - truffleruby
+
 # README top logo mode.
 # Controls whether the generated README header includes the GitHub org logo,
 # the project logo, or both after the shared Galtzo and ruby-lang logos.
 # Supported values: org, project, org_and_project
 # Default (when key is absent): org_and_project
 readme:
-  top_logo_mode: org_and_project
+  top_logo_mode: org
+
 # SPDX license identifiers for this project.
 # List one or more licenses that apply to the gem. Users may use the software
 # under the terms of any one license listed here (OR semantics, not AND).
@@ -109,7 +111,10 @@ readme:
 #   - When MIT (or AGPL), a PolyForm variant, AND LicenseRef-Big-Time-Public-License
 #     are all present, a use-case guide table is added to README and LICENSE.md.
 licenses:
-  - MIT
+  - AGPL-3.0-only
+  - PolyForm-Small-Business-1.0.0
+  - LicenseRef-Big-Time-Public-License
+
 # Machine / automation accounts to exclude from generated copyright output.
 #
 # When kettle-jem collects copyright information via `git blame`, it filters
