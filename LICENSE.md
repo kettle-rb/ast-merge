@@ -3,7 +3,6 @@
 This project is made available under the following licenses.
 Choose the option that best fits your use case:
 
-- [MIT](MIT.md)
 - [AGPL-3.0-only](AGPL-3.0-only.md)
 - [PolyForm-Small-Business-1.0.0](PolyForm-Small-Business-1.0.0.md)
 - [Big-Time-Public-License](Big-Time-Public-License.md)
@@ -12,7 +11,6 @@ Choose the option that best fits your use case:
 
 | Use case | License |
 |---|---|
-| FLOSS (free and open source) | [MIT](MIT.md) |
 | Copy-left open source | [AGPL-3.0-only](AGPL-3.0-only.md) |
 | Non-commercial (research, education, personal use) | [PolyForm-Small-Business-1.0.0](PolyForm-Small-Business-1.0.0.md) or [Big-Time-Public-License](Big-Time-Public-License.md) |
 | Small business commercial | [PolyForm-Small-Business-1.0.0](PolyForm-Small-Business-1.0.0.md) or [Big-Time-Public-License](Big-Time-Public-License.md) |

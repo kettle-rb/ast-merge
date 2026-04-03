@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   spec.summary = "🍲 Shared infrastructure for the *-merge gem family"
   spec.description = "🍲 Ast::Merge provides base classes, modules, and RSpec shared examples for building intelligent file mergers using AST analysis. It powers prism-merge, psych-merge, json-merge, and other format-specific merge gems."
   spec.homepage = "https://github.com/kettle-rb/ast-merge"
-  spec.licenses = ["MIT", "AGPL-3.0-only", "PolyForm-Small-Business-1.0.0", "LicenseRef-Big-Time-Public-License"]
+  spec.licenses = ["AGPL-3.0-only", "PolyForm-Small-Business-1.0.0", "LicenseRef-Big-Time-Public-License"]
   spec.required_ruby_version = ">= 3.2.0"
 
   # Linux distros often package gems and securely certify them independent
@@ -141,6 +141,12 @@ Gem::Specification.new do |spec|
   # spec.add_development_dependency("erb", ">= 2.2")                                  # ruby >= 2.3.0, not SemVer, old rubies get dropped in a patch.
   spec.add_development_dependency("gitmoji-regex", "~> 1.0", ">= 1.0.3")            # ruby >= 2.3.0
 
+  # HTTP recording for deterministic specs
+  # In Ruby 3.5 (HEAD) the CGI library has been pared down, so we also need to depend on gem "cgi" for ruby@head
+  # This is done in the "head" appraisal.
+  # See: https://github.com/vcr/vcr/issues/1057
+  # spec.add_development_dependency("vcr", ">= 4")                        # 6.0 claims to support ruby >= 2.3, but fails on ruby 2.4
+  # spec.add_development_dependency("webmock", ">= 3")                    # Last version to support ruby >= 2.3
   # HTTP recording for deterministic specs
   # In Ruby 3.5 (HEAD) the CGI library has been pared down, so we also need to depend on gem "cgi" for ruby@head
   # This is done in the "head" appraisal.
