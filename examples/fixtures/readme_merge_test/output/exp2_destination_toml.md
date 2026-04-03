@@ -443,7 +443,7 @@ the [Pessimistic Version Constraint][📌pvc] with two digits of precision.
 For example:
 
 ```ruby
-spec.add_dependency("toml-merge", "~> 1.0")
+spec.add_dependency("toml-merge", "~> 3.0")
 ```
 
 <details markdown="1">

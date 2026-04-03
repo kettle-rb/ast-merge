@@ -3,7 +3,7 @@
 module Ast
   module Merge
     module Version
-      VERSION = "4.0.6"
+      VERSION = "5.0.0"
     end
     VERSION = Version::VERSION # Traditional Constant Location
   end
