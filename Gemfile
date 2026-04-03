@@ -1,28 +1,46 @@
 # frozen_string_literal: true
 
+# kettle-jem:freeze
+# To retain chunks of comments & code during ast-merge templating:
+# Wrap custom sections with freeze markers (e.g., as above and below this comment chunk).
+# ast-merge will then preserve content between those markers across template runs.
+# kettle-jem:unfreeze
+
 source "https://gem.coop"
 
 git_source(:codeberg) { |repo_name| "https://codeberg.org/#{repo_name}" }
 git_source(:gitlab) { |repo_name| "https://gitlab.com/#{repo_name}" }
 
-# Specify your gem's dependencies in ast-merge.gemspec
+#### IMPORTANT #######################################################
+# Gemfile is for local development ONLY; Gemfile is NOT loaded in CI #
+####################################################### IMPORTANT ####
+
+# Include dependencies from ast-merge.gemspec
 gemspec
 
 # runtime dependencies that we can't add to gemspec due to platform differences
 # (env-switched: KETTLE_RB_DEV=true for local paths)
 eval_gemfile "gemfiles/modular/tree_sitter.gemfile"
 
-# optional templating dependencies (env-switched: KETTLE_RB_DEV=true for local paths)
+# Templating (env-switched: KETTLE_RB_DEV=true for local paths)
 eval_gemfile "gemfiles/modular/templating.gemfile"
 
+# Debugging
 eval_gemfile "gemfiles/modular/debug.gemfile"
 
 # Code Coverage (env-switched: KETTLE_RB_DEV=true for local paths)
 eval_gemfile "gemfiles/modular/coverage.gemfile"
 
+# Linting
 eval_gemfile "gemfiles/modular/style.gemfile"
+
+# Documentation
 eval_gemfile "gemfiles/modular/documentation.gemfile"
+
+# Optional
 eval_gemfile "gemfiles/modular/optional.gemfile"
+
+### Std Lib Extracted Gems
 eval_gemfile "gemfiles/modular/x_std_libs.gemfile"
 
 # See unlocked_deps appraisal for more details on irb inclusion

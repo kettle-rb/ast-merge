@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+# kettle-jem:freeze
+# To retain chunks of comments & code during ast-merge templating:
+# Wrap custom sections with freeze markers (e.g., as above and below this comment chunk).
+# ast-merge will then preserve content between those markers across template runs.
+# kettle-jem:unfreeze
+
 # HOW TO UPDATE APPRAISALS (will run rubocop_gradual's autocorrect afterward):
 #   bin/rake appraisal:update
 
@@ -33,7 +39,7 @@ appraise "unlocked_deps" do
   #   irb was resolved to 1.16.0, which depends on
   #     rdoc was resolved to 7.0.3, which depends on
   #       psych
-  gem "irb", "~> 1.16" # ruby >= 2.7
+  gem "irb", "~> 1.17" # ruby >= 2.7
 
   eval_gemfile "modular/coverage.gemfile"
   eval_gemfile "modular/documentation.gemfile"
@@ -121,4 +127,9 @@ appraise "style" do
 
   # runtime dependencies that we can't add to gemspec due to platform differences
   eval_gemfile "modular/tree_sitter.gemfile"
+end
+
+appraise "templating" do
+  eval_gemfile "modular/templating.gemfile"
+  eval_gemfile "modular/x_std_libs.gemfile"
 end

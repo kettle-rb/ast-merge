@@ -40,6 +40,10 @@ Please file a bug if you notice a violation of semantic versioning.
 - Clarified shared removal-mode normalization with a documented compliance helper for top-level vs recursive expectations, separator blank lines, and explicit N/A handling where a format does not support inline or recursive removal parity
 - Expanded recipe execution around explicit sequential `steps:` flows and `ruby_script` runtime context passing so README, CHANGELOG, Appraisals, Prism partial-template, and YAML key-path recipe consumers can share one runner contract instead of caller-side post-processing
 
+### Deprecated
+
+### Removed
+
 ### Fixed
 
 - Recipe documentation now correctly describes `when_missing` behavior as `skip`, `append`, or `prepend`
@@ -50,10 +54,6 @@ Please file a bug if you notice a violation of semantic versioning.
   Previously, the resolver always matched lines by full normalized content, ignoring
   any custom signature generator passed to `Text::SmartMerger`. This meant that
   key-value text files (e.g., `.tool-versions`) could not match lines by key alone.
-
-### Deprecated
-
-### Removed
 
 ### Security
 
