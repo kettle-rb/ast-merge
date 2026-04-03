@@ -614,3 +614,8 @@ end
 2. **NEVER expect `cd` to persist** — Every terminal command is isolated; use a self-contained `mise exec -C ... -- ...` invocation.
 3. **NEVER pipe test output through `head`/`tail`** — Run tests without truncation so you can inspect the full output.
 4. **Terminal commands do not share shell state** — Previous `cd`, `export`, aliases, and functions are not available to the next command.
+
+1. **NEVER add backward compatibility** — No shims, aliases, or deprecation layers. Bump major version instead.
+2. **NEVER expect `cd` to persist** — Every terminal command is isolated; use a self-contained `mise exec -C ... -- ...` invocation.
+3. **NEVER pipe test output through `head`/`tail`** — Run tests without truncation so you can inspect the full output.
+4. **Terminal commands do not share shell state** — Previous `cd`, `export`, aliases, and functions are not available to the next command.
