@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   spec.summary = "🍲 Shared infrastructure for the *-merge gem family"
   spec.description = "🍲 Ast::Merge provides base classes, modules, and RSpec shared examples for building intelligent file mergers using AST analysis. It powers prism-merge, psych-merge, json-merge, and other format-specific merge gems."
   spec.homepage = "https://github.com/kettle-rb/ast-merge"
-  spec.licenses = ["AGPL-3.0-only", "PolyForm-Small-Business-1.0.0", "LicenseRef-Big-Time-Public-License"]
+  spec.licenses = ["AGPL-3.0-only"]
   spec.required_ruby_version = ">= 3.2.0"
 
   # Linux distros often package gems and securely certify them independent
