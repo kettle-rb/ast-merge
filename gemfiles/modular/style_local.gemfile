@@ -6,14 +6,6 @@
 # Local path overrides for development.
 # Loaded by the associated non-local gemfile when RUBOCOP_LTS_LOCAL != "false".
 
-require "nomono/bundler" unless defined?(Nomono)
-
-# We run rubocop on the latest version of Ruby,
-#   but in support of the oldest supported version of Ruby
-
-# Local path overrides for development.
-# Loaded by the associated non-local gemfile when RUBOCOP_LTS_LOCAL != "false".
-
 require File.expand_path("../../../nomono/lib/nomono/bundler", __dir__)
 
 local_gems = %w[rubocop-lts rubocop-lts-rspec rubocop-ruby3_2 standard-rubocop-lts]
