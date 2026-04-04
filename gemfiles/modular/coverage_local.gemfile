@@ -3,7 +3,7 @@
 # Local path overrides for development.
 # Loaded by the associated non-local gemfile when KETTLE_RB_DEV != "false".
 
-require File.expand_path("../../../nomono/lib/nomono/bundler", __dir__)
+require "nomono/bundler" unless defined?(Nomono)
 
 local_gems = %w[kettle-dev kettle-test kettle-soup-cover]
 
