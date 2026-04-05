@@ -56,6 +56,7 @@
 # :nocov:
 require "bundler/gem_tasks" if !Dir[File.join(__dir__, "*.gemspec")].empty?
 # :nocov:
+
 # Define a base default task early so other files can enhance it.
 desc "Default tasks aggregator"
 task :default do
