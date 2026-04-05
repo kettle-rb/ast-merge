@@ -452,7 +452,8 @@ module Ast
         value.is_a?(AstNode) ||
           value.is_a?(Freezable) ||
           value.is_a?(FreezeNodeBase) ||
-          value.is_a?(NodeTyping::Wrapper)
+          value.is_a?(NodeTyping::Wrapper) ||
+          value.is_a?(BlockDirective)
       end
 
       # Compute default signature for a node.
