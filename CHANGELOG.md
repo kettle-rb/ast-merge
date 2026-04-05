@@ -32,6 +32,7 @@ Please file a bug if you notice a violation of semantic versioning.
 - Added Prism-backed recipe-runner dispatch for navigable partial-template merges, alongside the shared adaptation hook concrete parsers can use when their analysis statements need a thin wrapper before entering the shared navigable substrate
 - Document how to build a gem in the *-merge gem family.
 - Added `Ast::Merge::Text::FileAnalysis#searchable_text(nodes: nil)` — collapses all `LineNode#normalized_content` values into a single whitespace-normalized string so callers can perform cross-line phrase matching regardless of where an author breaks lines. Passing a `nodes:` array restricts the search corpus to those nodes, enabling per-node boundary detection (e.g., locating the first line that contains a given phrase).
+- Added `Ast::Merge::BlockDirective` protocol module — defines the shared abstract interface (`kind`, `children`, `start_line`, `end_line`, `merge_policy`) for synthetic block-directive nodes (`:freeze`, `:nocov`, extensible); `FreezeNodeBase` now includes this protocol
 
 ### Changed
 
