@@ -1,5 +1,13 @@
 # frozen_string_literal: true
 
+# :nocov:
+require "bundler/gem_tasks" if !Dir[File.join(__dir__, "*.gemspec")].empty?
+# :nocov:
+
+# :nocov:
+require "bundler/gem_tasks" if !Dir[File.join(__dir__, "*.gemspec")].empty?
+# :nocov:
+
 # kettle-jem:freeze
 # To retain chunks of comments & code during ast-merge templating:
 # Wrap custom sections with freeze markers (e.g., as above and below this comment chunk).
@@ -53,8 +61,6 @@
 #
 
 require "bundler/gem_tasks" if !Dir[File.join(__dir__, "*.gemspec")].empty?
-
-# :nocov:
 
 # Define a base default task early so other files can enhance it.
 desc "Default tasks aggregator"

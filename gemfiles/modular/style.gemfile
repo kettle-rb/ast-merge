@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# To retain during kettle-jem templating:
+# To retain during ast-merge templating:
 #     kettle-jem:freeze
 #     # ... your code
 #     kettle-jem:unfreeze
