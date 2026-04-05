@@ -141,6 +141,7 @@ module Ast
 
     # Core classes
     autoload :AstNode, "ast/merge/ast_node"
+    autoload :BlockDirective, "ast/merge/block_directive"
     autoload :Comment, "ast/merge/comment"
     autoload :ConflictResolverBase, "ast/merge/conflict_resolver_base"
     autoload :ContentMatchRefiner, "ast/merge/content_match_refiner"

@@ -58,6 +58,16 @@ module Ast
     # @see FileAnalyzable#generate_signature - Routing logic for signature generation
     class FreezeNodeBase
       include Freezable
+      include BlockDirective
+
+      # @return [Symbol] Always :freeze for FreezeNodeBase
+      def kind = :freeze
+
+      # @return [Array] AST nodes contained within the freeze block
+      def children = @nodes
+
+      # @return [Symbol] Freeze blocks are user customizations; dest always wins
+      def merge_policy = :destination
 
       # Error raised when a freeze block has invalid structure
       class InvalidStructureError < StandardError
