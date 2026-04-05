@@ -6,6 +6,14 @@
 # ast-merge will then preserve content between those markers across template runs.
 # kettle-jem:unfreeze
 
+# :nocov:
+require "bundler/gem_tasks" if !Dir[File.join(__dir__, "*.gemspec")].empty?
+# :nocov:
+
+# :nocov:
+require "bundler/gem_tasks" if !Dir[File.join(__dir__, "*.gemspec")].empty?
+# :nocov:
+
 # ast-merge Rakefile v1.0.0 - 2026-04-02
 # Ruby 2.3 (Safe Navigation) or higher required
 #
