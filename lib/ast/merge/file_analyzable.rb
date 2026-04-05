@@ -392,8 +392,16 @@ module Ast
             # Generator returned a final signature or nil - use as-is
             custom_result
           else
-            # Generator returned a node (fallthrough) - compute default signature
-            if fallthrough_node?(custom_result)
+            # Generator returned a node (fallthrough) - compute default signature.
+            #
+            # Two conditions indicate the generator is deferring to default handling:
+            # 1. Identity equality: the generator returned the exact same object it
+            #    received (classic "I don't handle this type" passthrough pattern).
+            # 2. Known node type: the result is a recognised wrapper/node class.
+            #
+            # If neither applies, treat the return value as a final custom signature
+            # (e.g. a String, Symbol, or other non-node key).
+            if custom_result.equal?(actual_node) || fallthrough_node?(custom_result)
               # Special case: if fallthrough result is Freezable, use freeze_signature
               # This handles cases where the generator wraps a node in Freezable
               if custom_result.is_a?(Freezable)
