@@ -214,6 +214,8 @@ module Ast
         regions: nil,
         region_placeholder: nil,
         node_typing: nil,
+        template_path: nil,
+        dest_path: nil,
         **format_options
       )
         @template_content = template_content
@@ -224,6 +226,8 @@ module Ast
         @freeze_token = freeze_token || default_freeze_token
         @match_refiner = match_refiner
         @node_typing = node_typing
+        @template_path = template_path
+        @dest_path = dest_path
         @format_options = format_options
 
         # Validate node_typing if provided
@@ -398,6 +402,8 @@ module Ast
       # @return [Object] The analysis result
       def parse_and_analyze(content, source)
         options = build_full_analysis_options
+        source_label = (source == :template) ? @template_path : @dest_path
+        options[:source_label] = source_label if source_label
 
         analysis = DebugLogger.time("#{self.class.name}#analyze_#{source}") do
           analysis_class.new(content, **options)
