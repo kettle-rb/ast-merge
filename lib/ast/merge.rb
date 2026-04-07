@@ -144,6 +144,7 @@ module Ast
     autoload :BlockDirective, "ast/merge/block_directive"
     autoload :Comment, "ast/merge/comment"
     autoload :ConflictResolverBase, "ast/merge/conflict_resolver_base"
+    autoload :CompositeMatchRefiner, "ast/merge/composite_match_refiner"
     autoload :ContentMatchRefiner, "ast/merge/content_match_refiner"
     autoload :DebugLogger, "ast/merge/debug_logger"
     autoload :DiffMapperBase, "ast/merge/diff_mapper_base"
