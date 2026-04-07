@@ -147,12 +147,13 @@ module Ast
       end
 
       # Extract text from a node using byte positions.
+      # Uses byteslice for correct multi-byte character handling (e.g. emoji).
       # @param ts_node [Object] The TreeHaver node
       # @return [String]
       def node_text(ts_node)
         return "" unless ts_node.respond_to?(:start_byte) && ts_node.respond_to?(:end_byte)
 
-        @source[ts_node.start_byte...ts_node.end_byte] || ""
+        @source.byteslice(ts_node.start_byte, ts_node.end_byte - ts_node.start_byte) || ""
       end
 
       # Get the content for this node from source lines.
