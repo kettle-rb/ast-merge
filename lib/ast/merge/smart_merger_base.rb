@@ -402,8 +402,9 @@ module Ast
       # @return [Object] The analysis result
       def parse_and_analyze(content, source)
         options = build_full_analysis_options
-        source_label = (source == :template) ? @template_path : @dest_path
-        options[:source_label] = source_label if source_label
+        # Always label with dest_path — unbalanced directives corrupt the
+        # destination regardless of which side introduced them.
+        options[:source_label] = @dest_path if @dest_path
 
         analysis = DebugLogger.time("#{self.class.name}#analyze_#{source}") do
           analysis_class.new(content, **options)
