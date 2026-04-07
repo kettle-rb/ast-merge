@@ -33,6 +33,9 @@ Please file a bug if you notice a violation of semantic versioning.
 - Document how to build a gem in the *-merge gem family.
 - Added `Ast::Merge::Text::FileAnalysis#searchable_text(nodes: nil)` — collapses all `LineNode#normalized_content` values into a single whitespace-normalized string so callers can perform cross-line phrase matching regardless of where an author breaks lines. Passing a `nodes:` array restricts the search corpus to those nodes, enabling per-node boundary detection (e.g., locating the first line that contains a given phrase).
 - Added `Ast::Merge::BlockDirective` protocol module — defines the shared abstract interface (`kind`, `children`, `start_line`, `end_line`, `merge_policy`) for synthetic block-directive nodes (`:freeze`, `:nocov`, extensible); `FreezeNodeBase` now includes this protocol
+- Added `Ast::Merge::JaccardSimilarity` module for set-based fuzzy matching of text blocks using Jaccard index, bigram, and token overlap metrics
+- Added `Ast::Merge::TokenMatchRefiner` for Jaccard-based fuzzy refinement of unmatched node pairs during alignment
+- Added `Ast::Merge::CompositeMatchRefiner` for chaining multiple refiners (e.g. exact then fuzzy) in a single alignment pass
 
 ### Changed
 
@@ -47,6 +50,7 @@ Please file a bug if you notice a violation of semantic versioning.
 
 ### Fixed
 
+- Fixed multi-byte character corruption in `node_text` — replaced `byteslice` with `slice` to prevent splitting multi-byte characters (e.g. emoji) at byte boundaries
 - Recipe documentation now correctly describes `when_missing` behavior as `skip`, `append`, or `prepend`
 - `MergeResultBase#to_s` now ensures a trailing newline for non-empty content,
   matching the convention used by `EmitterBase#to_s`, `Psych::Merge::MergeResult#to_yaml`,
