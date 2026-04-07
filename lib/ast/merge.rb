@@ -152,6 +152,7 @@ module Ast
     autoload :FileAnalyzable, "ast/merge/file_analyzable"
     autoload :Freezable, "ast/merge/freezable"
     autoload :FreezeNodeBase, "ast/merge/freeze_node_base"
+    autoload :JaccardSimilarity, "ast/merge/jaccard_similarity"
     autoload :Layout, "ast/merge/layout"
     autoload :MatchRefinerBase, "ast/merge/match_refiner_base"
     autoload :MatchScoreBase, "ast/merge/match_score_base"
@@ -166,6 +167,7 @@ module Ast
     autoload :SmartMergerBase, "ast/merge/smart_merger_base"
     autoload :StructuralEdit, "ast/merge/structural_edit"
     autoload :Text, "ast/merge/text"
+    autoload :TokenMatchRefiner, "ast/merge/token_match_refiner"
     autoload :TrailingGroups, "ast/merge/trailing_groups"
 
     # Namespaces
