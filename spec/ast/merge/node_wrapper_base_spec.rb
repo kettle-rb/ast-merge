@@ -325,4 +325,57 @@ RSpec.describe Ast::Merge::NodeWrapperBase do
       expect(wrapper.underlying_node).to eq(test_node)
     end
   end
+
+  describe "#node_text with multi-byte characters" do
+    it "extracts correct text when source contains emoji before the node" do
+      # Emoji 🪙 is 4 UTF-8 bytes but 1 character.
+      # Tree-sitter returns byte offsets, so node_text must use byteslice.
+      emoji_source = "EMOJI=🪙\nA=1\n"
+      # "A=1" starts at byte 13 (E-M-O-J-I-= = 6 bytes + 🪙 = 4 bytes + \n = 1 byte = 11; A at byte 11)
+      # Actually: E(1) M(1) O(1) J(1) I(1) =(1) 🪙(4) \n(1) = 11 bytes for first line
+      # A=1 starts at byte 11, ends at byte 14
+      a_node = TestableNode.create(
+        type: :pair,
+        text: "A=1",
+        start_line: 1,
+        end_line: 1,
+        start_byte: 11,
+        end_byte: 14,
+      )
+      emoji_wrapper = test_wrapper_class.new(a_node, lines: emoji_source.lines, source: emoji_source)
+      expect(emoji_wrapper.node_text(a_node)).to eq("A=1")
+    end
+
+    it "extracts correct text with multiple emoji preceding" do
+      source = "X=🍲🪙\nB=2\n"
+      # X(1) =(1) 🍲(4) 🪙(4) \n(1) = 11 bytes for first line
+      # B=2 starts at byte 11, ends at byte 14
+      b_node = TestableNode.create(
+        type: :pair,
+        text: "B=2",
+        start_line: 1,
+        end_line: 1,
+        start_byte: 11,
+        end_byte: 14,
+      )
+      wrapper = test_wrapper_class.new(b_node, lines: source.lines, source: source)
+      expect(wrapper.node_text(b_node)).to eq("B=2")
+    end
+
+    it "extracts correct text with CJK characters preceding" do
+      source = "NAME=日本語\nVAL=ok\n"
+      # N(1)A(1)M(1)E(1)=(1) = 5 bytes + 日(3)本(3)語(3) = 9 bytes + \n(1) = 15 bytes
+      # VAL=ok starts at byte 15, ends at byte 21
+      val_node = TestableNode.create(
+        type: :pair,
+        text: "VAL=ok",
+        start_line: 1,
+        end_line: 1,
+        start_byte: 15,
+        end_byte: 21,
+      )
+      wrapper = test_wrapper_class.new(val_node, lines: source.lines, source: source)
+      expect(wrapper.node_text(val_node)).to eq("VAL=ok")
+    end
+  end
 end
