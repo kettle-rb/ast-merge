@@ -124,6 +124,42 @@ module Ast
         content
       end
 
+      # Collapse runs of consecutive blank lines in @lines down to at most
+      # +max_consecutive+ blank lines.  Defaults to 1, which preserves
+      # single-gap semantics while removing accidental double/triple gaps
+      # left behind by comment deduplication or node removal.
+      # Also removes the corresponding entries from @decisions to keep
+      # the two arrays in sync.  Trailing blank lines at EOF are preserved.
+      #
+      # @param max_consecutive [Integer] Maximum allowed consecutive blank lines
+      def normalize_consecutive_blank_lines!(max_consecutive: 1)
+        return if @lines.empty?
+
+        # Find last non-blank line — only normalize interior gaps
+        last_content_idx = @lines.rindex { |line| !line.strip.empty? }
+        return unless last_content_idx # all blank — nothing to normalize
+
+        consecutive = 0
+        indices_to_remove = []
+        @lines.each_with_index do |line, idx|
+          break if idx > last_content_idx
+
+          if line.strip.empty?
+            consecutive += 1
+            indices_to_remove << idx if consecutive > max_consecutive
+          else
+            consecutive = 0
+          end
+        end
+
+        return if indices_to_remove.empty?
+
+        indices_to_remove.reverse_each do |idx|
+          @lines.delete_at(idx)
+          @decisions.delete_at(idx) if @decisions
+        end
+      end
+
       # Check if content has been built (has any lines).
       #
       # @return [Boolean]

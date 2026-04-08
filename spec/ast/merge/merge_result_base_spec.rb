@@ -323,4 +323,87 @@ RSpec.describe Ast::Merge::MergeResultBase do
       expect(result.decisions.length).to eq(1)
     end
   end
+
+  describe "#normalize_consecutive_blank_lines!" do
+    let(:subclass) do
+      Class.new(described_class) do
+        def add_line(content, decision:, source:)
+          @lines << content
+          track_decision(decision, source)
+        end
+      end
+    end
+
+    it "collapses quadruple blank lines to single and removes corresponding decisions" do
+      result = subclass.new
+      result.add_line("a", decision: :kept_template, source: :template)
+      result.add_line("", decision: :kept_template, source: :template)
+      result.add_line("", decision: :kept_template, source: :template)
+      result.add_line("", decision: :kept_template, source: :template)
+      result.add_line("", decision: :kept_template, source: :template)
+      result.add_line("b", decision: :kept_dest, source: :destination)
+
+      result.normalize_consecutive_blank_lines!
+
+      expect(result.lines).to eq(["a", "", "b"])
+      expect(result.decisions.length).to eq(3)
+      expect(result.decisions.last[:decision]).to eq(:kept_dest)
+    end
+
+    it "preserves single blank lines" do
+      result = subclass.new
+      result.add_line("a", decision: :kept_template, source: :template)
+      result.add_line("", decision: :kept_template, source: :template)
+      result.add_line("b", decision: :kept_dest, source: :destination)
+
+      result.normalize_consecutive_blank_lines!
+
+      expect(result.lines).to eq(["a", "", "b"])
+      expect(result.decisions.length).to eq(3)
+    end
+
+    it "handles empty result" do
+      result = subclass.new
+      result.normalize_consecutive_blank_lines!
+      expect(result.lines).to eq([])
+    end
+
+    it "collapses multiple separate runs" do
+      result = subclass.new
+      %w[a].each { |l| result.add_line(l, decision: :kept_template, source: :template) }
+      3.times { result.add_line("", decision: :kept_template, source: :template) }
+      %w[b].each { |l| result.add_line(l, decision: :kept_template, source: :template) }
+      3.times { result.add_line("", decision: :kept_template, source: :template) }
+      %w[c].each { |l| result.add_line(l, decision: :kept_dest, source: :destination) }
+
+      result.normalize_consecutive_blank_lines!
+
+      expect(result.lines).to eq(["a", "", "b", "", "c"])
+    end
+
+    it "allows double blank lines with max_consecutive: 2" do
+      result = subclass.new
+      result.add_line("a", decision: :kept_template, source: :template)
+      3.times { result.add_line("", decision: :kept_template, source: :template) }
+      result.add_line("b", decision: :kept_dest, source: :destination)
+
+      result.normalize_consecutive_blank_lines!(max_consecutive: 2)
+
+      expect(result.lines).to eq(["a", "", "", "b"])
+      expect(result.decisions.length).to eq(4)
+    end
+
+    it "preserves trailing blank lines at EOF" do
+      result = subclass.new
+      result.add_line("a", decision: :kept_template, source: :template)
+      4.times { result.add_line("", decision: :kept_template, source: :template) }
+      result.add_line("b", decision: :kept_dest, source: :destination)
+      3.times { result.add_line("", decision: :kept_dest, source: :destination) }
+
+      result.normalize_consecutive_blank_lines!
+
+      expect(result.lines).to eq(["a", "", "b", "", "", ""])
+      expect(result.decisions.length).to eq(6)
+    end
+  end
 end

@@ -264,4 +264,61 @@ RSpec.describe Ast::Merge::EmitterBase do
       expect(emitter.lines).to eq(["", "", "", ""])
     end
   end
+
+  describe "#normalize_consecutive_blank_lines!" do
+    subject(:emitter) { described_class.new }
+
+    it "collapses triple blank lines to single (default max_consecutive: 1)" do
+      emitter.instance_variable_set(:@lines, ["a", "", "", "", "b"])
+      emitter.normalize_consecutive_blank_lines!
+      expect(emitter.lines).to eq(["a", "", "b"])
+    end
+
+    it "collapses quadruple blank lines to single" do
+      emitter.instance_variable_set(:@lines, ["a", "", "", "", "", "b"])
+      emitter.normalize_consecutive_blank_lines!
+      expect(emitter.lines).to eq(["a", "", "b"])
+    end
+
+    it "preserves single blank lines" do
+      emitter.instance_variable_set(:@lines, ["a", "", "b", "", "c"])
+      emitter.normalize_consecutive_blank_lines!
+      expect(emitter.lines).to eq(["a", "", "b", "", "c"])
+    end
+
+    it "handles no blank lines" do
+      emitter.instance_variable_set(:@lines, ["a", "b", "c"])
+      emitter.normalize_consecutive_blank_lines!
+      expect(emitter.lines).to eq(["a", "b", "c"])
+    end
+
+    it "handles empty lines array" do
+      emitter.normalize_consecutive_blank_lines!
+      expect(emitter.lines).to eq([])
+    end
+
+    it "respects custom max_consecutive: 2" do
+      emitter.instance_variable_set(:@lines, ["a", "", "", "", "", "b"])
+      emitter.normalize_consecutive_blank_lines!(max_consecutive: 2)
+      expect(emitter.lines).to eq(["a", "", "", "b"])
+    end
+
+    it "collapses multiple separate runs" do
+      emitter.instance_variable_set(:@lines, ["a", "", "", "", "b", "", "", "", "c"])
+      emitter.normalize_consecutive_blank_lines!
+      expect(emitter.lines).to eq(["a", "", "b", "", "c"])
+    end
+
+    it "preserves trailing blank lines at EOF" do
+      emitter.instance_variable_set(:@lines, ["a", "", "", "", "b", "", "", ""])
+      emitter.normalize_consecutive_blank_lines!
+      expect(emitter.lines).to eq(["a", "", "b", "", "", ""])
+    end
+
+    it "handles all-blank lines" do
+      emitter.instance_variable_set(:@lines, ["", "", ""])
+      emitter.normalize_consecutive_blank_lines!
+      expect(emitter.lines).to eq(["", "", ""])
+    end
+  end
 end
