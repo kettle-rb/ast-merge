@@ -6,7 +6,6 @@
 # ast-merge will then preserve content between those markers across template runs.
 # kettle-jem:unfreeze
 
-
 # ast-merge Rakefile v1.0.0 - 2026-04-05
 # Ruby 2.3 (Safe Navigation) or higher required
 #
@@ -75,7 +74,6 @@ rescue LoadError
     warn("NOTE: kettle-jem isn't installed, or is disabled for #{RUBY_VERSION} in the current environment")
   end
 end
-
 
 ### RELEASE TASKS
 # Setup stone_checksums
