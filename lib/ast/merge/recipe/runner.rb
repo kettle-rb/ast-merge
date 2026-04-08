@@ -478,6 +478,12 @@ module Ast
             problems = nil
           end
 
+          # Normalize consecutive blank lines left behind by comment dedup or
+          # node removal.  Mergers that use TopLevelMergeRunner already do this
+          # on the MergeResult, but when Recipe::Runner invokes SmartMerger
+          # directly the normalization must happen here on the string output.
+          content = normalize_consecutive_blank_lines_in_string(content)
+
           StepResult.new(
             content: content,
             changed: content != original_content,
@@ -539,6 +545,37 @@ module Ast
           end
 
           raise ArgumentError, "ruby_script step must return a String, Hash, or object responding to #content"
+        end
+
+        # Collapse runs of consecutive blank lines in a string to at most one
+        # blank line, preserving trailing EOF blank lines.  This mirrors the
+        # behaviour of EmitterBase#normalize_consecutive_blank_lines! but
+        # operates on the final String output so it works regardless of which
+        # merger produced the content.
+        def normalize_consecutive_blank_lines_in_string(content, max_consecutive: 1)
+          return content if content.nil? || content.empty?
+
+          lines = content.split("\n", -1)
+          last_content_idx = lines.rindex { |l| !l.strip.empty? }
+          return content unless last_content_idx
+
+          consecutive = 0
+          indices_to_remove = []
+          lines.each_with_index do |line, idx|
+            break if idx > last_content_idx
+
+            if line.strip.empty?
+              consecutive += 1
+              indices_to_remove << idx if consecutive > max_consecutive
+            else
+              consecutive = 0
+            end
+          end
+
+          return content if indices_to_remove.empty?
+
+          indices_to_remove.reverse_each { |idx| lines.delete_at(idx) }
+          lines.join("\n")
         end
 
         def runtime_context(override = nil)

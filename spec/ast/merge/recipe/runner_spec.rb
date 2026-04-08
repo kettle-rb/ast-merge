@@ -857,6 +857,23 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
         expect(results.first.content).to eq("class Example\n  VALUE = 1\nend\n")
       end
+
+      it "normalizes consecutive blank lines left behind by comment dedup" do
+        # Simulates a merge result with triple blank lines (comment dedup artifact)
+        merge_result = instance_double(
+          "MergeResult",
+          content: "class Example\n  # A\n\n\n\n  # B\n  VALUE = 1\nend\n",
+          stats: {mode: :smart},
+          problems: nil,
+        )
+        smart_merger = instance_double(Prism::Merge::SmartMerger, merge_result: merge_result)
+        allow(Prism::Merge::SmartMerger).to receive(:new).and_return(smart_merger)
+
+        runner = described_class.new(smart_recipe, dry_run: true, base_dir: base_dir, parser: :prism)
+        results = runner.run
+
+        expect(results.first.content).to eq("class Example\n  # A\n\n  # B\n  VALUE = 1\nend\n")
+      end
     end
 
     describe "legacy recipes without injection use an implicit smart_merge step", :prism_merge do
