@@ -76,8 +76,6 @@ rescue LoadError
   end
 end
 
-require "kettle/jem"
-
 
 ### RELEASE TASKS
 # Setup stone_checksums
