@@ -352,6 +352,52 @@ This is particularly useful for:
 - Comments with updated text
 - Any text-based node that may have been slightly modified
 
+### JaccardSimilarity
+
+`Ast::Merge::JaccardSimilarity` provides set-based fuzzy matching of text blocks using Jaccard index with bigram and token overlap metrics. This is the foundation for detecting renamed or refactored nodes that share similar content.
+
+```ruby
+# Calculate similarity between two text strings
+Ast::Merge::JaccardSimilarity.jaccard("def process_users(data)", "def handle_users(data)")
+# => 0.75 (high overlap due to shared tokens)
+
+# Extract tokens from text for comparison
+tokens = Ast::Merge::JaccardSimilarity.extract_tokens("data.each { |u| validate(u) }")
+# => ["data", "each", "validate"]
+```
+
+### TokenMatchRefiner
+
+`Ast::Merge::TokenMatchRefiner` extends `MatchRefinerBase` for Jaccard-based fuzzy refinement of unmatched node pairs during alignment. It uses greedy best-first matching to pair orphan nodes that have similar body text.
+
+```ruby
+refiner = Ast::Merge::TokenMatchRefiner.new(
+  threshold: 0.6,                  # Minimum Jaccard similarity (default: 0.6)
+  node_types: [:def, :class],       # Only match these node types
+)
+
+merger = MyFormat::SmartMerger.new(
+  template, destination,
+  match_refiner: refiner,
+)
+```
+
+### CompositeMatchRefiner
+
+`Ast::Merge::CompositeMatchRefiner` chains multiple refiners sequentially, enabling multi-strategy matching in a single alignment pass. Each refiner operates on the residual unmatched nodes from the previous refiner.
+
+```ruby
+composite = Ast::Merge::CompositeMatchRefiner.new(refiners: [
+  Ast::Merge::ContentMatchRefiner.new(threshold: 0.8),  # strict text match first
+  Ast::Merge::TokenMatchRefiner.new(threshold: 0.5),    # then looser token match
+])
+
+merger = MyFormat::SmartMerger.new(
+  template, destination,
+  match_refiner: composite,
+)
+```
+
 ### Namespace Reference
 
 The `Ast::Merge` module is organized into several namespaces, each with detailed documentation:
