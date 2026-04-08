@@ -50,14 +50,16 @@ RSpec.describe Ast::Merge::Comment::Augmenter do
       first_attachment = augmenter.attachment_for(owners.first)
       second_attachment = augmenter.attachment_for(owners.last)
 
+      # Line-1 "Header comment" is preamble (gap separates it from node)
+      expect(augmenter.preamble_region).not_to be_nil
+      expect(augmenter.preamble_region.normalized_content).to eq("Header comment")
+
       expect(first_attachment.leading_region).not_to be_nil
       expect(first_attachment.leading_region).to be_leading
       expect(first_attachment.leading_region.nodes.map(&:class)).to eq([
         Ast::Merge::Comment::Line,
-        Ast::Merge::Comment::Empty,
-        Ast::Merge::Comment::Line,
       ])
-      expect(first_attachment.leading_region.normalized_content).to eq("Header comment\n\nDefaults comment")
+      expect(first_attachment.leading_region.normalized_content).to eq("Defaults comment")
 
       expect(second_attachment.leading_region).not_to be_nil
       expect(second_attachment.leading_region.normalized_content).to eq("Tokens comment")

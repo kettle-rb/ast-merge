@@ -59,6 +59,7 @@ Please file a bug if you notice a violation of semantic versioning.
   Previously, the resolver always matched lines by full normalized content, ignoring
   any custom signature generator passed to `Text::SmartMerger`. This meant that
   key-value text files (e.g., `.tool-versions`) could not match lines by key alone.
+- Fixed file-header comment duplication: comments starting at line 1 followed by a blank-line gap are now classified as preamble (file header) instead of being claimed as leading comments of the first key. The gap is the definitive signal — preamble is emitted once by the `Augmenter` as `preamble_region`, preventing duplication when new keys are inserted before the first key.
 
 ### Security
 

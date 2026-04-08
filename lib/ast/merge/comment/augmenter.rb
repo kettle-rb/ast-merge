@@ -103,7 +103,7 @@ module Ast
             end
           end
 
-          selected
+          strip_preamble(selected, owner.start_line)
         end
 
         def infer_inline_comments(owner, claimed)
@@ -140,6 +140,19 @@ module Ast
           first_owner_start = owners.first&.start_line
 
           groups.each do |group|
+            # When a group starts at line 1 and spans a blank-line gap before
+            # the first owner, split it: the pre-gap portion is the file
+            # preamble and the post-gap portion is a separate orphan region.
+            if @preamble_region.nil? && first_owner_start && group.first[:line] == 1 && group.length > 1
+              split = split_preamble_group(group, first_owner_start)
+              if split
+                preamble_part, rest_part = split
+                @preamble_region = build_region(:preamble, preamble_part)
+                @orphan_regions << build_region(:orphan, rest_part) if rest_part&.any?
+                next
+              end
+            end
+
             kind = if first_owner_start && group.last[:line] < first_owner_start
               @preamble_region.nil? ? :preamble : :orphan
             else
@@ -153,6 +166,26 @@ module Ast
               @orphan_regions << region
             end
           end
+        end
+
+        # Split a comment group that starts at line 1 into preamble and
+        # non-preamble portions at the last blank-line gap before
+        # +first_owner_start+.
+        #
+        # @return [Array(Array<Hash>, Array<Hash>), nil] [preamble, rest] or nil if no split
+        def split_preamble_group(group, first_owner_start)
+          # Find blank-line gaps within the group's range
+          last_gap = nil
+          (group.first[:line]..group.last[:line]).each do |ln|
+            last_gap = ln if blank_line?(ln) && ln < first_owner_start
+          end
+          return unless last_gap
+
+          before = group.select { |c| c[:line] < last_gap }
+          after = group.select { |c| c[:line] > last_gap }
+          return if before.empty?
+
+          [before, after]
         end
 
         def group_comments_with_blank_lines(comments)
@@ -269,6 +302,28 @@ module Ast
 
         def blank_line?(line_number)
           line_at(line_number).to_s.strip.empty?
+        end
+
+        # Strip file-preamble comments from a leading-comment collection.
+        # Comments starting at line 1 with a blank-line gap before the node
+        # are a file header, not owned by any key.  The gap is the signal.
+        # Unclaimed preamble flows to {#infer_remaining_regions!} as
+        # +preamble_region+.
+        #
+        # @param comments [Array<Hash>] ascending-line-order comments
+        # @param node_line [Integer] 1-based line of the owner node
+        # @return [Array<Hash>]
+        def strip_preamble(comments, node_line)
+          return comments if comments.empty?
+          return comments unless comments.first[:line] == 1
+
+          gaps = []
+          ((comments.first[:line])..node_line).each do |ln|
+            gaps << ln if blank_line?(ln)
+          end
+          return comments if gaps.empty?
+
+          comments.select { |c| c[:line] > gaps.first }
         end
 
         def line_at(line_number)

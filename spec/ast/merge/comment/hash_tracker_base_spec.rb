@@ -272,11 +272,10 @@ RSpec.describe Ast::Merge::Comment::HashTrackerBase do
       SRC
     end
 
-    it "collects comments across blank line gaps" do
+    it "strips preamble when comments reach line 1 and a gap separates them" do
       leading = tracker.leading_comments_before(4)
-      expect(leading.length).to eq(2)
-      expect(leading.first[:text]).to eq("First block")
-      expect(leading.last[:text]).to eq("Second block")
+      expect(leading.length).to eq(1)
+      expect(leading.first[:text]).to eq("Second block")
     end
   end
 end

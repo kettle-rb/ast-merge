@@ -294,15 +294,15 @@ RSpec.describe Ast::Merge::Comment do
 
     let(:augmenter_owner) { owner }
     let(:expected_capability_predicate) { :source_augmented? }
-    let(:expected_leading_content) { "preamble\n\ndocs" }
+    let(:expected_leading_content) { "docs" }
     let(:expected_inline_content) { "inline" }
-    let(:expected_preamble_content) { nil }
+    let(:expected_preamble_content) { "preamble" }
     let(:expected_postlude_content) { "postlude" }
     let(:expected_orphan_contents) { [] }
 
     it_behaves_like "Ast::Merge::Comment::Augmenter"
 
-    it "preserves blank separator lines inside inferred leading regions" do
+    it "strips line-1 preamble, keeps only post-gap comment as leading" do
       augmenter = described_class.new(
         lines: ["# docs", "", "# more docs", 'key = "value"'],
         comments: [
@@ -316,10 +316,9 @@ RSpec.describe Ast::Merge::Comment do
 
       expect(attachment.leading_region.nodes.map(&:class)).to eq([
         Ast::Merge::Comment::Line,
-        Ast::Merge::Comment::Empty,
-        Ast::Merge::Comment::Line,
       ])
-      expect(attachment.leading_region.normalized_content).to eq("docs\n\nmore docs")
+      expect(attachment.leading_region.normalized_content).to eq("more docs")
+      expect(augmenter.preamble_region.normalized_content).to eq("docs")
     end
   end
 

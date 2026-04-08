@@ -138,7 +138,11 @@ module Ast
             current -= 1 while current >= 1 && blank_line?(current)
           end
 
-          leading
+          # If the collected comments extend all the way to the file's first
+          # line, they are a preamble/header comment — not semantically owned
+          # by this particular node.  Strip preamble lines that are separated
+          # from the node-specific comment block by a blank line.
+          strip_preamble(leading, line_num)
         end
 
         # Get a shared leading comment region before a line.
@@ -242,6 +246,36 @@ module Ast
           return false if line_num < 1 || line_num > @lines.length
 
           @lines[line_num - 1].to_s.strip.empty?
+        end
+
+        # Strip file-preamble comments from a leading-comment collection.
+        #
+        # Any comment block that starts at line 1 and is followed by a
+        # blank-line gap is a file header/preamble — it belongs to the file,
+        # not to any particular key.  The gap is the definitive signal: it
+        # separates the preamble from node-specific comments (if any).
+        #
+        # Unclaimed preamble comments are later picked up by the
+        # {Augmenter} as a +preamble_region+ and emitted once at the
+        # top of the merged output.
+        #
+        # @param comments [Array<Hash>] collected leading comments (ascending line order)
+        # @param node_line [Integer] 1-based line of the node these comments precede
+        # @return [Array<Hash>] pruned leading comments (may be empty)
+        def strip_preamble(comments, node_line)
+          return comments if comments.empty?
+          return comments unless comments.first[:line] == 1
+
+          # Find blank-line gaps in the range from the first comment to the node.
+          gaps = []
+          ((comments.first[:line])..node_line).each do |ln|
+            gaps << ln if blank_line?(ln)
+          end
+          return comments if gaps.empty?
+
+          # Everything at or before the first gap is preamble.
+          # Keep only comments that appear after the first gap.
+          comments.select { |c| c[:line] > gaps.first }
         end
 
         # Get raw line content.
