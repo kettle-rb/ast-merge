@@ -51,6 +51,18 @@ module Ast
           kind == :postlude
         end
 
+        # A floating region is gap-separated from its owner node by at least one
+        # blank line.  Floating comments are positional — they belong to a place
+        # in the file rather than to the specific AST node the parser attached
+        # them to.  This distinction matters for merge deduplication: when two
+        # sides attach the same floating comment block to different nodes, only
+        # one copy should survive the merge.
+        #
+        # The value is set by the Augmenter during region construction.
+        def floating?
+          metadata[:floating] == true
+        end
+
         def empty?
           nodes.empty?
         end

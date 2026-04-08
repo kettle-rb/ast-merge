@@ -130,6 +130,44 @@ RSpec.describe Ast::Merge::Comment::Augmenter do
       expect(leading.normalized_content).to eq("First leading\n\nSecond leading")
     end
 
+    it "marks a gap-separated leading region as floating" do
+      owner = Owner.new(start_line: 5, end_line: 5, label: :settings)
+      augmenter = described_class.new(
+        lines: [
+          "intro",
+          "# Floating comment block",
+          "",
+          "",
+          "settings:",
+        ],
+        comments: [
+          {line: 2, indent: 0, text: "Floating comment block", full_line: true, raw: "# Floating comment block"},
+        ],
+        owners: [owner],
+      )
+
+      leading = augmenter.attachment_for(owner).leading_region
+      expect(leading).to be_floating
+    end
+
+    it "marks an adjacent leading region as non-floating" do
+      owner = Owner.new(start_line: 3, end_line: 3, label: :settings)
+      augmenter = described_class.new(
+        lines: [
+          "intro",
+          "# Attached comment",
+          "settings:",
+        ],
+        comments: [
+          {line: 2, indent: 0, text: "Attached comment", full_line: true, raw: "# Attached comment"},
+        ],
+        owners: [owner],
+      )
+
+      leading = augmenter.attachment_for(owner).leading_region
+      expect(leading).not_to be_floating
+    end
+
     it "exposes attachments by owner" do
       augmenter = described_class.new(lines: lines, comments: comments, owners: owners)
 

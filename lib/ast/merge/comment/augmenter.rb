@@ -62,9 +62,11 @@ module Ast
             inline_comments = infer_inline_comments(owner, claimed)
             layout_attachment = layout_attachments[owner]
 
+            leading_floating = leading_comments.any? && gap_before_owner?(leading_comments, owner)
+
             attachments_by_owner[owner] = Attachment.new(
               owner: owner,
-              leading_region: build_region(:leading, leading_comments),
+              leading_region: build_region(:leading, leading_comments, floating: leading_floating),
               inline_region: build_region(:inline, inline_comments, include_blank_lines: false),
               leading_gap: layout_attachment&.leading_gap,
               trailing_gap: layout_attachment&.trailing_gap,
@@ -217,7 +219,7 @@ module Ast
           ((from_line + 1)...to_line).all? { |line_number| blank_line?(line_number) }
         end
 
-        def build_region(kind, comments, include_blank_lines: true)
+        def build_region(kind, comments, include_blank_lines: true, floating: false)
           return if comments.empty?
 
           nodes = []
@@ -240,6 +242,7 @@ module Ast
             metadata: {
               source: :augmenter,
               tracked_hashes: comments,
+              floating: floating,
             },
           )
         end
@@ -302,6 +305,25 @@ module Ast
 
         def blank_line?(line_number)
           line_at(line_number).to_s.strip.empty?
+        end
+
+        # Detects whether the leading comment block is gap-separated (floating)
+        # from its owner node.  A gap is one or more blank lines between the
+        # last comment in the block and the owner's start_line.
+        #
+        # @param comments [Array<Hash>] leading comments (ascending line order)
+        # @param owner [#start_line] the structural node the comments precede
+        # @return [Boolean]
+        def gap_before_owner?(comments, owner)
+          return false if comments.empty?
+          return false unless owner.respond_to?(:start_line) && owner.start_line
+
+          last_comment_line = comments.max_by { |c| c[:line] }[:line]
+          return false unless last_comment_line
+
+          # If there is at least one blank line between the last comment and
+          # the owner start, the comment block is floating.
+          ((last_comment_line + 1)...owner.start_line).any? { |ln| blank_line?(ln) }
         end
 
         # Strip file-preamble comments from a leading-comment collection.

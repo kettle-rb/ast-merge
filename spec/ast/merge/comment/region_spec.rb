@@ -27,6 +27,26 @@ RSpec.describe Ast::Merge::Comment::Region do
     end
   end
 
+  describe "#floating?" do
+    it "returns true when metadata[:floating] is true" do
+      region = described_class.new(kind: :leading, nodes: [line_one], metadata: {floating: true})
+
+      expect(region).to be_floating
+    end
+
+    it "returns false when metadata[:floating] is absent" do
+      region = described_class.new(kind: :leading, nodes: [line_one])
+
+      expect(region).not_to be_floating
+    end
+
+    it "returns false when metadata[:floating] is false" do
+      region = described_class.new(kind: :leading, nodes: [line_one], metadata: {floating: false})
+
+      expect(region).not_to be_floating
+    end
+  end
+
   describe "location and content" do
     it "derives line range from child node locations" do
       region = described_class.new(kind: :leading, nodes: [line_one, line_two, empty_line])
