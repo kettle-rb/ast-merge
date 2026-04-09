@@ -2,7 +2,7 @@
   "lib/ast/merge/comment/attachment.rb:2854399730": [
     [66, 27, 33, "Style/SafeNavigation: Use safe navigation (`&.`) instead of checking if an object exists before calling the method.", 2569267746]
   ],
-  "lib/ast/merge/comment/augmenter.rb:2305402916": [
+  "lib/ast/merge/comment/augmenter.rb:1555993140": [
     [25, 9, 61, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3958879246]
   ],
   "lib/ast/merge/comment/capability.rb:3878350582": [
@@ -21,6 +21,9 @@
   "lib/ast/merge/layout/augmenter.rb:4073036527": [
     [11, 9, 61, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3958879246]
   ],
+  "lib/ast/merge/merge_result_base.rb:2191294001": [
+    [159, 11, 39, "Style/SafeNavigation: Use safe navigation (`&.`) instead of checking if an object exists before calling the method.", 881757251]
+  ],
   "lib/ast/merge/structural_edit/boundary.rb:475418133": [
     [35, 28, 43, "Style/SafeNavigation: Use safe navigation (`&.`) instead of checking if an object exists before calling the method.", 1552008799],
     [42, 28, 46, "Style/SafeNavigation: Use safe navigation (`&.`) instead of checking if an object exists before calling the method.", 618477937],
@@ -29,11 +32,28 @@
   "lib/ast/merge/structural_edit/rehome_plan.rb:809668146": [
     [97, 69, 39, "Style/SafeNavigation: Use safe navigation (`&.`) instead of checking if an object exists before calling the method.", 47876771]
   ],
-  "spec/ast/merge/comment/augmenter_spec.rb:2008923290": [
+  "spec/ast/merge/comment/augmenter_spec.rb:1123473124": [
     [4, 3, 70, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 939510642]
   ],
-  "spec/ast/merge/emitter_base_spec.rb:2497227004": [
+  "spec/ast/merge/composite_match_refiner_spec.rb:3049570961": [
+    [5, 3, 55, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 4068590425]
+  ],
+  "spec/ast/merge/emitter_base_spec.rb:2558860418": [
     [4, 3, 76, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 1499416520]
+  ],
+  "spec/ast/merge/file_aligner_base_spec.rb:390229791": [
+    [6, 3, 41, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 4246706464],
+    [6, 17, 27, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::FileAlignerBase`.", 126244850],
+    [7, 3, 181, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 2800239547],
+    [17, 3, 514, "RSpec/LeakyConstantDeclaration: Stub class constant instead of declaring explicitly.", 1735960864],
+    [35, 3, 337, "RSpec/LeakyConstantDeclaration: Stub class constant instead of declaring explicitly.", 116436345],
+    [128, 21, 46, "Performance/Count: Use `count` instead of `select...size`.", 1152995277],
+    [129, 21, 54, "Performance/Count: Use `count` instead of `select...size`.", 3748218597]
+  ],
+  "spec/ast/merge/key_path_partial_template_merger_base_spec.rb:267746865": [
+    [6, 3, 233, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 56642850],
+    [20, 3, 83, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 2558387215],
+    [22, 3, 251, "RSpec/LeakyConstantDeclaration: Stub class constant instead of declaring explicitly.", 3401578396]
   ],
   "spec/ast/merge/layout/attachment_spec.rb:816519123": [
     [4, 3, 80, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 594446187]
@@ -50,6 +70,12 @@
     [4, 3, 66, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 3432867971],
     [6, 3, 586, "RSpec/LeakyConstantDeclaration: Stub class constant instead of declaring explicitly.", 1316657464]
   ],
+  "spec/ast/merge/recipe/runner_spec.rb:3700936983": [
+    [827, 40, 13, "RSpec/VerifiedDoubleReference: Use a constant class reference for verified doubles. String references are not verifying unless the class is loaded.", 3232518932],
+    [846, 11, 13, "RSpec/VerifiedDoubleReference: Use a constant class reference for verified doubles. String references are not verifying unless the class is loaded.", 3232518932],
+    [864, 11, 13, "RSpec/VerifiedDoubleReference: Use a constant class reference for verified doubles. String references are not verifying unless the class is loaded.", 3232518932],
+    [898, 40, 13, "RSpec/VerifiedDoubleReference: Use a constant class reference for verified doubles. String references are not verifying unless the class is loaded.", 3232518932]
+  ],
   "spec/ast/merge/rspec/shared_examples/recipe_preset_contract_spec.rb:2005761716": [
     [44, 9, 6, "RSpec/ExpectInLet: Do not use `expect` in let", 1179768986],
     [45, 9, 6, "RSpec/ExpectInLet: Do not use `expect` in let", 1179768986],
@@ -61,10 +87,16 @@
     [8, 7, 17, "ThreadSafety/ClassInstanceVariable: Avoid class instance variables.", 1987118901],
     [42, 1, 54, "RSpec/MultipleDescribes: Do not use multiple top-level example groups - try to nest them.", 3209106515]
   ],
+  "spec/ast/merge/structural_edit/plan_set_spec.rb:503372034": [
+    [3, 1, 50, "RSpec/MultipleDescribes: Do not use multiple top-level example groups - try to nest them.", 3336929023]
+  ],
   "spec/ast/merge/structural_edit/remove_plan_spec.rb:1517880316": [
     [3, 1, 53, "RSpec/MultipleDescribes: Do not use multiple top-level example groups - try to nest them.", 1466081445]
   ],
-  "spec/ast/merge/structural_edit/splice_plan_spec.rb:2653650670": [
+  "spec/ast/merge/structural_edit/splice_plan_spec.rb:2302958248": [
     [3, 1, 53, "RSpec/MultipleDescribes: Do not use multiple top-level example groups - try to nest them.", 2571361437]
+  ],
+  "spec/ast/merge/token_match_refiner_spec.rb:3476573885": [
+    [5, 3, 55, "RSpec/LeakyConstantDeclaration: Stub constant instead of declaring explicitly.", 4068590425]
   ]
 }
