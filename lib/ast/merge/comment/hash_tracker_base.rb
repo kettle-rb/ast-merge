@@ -41,10 +41,24 @@ module Ast
         # Initialize the tracker. Subclasses may accept additional arguments
         # but should call +super+ or reproduce the setup here.
         #
-        # @param lines [Array<String>] Source lines (already chomped/split)
-        def initialize(lines)
+        # When +tree_haver_comments+ is provided the tracker skips its own
+        # text-scanning path (+extract_comments+) and converts the tree_haver
+        # comment objects into the internal hash format instead.  This is the
+        # preferred input when the calling backend has already obtained a flat,
+        # deduplicated list from +TreeHaver::Base::Parser#comments+.
+        #
+        # @param lines [Array<String>] Source lines (already chomped/split).
+        #   Always required; used for +raw+ line lookup and blank-line queries
+        #   even when +tree_haver_comments+ is supplied.
+        # @param tree_haver_comments [Array<TreeHaver::Base::Comment>, nil]
+        #   Optional pre-parsed comment objects from a tree_haver backend.
+        def initialize(lines, tree_haver_comments: nil)
           @lines = Array(lines)
-          @comments = extract_comments
+          @comments = if tree_haver_comments
+            comments_from_tree_haver(tree_haver_comments)
+          else
+            extract_comments
+          end
           @comments_by_line = @comments.group_by { |c| c[:line] }
         end
 
@@ -315,9 +329,55 @@ module Ast
         # comment extraction. The returned array must contain hashes with
         # at minimum the keys: +:line+, +:indent+, +:text+, +:full_line+, +:raw+.
         #
+        # This method is NOT called when +tree_haver_comments+ is provided to
+        # the constructor; +comments_from_tree_haver+ is used instead.
+        #
         # @return [Array<Hash>]
         def extract_comments
           raise NotImplementedError, "#{self.class}#extract_comments must be implemented by the format-specific subclass"
+        end
+
+        # Convert a flat list of +TreeHaver::Base::Comment+ objects to the
+        # internal tracked-comment hash format.
+        #
+        # This is the tree_haver input path for backends that have already
+        # obtained a flat, deduplicated comment list from a tree_haver parser.
+        # The +@lines+ array is used to fill the +:raw+ key.
+        #
+        # Expected interface on each +th_comment+:
+        # - +#text+ — full comment source (including +#+ delimiter)
+        # - +#start_line+ — 1-based line number (from +TreeHaver::Base::Comment+)
+        # - +#start_point+ — +{row: Integer, column: Integer}+ (0-based)
+        # - +#attachment_hint+ — +:leading+, +:trailing+, or +:inline+ (or nil)
+        #
+        # @param th_comments [Array<TreeHaver::Base::Comment>]
+        # @return [Array<Hash>]
+        def comments_from_tree_haver(th_comments)
+          th_comments.map { |th_comment| build_entry_from_tree_haver(th_comment) }
+        end
+
+        # Build a single internal comment hash from a +TreeHaver::Base::Comment+.
+        #
+        # @param th_comment [TreeHaver::Base::Comment]
+        # @return [Hash]
+        def build_entry_from_tree_haver(th_comment)
+          line_num  = th_comment.start_line
+          raw_line  = line_at(line_num) || th_comment.text.rstrip
+          indent    = th_comment.start_point[:column]
+          # Strip the leading `# ` or `#` prefix to get the bare content text.
+          # tree_haver's #text includes the delimiter, matching Prism's #slice.
+          content   = th_comment.text.sub(/\A#\s?/, "")
+          # :inline means non-whitespace code appears before the # on the same line.
+          # :leading and :trailing both represent full-line (standalone) comments.
+          full_line = th_comment.attachment_hint != :inline
+
+          {
+            line: line_num,
+            indent: indent,
+            text: content,
+            full_line: full_line,
+            raw: raw_line,
+          }
         end
 
         # Resolve a structural owner to a 1-based line number.
