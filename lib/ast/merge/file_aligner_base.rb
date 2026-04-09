@@ -133,10 +133,10 @@ module Ast
 
       def build_match_entry(signature:, template_index:, dest_index:, template_statement:, dest_statement:)
         {
-          type: :match,
-          template_index: template_index,
-          dest_index: dest_index,
-          signature: signature,
+          :type => :match,
+          :template_index => template_index,
+          :dest_index => dest_index,
+          :signature => signature,
           template_entry_key => template_statement,
           dest_entry_key => dest_statement,
         }
@@ -144,10 +144,10 @@ module Ast
 
       def build_template_only_entry(template_index:, template_statement:, matched_entries_by_template_position:)
         {
-          type: :template_only,
-          template_index: template_index,
-          dest_index: nil,
-          signature: signature_for(template_analysis, template_index),
+          :type => :template_only,
+          :template_index => template_index,
+          :dest_index => nil,
+          :signature => signature_for(template_analysis, template_index),
           template_entry_key => template_statement,
           dest_entry_key => nil,
         }.merge(
@@ -161,10 +161,10 @@ module Ast
 
       def build_dest_only_entry(dest_index:, dest_statement:)
         {
-          type: :dest_only,
-          template_index: nil,
-          dest_index: dest_index,
-          signature: signature_for(dest_analysis, dest_index),
+          :type => :dest_only,
+          :template_index => nil,
+          :dest_index => dest_index,
+          :signature => signature_for(dest_analysis, dest_index),
           template_entry_key => nil,
           dest_entry_key => dest_statement,
         }

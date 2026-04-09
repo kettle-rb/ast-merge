@@ -63,7 +63,7 @@ RSpec.describe Ast::Merge::EmitterBase do
         def comment_region_nodes(region)
           nodes = Array(region.nodes)
           midpoint = nodes.length / 2
-          midpoint.positive? && nodes.first(midpoint) == nodes.last(midpoint) ? nodes.first(midpoint) : nodes
+          (midpoint.positive? && nodes.first(midpoint) == nodes.last(midpoint)) ? nodes.first(midpoint) : nodes
         end
       end
 

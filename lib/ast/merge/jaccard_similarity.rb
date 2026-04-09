@@ -20,8 +20,39 @@ module Ast
     module JaccardSimilarity
       # Common English stopwords excluded from token matching.
       DEFAULT_STOPWORDS = %w[
-        a an and are as at be but by for from has have in is it its of on or so
-        that the their then there they this to up was will with
+        a
+        an
+        and
+        are
+        as
+        at
+        be
+        but
+        by
+        for
+        from
+        has
+        have
+        in
+        is
+        it
+        its
+        of
+        on
+        or
+        so
+        that
+        the
+        their
+        then
+        there
+        they
+        this
+        to
+        up
+        was
+        will
+        with
       ].to_set.freeze
 
       # Minimum word length for a token to be considered significant.

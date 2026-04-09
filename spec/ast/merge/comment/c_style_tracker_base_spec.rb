@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::Comment::CStyleTrackerBase do
+  subject(:tracker) { tracker_class.new(source) }
+
   let(:tracker_class) do
     Class.new(described_class) do
       def initialize(source)
@@ -21,8 +23,6 @@ RSpec.describe Ast::Merge::Comment::CStyleTrackerBase do
       }
     SRC
   end
-
-  subject(:tracker) { tracker_class.new(source) }
 
   describe "#comments" do
     it "extracts line, block, and inline comments" do

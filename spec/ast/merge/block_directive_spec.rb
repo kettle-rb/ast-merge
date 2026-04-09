@@ -20,10 +20,10 @@ RSpec.describe Ast::Merge::BlockDirective do
         @children = children
       end
 
-      def kind = @kind
-      def start_line = @start_line
-      def end_line = @end_line
-      def children = @children
+      attr_reader :kind
+      attr_reader :start_line
+      attr_reader :end_line
+      attr_reader :children
       def merge_policy = :destination
     end
   end

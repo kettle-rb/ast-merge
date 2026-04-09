@@ -3,6 +3,8 @@
 RSpec.describe Ast::Merge::Comment::HashTrackerBase do
   # Concrete subclass for testing — implements extract_comments
   # using the standard full-line + inline hash-comment scanner.
+  subject(:tracker) { tracker_class.new(source) }
+
   let(:tracker_class) do
     Class.new(described_class) do
       def initialize(source)
@@ -54,8 +56,6 @@ RSpec.describe Ast::Merge::Comment::HashTrackerBase do
       other: data # inline note
     SRC
   end
-
-  subject(:tracker) { tracker_class.new(source) }
 
   describe "#comments" do
     it "extracts all comments" do

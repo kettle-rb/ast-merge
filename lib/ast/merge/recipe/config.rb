@@ -413,7 +413,7 @@ module Ast
 
         def validate_top_level_step_contract!(config)
           return unless config.key?("steps") || config.key?(:steps)
-          return unless (config["injection"] || config[:injection])
+          return unless config["injection"] || config[:injection]
           return if (config["injection"] || config[:injection]).empty?
 
           raise ArgumentError, "Recipe must use either top-level injection or explicit steps, not both"

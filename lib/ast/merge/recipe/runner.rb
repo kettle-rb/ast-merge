@@ -458,7 +458,7 @@ module Ast
             runner: self,
             step: step,
             step_index: step_index,
-            parser: (step[:parser] || parser),
+            parser: step[:parser] || parser,
             context: context,
           )
 
@@ -470,7 +470,11 @@ module Ast
             merge_result = merger.merge_result
             raw_content = merge_result.respond_to?(:content) ? merge_result.content : nil
             content = raw_content.is_a?(String) ? raw_content : merge_result.to_s
-            stats = merge_result.respond_to?(:stats) ? merge_result.stats : (merger.respond_to?(:stats) ? merger.stats : {})
+            stats = if merge_result.respond_to?(:stats)
+              merge_result.stats
+            else
+              (merger.respond_to?(:stats) ? merger.stats : {})
+            end
             problems = merge_result.respond_to?(:problems) ? merge_result.problems : nil
           else
             content = merger.merge.to_s
@@ -518,8 +522,12 @@ module Ast
             return StepResult.new(
               content: content,
               changed: changed,
-              has_anchor: result.key?(:has_anchor) ? result[:has_anchor] : (result.key?("has_anchor") ? result["has_anchor"] : true),
-              message: result[:message] || result["message"] || ((changed) ? "Script step updated content" : "Script step made no changes"),
+              has_anchor: if result.key?(:has_anchor)
+                            result[:has_anchor]
+                          else
+                            (result.key?("has_anchor") ? result["has_anchor"] : true)
+                          end,
+              message: result[:message] || result["message"] || (changed ? "Script step updated content" : "Script step made no changes"),
               stats: result[:stats] || result["stats"] || {},
               problems: result[:problems] || result["problems"],
             )
@@ -647,7 +655,7 @@ module Ast
             final_content != original_content
           end
           problems = step_results.filter_map(&:problems)
-          problems = problems.size == 1 ? problems.first : problems unless problems.empty?
+          problems = (problems.size == 1) ? problems.first : problems unless problems.empty?
           combined_stats = if step_results.size == 1
             step_results.first.stats
           else
@@ -666,12 +674,12 @@ module Ast
               changed: true,
               has_anchor: has_anchor,
               message: if step_results.size > 1
-                message || (dry_run ? "Would update" : "Updated")
-              elsif has_anchor
-                dry_run ? "Would update" : "Updated"
-              else
-                message || "No matching anchor found"
-              end,
+                         message || (dry_run ? "Would update" : "Updated")
+                       elsif has_anchor
+                         dry_run ? "Would update" : "Updated"
+                       else
+                         message || "No matching anchor found"
+                       end,
               content: final_content,
               stats: combined_stats,
               problems: problems,
@@ -709,7 +717,6 @@ module Ast
 
           :markly
         end
-
 
         def make_relative(path)
           # Try to make path relative to base_dir first
