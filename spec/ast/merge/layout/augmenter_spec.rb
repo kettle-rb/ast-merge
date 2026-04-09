@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::Layout::Augmenter do
-  AugmenterOwner = Struct.new(:start_line, :end_line, :label, keyword_init: true)
-  AugmenterLocation = Struct.new(:start_line, :end_line, keyword_init: true)
-  AugmenterLocatedOwner = Struct.new(:location, :label, keyword_init: true)
+  before do
+    stub_const("AugmenterOwner", Struct.new(:start_line, :end_line, :label, keyword_init: true))
+    stub_const("AugmenterLocation", Struct.new(:start_line, :end_line, keyword_init: true))
+    stub_const("AugmenterLocatedOwner", Struct.new(:location, :label, keyword_init: true))
+  end
 
   describe ".call" do
     it "builds a passive augmenter result" do

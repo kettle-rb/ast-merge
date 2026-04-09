@@ -22,8 +22,10 @@ module Ast
           :postlude_region,
           :orphan_regions
 
-        def self.call(**options)
-          new(**options)
+        class << self
+          def call(**options)
+            new(**options)
+          end
         end
 
         def initialize(lines: nil, source: nil, comments: [], owners: [], style: nil, capability: nil, **options)

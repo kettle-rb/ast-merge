@@ -156,7 +156,7 @@ module Ast
 
         indices_to_remove.reverse_each do |idx|
           @lines.delete_at(idx)
-          @decisions.delete_at(idx) if @decisions
+          @decisions&.delete_at(idx)
         end
       end
 

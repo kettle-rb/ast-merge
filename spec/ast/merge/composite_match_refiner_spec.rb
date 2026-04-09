@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::CompositeMatchRefiner do
-  # Minimal node stub
-  NodeStub = Struct.new(:text, :type, keyword_init: true)
+  before { stub_const("NodeStub", Struct.new(:text, :type, keyword_init: true)) }
 
   # A refiner that only matches nodes of a specific type
   let(:paragraph_refiner) do

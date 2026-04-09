@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::Layout::Attachment do
-  AttachmentOwner = Struct.new(:start_line, :end_line, :label, keyword_init: true)
+  before { stub_const("AttachmentOwner", Struct.new(:start_line, :end_line, :label, keyword_init: true)) }
 
   let(:before_owner) { AttachmentOwner.new(start_line: 2, end_line: 2, label: :before) }
   let(:after_owner) { AttachmentOwner.new(start_line: 4, end_line: 4, label: :after) }

@@ -3,9 +3,11 @@
 require "ast/merge/rspec/shared_examples/removal_mode_compliance"
 
 class TestRemovalModeMerger
+  REGISTERED_CASES = {}
+
   class << self
     def registered_cases
-      @registered_cases ||= {}
+      REGISTERED_CASES
     end
 
     def clear_cases!
@@ -88,42 +90,42 @@ RSpec.describe "RemovalModeCompliance shared examples" do
       end
     end
   end
-end
 
-RSpec.describe "RemovalModeCompliance shared examples without optional cases" do
-  it_behaves_like "Ast::Merge::RemovalModeCompliance" do
-    let(:merger_class) { TestRemovalModeMerger }
+  describe "without optional cases" do
+    it_behaves_like "Ast::Merge::RemovalModeCompliance" do
+      let(:merger_class) { TestRemovalModeMerger }
 
-    let(:removal_mode_leading_comments_case) do
-      {
-        template: "keep\n",
-        destination: "# docs\nremove\nkeep\n",
-        expected: "# docs\nkeep\n",
-      }
-    end
+      let(:removal_mode_leading_comments_case) do
+        {
+          template: "keep\n",
+          destination: "# docs\nremove\nkeep\n",
+          expected: "# docs\nkeep\n",
+        }
+      end
 
-    let(:removal_mode_separator_blank_line_case) do
-      {
-        template: "keep\n",
-        destination: "# docs\nremove\n\nkeep\n",
-        expected: "# docs\n\nkeep\n",
-      }
-    end
+      let(:removal_mode_separator_blank_line_case) do
+        {
+          template: "keep\n",
+          destination: "# docs\nremove\n\nkeep\n",
+          expected: "# docs\n\nkeep\n",
+        }
+      end
 
-    let(:unsupported_removal_mode_case_reasons) do
-      {
-        removal_mode_inline_comments_case: "inline comments are unsupported in this synthetic merger",
-        removal_mode_recursive_case: "recursive merge is unsupported in this synthetic merger",
-      }
-    end
+      let(:unsupported_removal_mode_case_reasons) do
+        {
+          removal_mode_inline_comments_case: "inline comments are unsupported in this synthetic merger",
+          removal_mode_recursive_case: "recursive merge is unsupported in this synthetic merger",
+        }
+      end
 
-    before do
-      TestRemovalModeMerger.clear_cases!
-      [
-        removal_mode_leading_comments_case,
-        removal_mode_separator_blank_line_case,
-      ].each do |example_case|
-        TestRemovalModeMerger.register_case(example_case)
+      before do
+        TestRemovalModeMerger.clear_cases!
+        [
+          removal_mode_leading_comments_case,
+          removal_mode_separator_blank_line_case,
+        ].each do |example_case|
+          TestRemovalModeMerger.register_case(example_case)
+        end
       end
     end
   end

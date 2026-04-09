@@ -3,51 +3,51 @@
 require "spec_helper"
 
 RSpec.describe Ast::Merge::FileAlignerBase do
-  BaseAligner = Ast::Merge::FileAlignerBase
-  Analysis = Struct.new(:statements, :signatures) do
-    def signature_at(index)
-      signatures[index]
-    end
-
-    def generate_signature(node)
-      node[:signature]
-    end
-  end
-
-  class TestAligner < BaseAligner
-    attr_reader :logged_alignment
-
-    private
-
-    def template_only_entry_context(template_index:, matched_entries_by_template_position:, **)
-      _previous_match, next_match = surrounding_matched_entries(matched_entries_by_template_position, template_index)
-      {
-        anchor_dest_index: next_match&.[](:dest_index),
-        anchor_position: next_match ? :before : :append,
-      }
-    end
-
-    def log_alignment(alignment)
-      @logged_alignment = alignment
-    end
-  end
-
-  class AliasAligner < BaseAligner
-    private
-
-    def template_entry_key
-      :template_decl
-    end
-
-    def dest_entry_key
-      :dest_decl
-    end
-
-    def add_signature_aliases(map, statement, index, _analysis)
-      Array(statement[:aliases]).each do |signature|
-        map[signature] << index if signature
+  before do
+    stub_const("BaseAligner", described_class)
+    stub_const("Analysis", Struct.new(:statements, :signatures) do
+      def signature_at(index)
+        signatures[index]
       end
-    end
+
+      def generate_signature(node)
+        node[:signature]
+      end
+    end)
+    stub_const("TestAligner", Class.new(described_class) do
+      attr_reader :logged_alignment
+
+      private
+
+      def template_only_entry_context(template_index:, matched_entries_by_template_position:, **)
+        _previous_match, next_match = surrounding_matched_entries(matched_entries_by_template_position, template_index)
+        {
+          anchor_dest_index: next_match&.[](:dest_index),
+          anchor_position: next_match ? :before : :append,
+        }
+      end
+
+      def log_alignment(alignment)
+        @logged_alignment = alignment
+      end
+    end)
+    stub_const("AliasAligner", Class.new(described_class) do
+      private
+
+      def template_entry_key
+        :template_decl
+      end
+
+      def dest_entry_key
+        :dest_decl
+      end
+
+      def add_signature_aliases(map, statement, index, _analysis)
+        Array(statement[:aliases]).each do |signature|
+          map[signature] << index if signature
+        end
+      end
+    end)
   end
 
   let(:template_statements) do
@@ -125,8 +125,8 @@ RSpec.describe Ast::Merge::FileAlignerBase do
 
       result = BaseAligner.new(duplicate_template_analysis, duplicate_dest_analysis).align
 
-      expect(result.select { |entry| entry[:type] == :match }.size).to eq(1)
-      expect(result.select { |entry| entry[:type] == :template_only }.size).to eq(1)
+      expect(result.count { |entry| entry[:type] == :match }).to eq(1)
+      expect(result.count { |entry| entry[:type] == :template_only }).to eq(1)
     end
 
     it "supports optional fuzzy refinement for otherwise unmatched statements" do

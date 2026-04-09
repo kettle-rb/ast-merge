@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::EmitterBase do
-  LayoutOwner = Struct.new(:start_line, :end_line, :label, keyword_init: true)
+  before { stub_const("LayoutOwner", Struct.new(:start_line, :end_line, :label, keyword_init: true)) }
 
   let(:emitter_class) do
     Class.new(described_class) do

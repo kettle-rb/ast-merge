@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::Comment::Augmenter do
-  Owner = Struct.new(:start_line, :end_line, :label, keyword_init: true)
+  before { stub_const("Owner", Struct.new(:start_line, :end_line, :label, keyword_init: true)) }
 
   describe ".call" do
     it "builds a passive augmenter result" do

@@ -27,24 +27,26 @@ module Ast
 
         attr_reader :level, :details
 
-        def self.native_full(**details)
-          new(level: :native_full, **details)
-        end
+        class << self
+          def native_full(**details)
+            new(level: :native_full, **details)
+          end
 
-        def self.native_partial(**details)
-          new(level: :native_partial, **details)
-        end
+          def native_partial(**details)
+            new(level: :native_partial, **details)
+          end
 
-        def self.native_comment_nodes_only(**details)
-          new(level: :native_comment_nodes_only, **details)
-        end
+          def native_comment_nodes_only(**details)
+            new(level: :native_comment_nodes_only, **details)
+          end
 
-        def self.source_augmented(**details)
-          new(level: :source_augmented, **details)
-        end
+          def source_augmented(**details)
+            new(level: :source_augmented, **details)
+          end
 
-        def self.none(**details)
-          new(level: :none, **details)
+          def none(**details)
+            new(level: :none, **details)
+          end
         end
 
         def initialize(level:, details: {}, **options)

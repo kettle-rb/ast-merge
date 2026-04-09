@@ -170,37 +170,37 @@ RSpec.describe Ast::Merge::StructuralEdit::PlanSet do
       end.to raise_error(ArgumentError, /SplicePlan instances or respond to #to_splice_plan/)
     end
   end
-end
 
-RSpec.describe Ast::Merge::StructuralEdit::SplicePlan do
-  describe "#apply_to" do
-    it "applies the same line-range replacement to alternate source text" do
-      original = "one\ntwo\nthree\n"
-      plan = described_class.new(
-        source: original,
-        replacement: "TWO\n",
-        replace_start_line: 2,
-        replace_end_line: 2,
-      )
+  describe Ast::Merge::StructuralEdit::SplicePlan do
+    describe "#apply_to" do
+      it "applies the same line-range replacement to alternate source text" do
+        original = "one\ntwo\nthree\n"
+        plan = described_class.new(
+          source: original,
+          replacement: "TWO\n",
+          replace_start_line: 2,
+          replace_end_line: 2,
+        )
 
-      expect(plan.apply_to("one\nsecond\nthree\n")).to eq("one\nTWO\nthree\n")
+        expect(plan.apply_to("one\nsecond\nthree\n")).to eq("one\nTWO\nthree\n")
+      end
     end
   end
-end
 
-RSpec.describe Ast::Merge::StructuralEdit::RemovePlan do
-  describe "#to_splice_plan" do
-    it "exposes a splice-compatible representation with an empty replacement" do
-      plan = described_class.new(
-        source: "one\ntwo\nthree\n",
-        remove_start_line: 2,
-        remove_end_line: 2,
-      )
+  describe Ast::Merge::StructuralEdit::RemovePlan do
+    describe "#to_splice_plan" do
+      it "exposes a splice-compatible representation with an empty replacement" do
+        plan = described_class.new(
+          source: "one\ntwo\nthree\n",
+          remove_start_line: 2,
+          remove_end_line: 2,
+        )
 
-      splice_plan = plan.to_splice_plan
-      expect(splice_plan).to be_a(Ast::Merge::StructuralEdit::SplicePlan)
-      expect(splice_plan.replacement).to eq("")
-      expect(plan.apply_to).to eq("one\nthree\n")
+        splice_plan = plan.to_splice_plan
+        expect(splice_plan).to be_a(Ast::Merge::StructuralEdit::SplicePlan)
+        expect(splice_plan.replacement).to eq("")
+        expect(plan.apply_to).to eq("one\nthree\n")
+      end
     end
   end
 end

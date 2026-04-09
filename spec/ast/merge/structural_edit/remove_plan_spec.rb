@@ -1,43 +1,5 @@
 # frozen_string_literal: true
 
-RSpec.describe Ast::Merge::StructuralEdit::RehomePlan do
-  let(:source_owner) { Struct.new(:label).new(:removed) }
-  let(:target_owner) { Struct.new(:label).new(:survivor) }
-  let(:region) { instance_double(Ast::Merge::Comment::Region) }
-  let(:gap) { instance_double(Ast::Merge::Layout::Gap) }
-
-  it "retargets promoted fragments onto the trailing side of a leading boundary owner" do
-    boundary = Ast::Merge::StructuralEdit::Boundary.new(edge: :leading, owner: target_owner)
-
-    plan = described_class.new(
-      source_owner: source_owner,
-      target_boundary: boundary,
-      comment_regions: [region],
-      layout_gaps: [gap],
-    )
-
-    expect(plan).to be_leading
-    expect(plan.target_owner).to equal(target_owner)
-    expect(plan.comment_attachment.trailing_region).to equal(region)
-    expect(plan.layout_attachment.trailing_gap).to equal(gap)
-  end
-
-  it "retargets promoted fragments onto the leading side of a trailing boundary owner" do
-    boundary = Ast::Merge::StructuralEdit::Boundary.new(edge: :trailing, owner: target_owner)
-
-    plan = described_class.new(
-      source_owner: source_owner,
-      target_boundary: boundary,
-      comment_regions: [region],
-      layout_gaps: [gap],
-    )
-
-    expect(plan).to be_trailing
-    expect(plan.comment_attachment.leading_region).to equal(region)
-    expect(plan.layout_attachment.leading_gap).to equal(gap)
-  end
-end
-
 RSpec.describe Ast::Merge::StructuralEdit::RemovePlan do
   let(:survivor_before) { Struct.new(:label).new(:before) }
   let(:survivor_after) { Struct.new(:label).new(:after) }
@@ -159,6 +121,44 @@ RSpec.describe Ast::Merge::StructuralEdit::RemovePlan do
       expect(plan.rehome_plans).to eq([])
       expect(plan.promoted_comment_regions).to eq([])
       expect(plan.promoted_layout_gaps).to eq([])
+    end
+  end
+
+  describe Ast::Merge::StructuralEdit::RehomePlan do
+    let(:source_owner) { Struct.new(:label).new(:removed) }
+    let(:target_owner) { Struct.new(:label).new(:survivor) }
+    let(:region) { instance_double(Ast::Merge::Comment::Region) }
+    let(:gap) { instance_double(Ast::Merge::Layout::Gap) }
+
+    it "retargets promoted fragments onto the trailing side of a leading boundary owner" do
+      boundary = Ast::Merge::StructuralEdit::Boundary.new(edge: :leading, owner: target_owner)
+
+      plan = described_class.new(
+        source_owner: source_owner,
+        target_boundary: boundary,
+        comment_regions: [region],
+        layout_gaps: [gap],
+      )
+
+      expect(plan).to be_leading
+      expect(plan.target_owner).to equal(target_owner)
+      expect(plan.comment_attachment.trailing_region).to equal(region)
+      expect(plan.layout_attachment.trailing_gap).to equal(gap)
+    end
+
+    it "retargets promoted fragments onto the leading side of a trailing boundary owner" do
+      boundary = Ast::Merge::StructuralEdit::Boundary.new(edge: :trailing, owner: target_owner)
+
+      plan = described_class.new(
+        source_owner: source_owner,
+        target_boundary: boundary,
+        comment_regions: [region],
+        layout_gaps: [gap],
+      )
+
+      expect(plan).to be_trailing
+      expect(plan.comment_attachment.leading_region).to equal(region)
+      expect(plan.layout_attachment.leading_gap).to equal(gap)
     end
   end
 end

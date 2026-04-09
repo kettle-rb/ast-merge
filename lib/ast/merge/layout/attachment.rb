@@ -34,7 +34,7 @@ module Ast
         end
 
         def inspect
-          "#<#{self.class.name} owner=#{owner.class.name if owner} gaps=#{gaps.size}>"
+          "#<#{self.class.name} owner=#{owner&.class&.name} gaps=#{gaps.size}>"
         end
       end
     end

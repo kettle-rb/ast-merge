@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::Layout::Gap do
-  GapOwner = Struct.new(:start_line, :end_line, :label, keyword_init: true)
+  before { stub_const("GapOwner", Struct.new(:start_line, :end_line, :label, keyword_init: true)) }
 
   let(:before_owner) { GapOwner.new(start_line: 2, end_line: 2, label: :before) }
   let(:after_owner) { GapOwner.new(start_line: 5, end_line: 5, label: :after) }

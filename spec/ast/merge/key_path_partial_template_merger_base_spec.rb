@@ -3,33 +3,33 @@
 require "json"
 
 RSpec.describe Ast::Merge::KeyPathPartialTemplateMergerBase do
-  KeyPathFakeEntry = Struct.new(:key_name, :kind, :children, keyword_init: true) do
-    def mapping?
-      kind == :mapping
-    end
+  before do
+    stub_const("KeyPathFakeEntry", Struct.new(:key_name, :kind, :children, keyword_init: true) do
+      def mapping?
+        kind == :mapping
+      end
 
-    def sequence?
-      kind == :sequence
-    end
+      def sequence?
+        kind == :sequence
+      end
 
-    def scalar?
-      kind == :scalar
-    end
-  end
+      def scalar?
+        kind == :scalar
+      end
+    end)
+    stub_const("KeyPathFakeAnalysis", Struct.new(:valid?, :errors, :statements, keyword_init: true))
+    stub_const("FakeSmartMerger", Class.new do
+      attr_reader :merge_result
 
-  KeyPathFakeAnalysis = Struct.new(:valid?, :errors, :statements, keyword_init: true)
+      def initialize(content)
+        @content = content
+        @merge_result = Struct.new(:content, :stats).new(content, {source: :fake_smart_merger})
+      end
 
-  class FakeSmartMerger
-    attr_reader :merge_result
-
-    def initialize(content)
-      @content = content
-      @merge_result = Struct.new(:content, :stats).new(content, {source: :fake_smart_merger})
-    end
-
-    def merge
-      @content
-    end
+      def merge
+        @content
+      end
+    end)
   end
 
   let(:merger_class) do

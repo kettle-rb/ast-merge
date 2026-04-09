@@ -1,28 +1,29 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::PartialTemplateMergerBase do
-  FakeNode = Struct.new(:text, :source_position, keyword_init: true)
+  before do
+    stub_const("FakeNode", Struct.new(:text, :source_position, keyword_init: true))
+    stub_const("FakeAnalysis", Class.new do
+      attr_reader :source
 
-  class FakeAnalysis
-    attr_reader :source
-
-    def initialize(source:, comment_attachments: {}, layout_attachments: {})
-      @source = source
-      @comment_attachments = comment_attachments
-      @layout_attachments = layout_attachments
-    end
-
-    def comment_attachment_for(owner)
-      @comment_attachments.fetch(owner.object_id) do
-        Ast::Merge::Comment::Attachment.new(owner: owner)
+      def initialize(source:, comment_attachments: {}, layout_attachments: {})
+        @source = source
+        @comment_attachments = comment_attachments
+        @layout_attachments = layout_attachments
       end
-    end
 
-    def layout_attachment_for(owner)
-      @layout_attachments.fetch(owner.object_id) do
-        Ast::Merge::Layout::Attachment.new(owner: owner)
+      def comment_attachment_for(owner)
+        @comment_attachments.fetch(owner.object_id) do
+          Ast::Merge::Comment::Attachment.new(owner: owner)
+        end
       end
-    end
+
+      def layout_attachment_for(owner)
+        @layout_attachments.fetch(owner.object_id) do
+          Ast::Merge::Layout::Attachment.new(owner: owner)
+        end
+      end
+    end)
   end
 
   let(:merger_class) do

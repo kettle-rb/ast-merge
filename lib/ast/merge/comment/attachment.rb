@@ -63,7 +63,7 @@ module Ast
         end
 
         def inspect
-          owner_desc = if owner && owner.respond_to?(:type)
+          owner_desc = if owner&.respond_to?(:type)
             owner.method(:type).call
           elsif owner.nil?
             nil

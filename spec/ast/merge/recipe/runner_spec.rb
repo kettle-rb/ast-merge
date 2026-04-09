@@ -824,7 +824,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
       end
 
       it "dispatches to the parser-family smart merger" do
-        merge_result = instance_double("MergeResult", content: "class Example\n  VALUE = 1\nend\n", stats: {mode: :smart}, problems: nil)
+        merge_result = instance_double(Prism::Merge::MergeResult, content: "class Example\n  VALUE = 1\nend\n", stats: {mode: :smart})
         smart_merger = instance_double(Prism::Merge::SmartMerger, merge_result: merge_result)
         allow(Prism::Merge::SmartMerger).to receive(:new).and_return(smart_merger)
 
@@ -843,11 +843,10 @@ RSpec.describe Ast::Merge::Recipe::Runner do
 
       it "coerces array-backed merge_result content to a string via #to_s" do
         merge_result = instance_double(
-          "MergeResult",
+          Prism::Merge::MergeResult,
           content: ["class Example", "  VALUE = 1", "end"],
           to_s: "class Example\n  VALUE = 1\nend\n",
           stats: {mode: :smart},
-          problems: nil,
         )
         smart_merger = instance_double(Prism::Merge::SmartMerger, merge_result: merge_result)
         allow(Prism::Merge::SmartMerger).to receive(:new).and_return(smart_merger)
@@ -861,10 +860,9 @@ RSpec.describe Ast::Merge::Recipe::Runner do
       it "normalizes consecutive blank lines left behind by comment dedup" do
         # Simulates a merge result with triple blank lines (comment dedup artifact)
         merge_result = instance_double(
-          "MergeResult",
+          Prism::Merge::MergeResult,
           content: "class Example\n  # A\n\n\n\n  # B\n  VALUE = 1\nend\n",
           stats: {mode: :smart},
-          problems: nil,
         )
         smart_merger = instance_double(Prism::Merge::SmartMerger, merge_result: merge_result)
         allow(Prism::Merge::SmartMerger).to receive(:new).and_return(smart_merger)
@@ -895,7 +893,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
       end
 
       it "synthesizes a smart_merge execution path instead of requiring injection" do
-        merge_result = instance_double("MergeResult", content: "class Example\n  VALUE = 2\nend\n", stats: {mode: :smart}, problems: nil)
+        merge_result = instance_double(Prism::Merge::MergeResult, content: "class Example\n  VALUE = 2\nend\n", stats: {mode: :smart})
         smart_merger = instance_double(Prism::Merge::SmartMerger, merge_result: merge_result)
         allow(Prism::Merge::SmartMerger).to receive(:new).and_return(smart_merger)
 

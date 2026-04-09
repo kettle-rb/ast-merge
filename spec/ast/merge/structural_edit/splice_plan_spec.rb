@@ -89,25 +89,25 @@ RSpec.describe Ast::Merge::StructuralEdit::SplicePlan do
       end.to raise_error(ArgumentError, /exceeds source line count/)
     end
   end
-end
 
-RSpec.describe Ast::Merge::StructuralEdit::Boundary do
-  it "exposes layout gaps and comment regions from passive attachments" do
-    owner = Struct.new(:label).new(:survivor)
-    gap = instance_double(Ast::Merge::Layout::Gap)
-    region = instance_double(Ast::Merge::Comment::Region)
-    layout_attachment = instance_double(Ast::Merge::Layout::Attachment, gaps: [gap])
-    comment_attachment = instance_double(Ast::Merge::Comment::Attachment, regions: [region])
+  describe Ast::Merge::StructuralEdit::Boundary do
+    it "exposes layout gaps and comment regions from passive attachments" do
+      owner = Struct.new(:label).new(:survivor)
+      gap = instance_double(Ast::Merge::Layout::Gap)
+      region = instance_double(Ast::Merge::Comment::Region)
+      layout_attachment = instance_double(Ast::Merge::Layout::Attachment, gaps: [gap])
+      comment_attachment = instance_double(Ast::Merge::Comment::Attachment, regions: [region])
 
-    boundary = described_class.new(
-      edge: :leading,
-      owner: owner,
-      layout_attachment: layout_attachment,
-      comment_attachment: comment_attachment,
-    )
+      boundary = described_class.new(
+        edge: :leading,
+        owner: owner,
+        layout_attachment: layout_attachment,
+        comment_attachment: comment_attachment,
+      )
 
-    expect(boundary).to be_leading
-    expect(boundary.gaps).to eq([gap])
-    expect(boundary.regions).to eq([region])
+      expect(boundary).to be_leading
+      expect(boundary.gaps).to eq([gap])
+      expect(boundary.regions).to eq([region])
+    end
   end
 end

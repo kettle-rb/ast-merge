@@ -94,7 +94,7 @@ module Ast
         end
 
         def inspect
-          "#<#{self.class.name} edge=#{edge.inspect} target_owner=#{target_owner.class.name if target_owner} comment_regions=#{comment_regions.size} layout_gaps=#{layout_gaps.size}>"
+          "#<#{self.class.name} edge=#{edge.inspect} target_owner=#{target_owner&.class&.name} comment_regions=#{comment_regions.size} layout_gaps=#{layout_gaps.size}>"
         end
       end
     end

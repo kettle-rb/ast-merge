@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Ast::Merge::TokenMatchRefiner do
-  # Simple struct standing in for AST nodes
-  NodeStub = Struct.new(:text, :type, keyword_init: true)
+  before { stub_const("NodeStub", Struct.new(:text, :type, keyword_init: true)) }
 
   let(:refiner) { described_class.new(threshold: 0.35) }
 

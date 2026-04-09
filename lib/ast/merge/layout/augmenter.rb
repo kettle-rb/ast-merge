@@ -8,8 +8,10 @@ module Ast
       class Augmenter
         attr_reader :lines, :owners, :attachments_by_owner, :preamble_gap, :postlude_gap, :interstitial_gaps, :metadata
 
-        def self.call(**options)
-          new(**options)
+        class << self
+          def call(**options)
+            new(**options)
+          end
         end
 
         def initialize(lines: nil, source: nil, owners: [], start_line_for: nil, end_line_for: nil, metadata: {}, **options)

@@ -39,14 +39,14 @@ RSpec.describe "Recipe::PresetContract shared examples" do
       }
     end
 
-    let(:verify_loaded_preset) do
-      lambda do |preset|
-        expect(preset.signature_generator.call("node")).to eq([:sig, "node"])
-        expect(preset.node_typing["Heading"].call("node")).to eq([:heading, "node"])
-        expect(preset.add_missing.call(:keep, nil)).to be(true)
-        expect(preset.add_missing.call(:drop, nil)).to be(false)
-        expect(preset.to_h[:add_template_only_nodes]).to respond_to(:call)
-      end
+    let(:verify_loaded_preset) { method(:run_verify_loaded_preset) }
+
+    def run_verify_loaded_preset(preset)
+      expect(preset.signature_generator.call("node")).to eq([:sig, "node"])
+      expect(preset.node_typing["Heading"].call("node")).to eq([:heading, "node"])
+      expect(preset.add_missing.call(:keep, nil)).to be(true)
+      expect(preset.add_missing.call(:drop, nil)).to be(false)
+      expect(preset.to_h[:add_template_only_nodes]).to respond_to(:call)
     end
   end
 end

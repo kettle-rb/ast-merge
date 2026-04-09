@@ -32,20 +32,20 @@ module Ast
 
         def gaps
           attachment = layout_attachment
-          return [] unless attachment && attachment.respond_to?(:gaps)
+          return [] unless attachment&.respond_to?(:gaps)
 
           Array(attachment.public_send(:gaps))
         end
 
         def regions
           attachment = comment_attachment
-          return [] unless attachment && attachment.respond_to?(:regions)
+          return [] unless attachment&.respond_to?(:regions)
 
           Array(attachment.public_send(:regions))
         end
 
         def inspect
-          "#<#{self.class.name} edge=#{edge.inspect} owner=#{owner.class.name if owner} gaps=#{gaps.size} regions=#{regions.size}>"
+          "#<#{self.class.name} edge=#{edge.inspect} owner=#{owner&.class&.name} gaps=#{gaps.size} regions=#{regions.size}>"
         end
 
         private
