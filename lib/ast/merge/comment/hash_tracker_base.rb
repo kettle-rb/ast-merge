@@ -361,12 +361,12 @@ module Ast
         # @param th_comment [TreeHaver::Base::Comment]
         # @return [Hash]
         def build_entry_from_tree_haver(th_comment)
-          line_num  = th_comment.start_line
-          raw_line  = line_at(line_num) || th_comment.text.rstrip
-          indent    = th_comment.start_point[:column]
+          line_num = th_comment.start_line
+          raw_line = line_at(line_num) || th_comment.text.rstrip
+          indent = th_comment.start_point[:column]
           # Strip the leading `# ` or `#` prefix to get the bare content text.
           # tree_haver's #text includes the delimiter, matching Prism's #slice.
-          content   = th_comment.text.sub(/\A#\s?/, "")
+          content = th_comment.text.sub(/\A#\s?/, "")
           # :inline means non-whitespace code appears before the # on the same line.
           # :leading and :trailing both represent full-line (standalone) comments.
           full_line = th_comment.attachment_hint != :inline
