@@ -138,6 +138,29 @@ module Ast
         []
       end
 
+      # Describe how the merge pipeline will own and emit comments for this
+      # analysis.
+      #
+      # Analyses with comment support should override this to advertise their
+      # intended read/write model independently from raw parser capability.
+      #
+      # @return [Comment::SupportStyle]
+      def comment_support_style
+        capability = comment_capability
+        details = {
+          source: :file_analyzable_default,
+          capability: capability.level,
+        }
+
+        if capability.none?
+          Comment::SupportStyle.unavailable(**details)
+        elsif capability.source_augmented?
+          Comment::SupportStyle.source_augmented_synthetic(**details)
+        else
+          Comment::SupportStyle.native_read_synthetic_write(**details)
+        end
+      end
+
       # Return the shared comment node at a specific line.
       #
       # @param _line_num [Integer] 1-based line number

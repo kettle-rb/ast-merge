@@ -319,7 +319,7 @@ module Ast
             lines: @lines,
             comments: @comments,
             owners: owners,
-            style: :hash_comment,
+            style: comment_style,
             **options,
           )
         end
@@ -401,7 +401,7 @@ module Ast
         # @param comment [Hash]
         # @return [Ast::Merge::Comment::Line]
         def build_comment_node(comment)
-          TrackedHashAdapter.node(comment, style: :hash_comment)
+          TrackedHashAdapter.node(comment, style: comment_style)
         end
 
         # Build a shared comment region from tracked comment hashes.
@@ -414,9 +414,19 @@ module Ast
           TrackedHashAdapter.region(
             kind: kind,
             comments: comments,
-            style: :hash_comment,
+            style: comment_style,
             metadata: metadata,
           )
+        end
+
+        # Return the tracked comment style used for shared node/region building.
+        #
+        # Subclasses can override this when they share the tracked-hash
+        # infrastructure but use a different comment delimiter family.
+        #
+        # @return [Symbol]
+        def comment_style
+          :hash_comment
         end
       end
     end
