@@ -27,6 +27,20 @@ module Ast
       class Runner
         # Result of processing a single file
         Result = Struct.new(:path, :relative_path, :status, :changed, :has_anchor, :message, :stats, :problems, :error, :content, keyword_init: true)
+        # Result of a single in-memory recipe step pipeline.
+        #
+        # @!attribute [r] content
+        #   @return [String] resulting content after step execution
+        # @!attribute [r] changed
+        #   @return [Boolean] whether any step changed the content
+        # @!attribute [r] has_anchor
+        #   @return [Boolean] whether the required anchor was found
+        # @!attribute [r] message
+        #   @return [String, nil] human-readable status message
+        # @!attribute [r] stats
+        #   @return [Hash] aggregated merge statistics
+        # @!attribute [r] problems
+        #   @return [Array<String>] non-fatal issues collected during execution
         StepResult = Struct.new(:content, :changed, :has_anchor, :message, :stats, :problems, keyword_init: true)
 
         # @return [Config] The recipe being executed

@@ -58,6 +58,10 @@ module Ast
         #
         # @param base [Module] The module extending this one
         class << self
+          # Initialize storage on a format-specific normalizer module.
+          #
+          # @param base [Module] module extending this shared normalizer
+          # @return [void]
           def extended(base)
             base.instance_variable_set(:@normalizer_mutex, Mutex.new)
             base.instance_variable_set(:@backend_mappings, {})

@@ -51,14 +51,23 @@ module Ast
           end
         end
 
+        # Return the point as a Hash.
+        #
+        # @return [Hash{Symbol => Integer, nil}] row/column pair
         def to_h
           {row: row, column: column}
         end
 
+        # Return a compact human-readable point representation.
+        #
+        # @return [String]
         def to_s
           "(#{row}, #{column})"
         end
 
+        # Return a debug-oriented representation of the point.
+        #
+        # @return [String]
         def inspect
           "#<Ast::Merge::AstNode::Point row=#{row} column=#{column}>"
         end

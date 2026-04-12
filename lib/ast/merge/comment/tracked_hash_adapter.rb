@@ -22,6 +22,12 @@ module Ast
       # kinds explicitly and can preserve original producer facts via metadata.
       class TrackedHashAdapter
         class << self
+          # Convert a tracked comment hash into a normalized shared comment node.
+          #
+          # @param comment_hash [Hash, nil] tracked hash in adapter shape
+          # @param style [Comment::Style, Symbol, nil] comment style descriptor
+          # @param options [Hash] fallback hash values when +comment_hash+ is nil
+          # @return [Comment::Line]
           def node(comment_hash = nil, style: nil, **options)
             hash = normalize_hash(comment_hash || options)
             style = resolve_style(style)
@@ -35,6 +41,14 @@ module Ast
             )
           end
 
+          # Convert tracked comment hashes into a normalized shared comment region.
+          #
+          # @param kind [Symbol] normalized region kind
+          # @param comments [Array<Hash>] tracked comment hashes
+          # @param style [Comment::Style, Symbol, nil] comment style descriptor
+          # @param metadata [Hash] base metadata for the region
+          # @param options [Hash] additional metadata merged into +metadata+
+          # @return [Region]
           def region(kind:, comments:, style: nil, metadata: {}, **options)
             normalized = Array(comments).map { |comment_hash| normalize_hash(comment_hash) }
             nodes = normalized.map { |comment_hash| node(comment_hash, style: style) }

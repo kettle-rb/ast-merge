@@ -9,7 +9,13 @@ module Ast
       # This does not perform a merge. It only standardizes the eligibility rules
       # so format gems can adopt textual comment-region merging consistently.
       class RegionMergePolicy
+        # Region kinds eligible for text sub-merging.
+        #
+        # @return [Array<Symbol>]
         TEXT_MERGEABLE_KINDS = %i[leading trailing orphan preamble postlude].freeze
+        # Supported policy outcomes.
+        #
+        # @return [Array<Symbol>]
         STRATEGIES = %i[preserve_preferred text_submerge].freeze
 
         attr_reader :preferred_region, :other_region, :attachment, :freeze_token, :details
@@ -22,6 +28,9 @@ module Ast
           @details = details.merge(options).freeze
         end
 
+        # Return the merge strategy for this region pair.
+        #
+        # @return [Symbol]
         def strategy
           return :preserve_preferred if freeze_sensitive?
           return :preserve_preferred unless compatible_region_pair?
@@ -64,6 +73,9 @@ module Ast
           true
         end
 
+        # Return the policy as a normalized Hash.
+        #
+        # @return [Hash]
         def to_h
           {
             strategy: strategy,
@@ -77,6 +89,9 @@ module Ast
           }
         end
 
+        # Return a concise debug representation of the policy.
+        #
+        # @return [String]
         def inspect
           "#<#{self.class.name} strategy=#{strategy} preferred=#{preferred_region&.kind.inspect} other=#{other_region&.kind.inspect}>"
         end

@@ -10,6 +10,11 @@ require "tree_haver"
 require_relative "merge/version"
 
 module Ast
+  # Shared merge framework primitives used by the format-specific `*-merge` gems.
+  #
+  # `Ast::Merge` provides parser-agnostic base classes, mixins, and value objects
+  # for aligning structures, resolving conflicts, preserving frozen regions, and
+  # reporting parse/merge failures across the merge family.
   module Merge
     # Base error class for all AST merge operations.
     # All *-merge gems should have their Error class inherit from this.

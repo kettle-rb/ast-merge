@@ -25,10 +25,16 @@ module Ast
           validate_plans!
         end
 
+        # Return all plans normalized to {SplicePlan} instances.
+        #
+        # @return [Array<SplicePlan>]
         def splice_plans
           @splice_plans ||= plans.map { |plan| normalize_plan(plan) }.freeze
         end
 
+        # Apply all splice plans and return merged source content.
+        #
+        # @return [String]
         def merged_content
           ordered_splice_plans.reduce(source) do |current_source, splice_plan|
             splice_plan.apply_to(current_source)
@@ -39,6 +45,9 @@ module Ast
           merged_content != source
         end
 
+        # Return all promoted rehome plans emitted by member plans.
+        #
+        # @return [Array<RehomePlan>]
         def rehome_plans
           plans.filter_map do |plan|
             next unless plan.respond_to?(:rehome_plans)
@@ -47,6 +56,9 @@ module Ast
           end.flatten.freeze
         end
 
+        # Return all promoted comment regions across member plans.
+        #
+        # @return [Array<Comment::Region>]
         def promoted_comment_regions
           plans.filter_map do |plan|
             next unless plan.respond_to?(:promoted_comment_regions)
@@ -55,6 +67,9 @@ module Ast
           end.flatten.freeze
         end
 
+        # Return all promoted layout gaps across member plans.
+        #
+        # @return [Array<Layout::Gap>]
         def promoted_layout_gaps
           plans.filter_map do |plan|
             next unless plan.respond_to?(:promoted_layout_gaps)
@@ -63,6 +78,9 @@ module Ast
           end.flatten.freeze
         end
 
+        # Return a concise debug representation of the plan set.
+        #
+        # @return [String]
         def inspect
           "#<#{self.class.name} plans=#{plans.size} changed=#{changed?}>"
         end

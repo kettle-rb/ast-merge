@@ -47,6 +47,10 @@ module Ast
       # @!attribute [r] signature_generator
       #   @return [Proc, nil] Custom signature generator, or nil to use default
       class << self
+        # Install the shared attr_reader interface on including analyses.
+        #
+        # @param base [Class] analysis class receiving the shared readers
+        # @return [void]
         def included(base)
           base.class_eval do
             attr_reader(:source, :lines, :freeze_token, :signature_generator)

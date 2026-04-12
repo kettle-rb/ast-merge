@@ -17,6 +17,9 @@ module Ast
       # - :source_augmented - comments are inferred from source text
       # - :none - no comment support is available
       class Capability
+        # Supported capability levels.
+        #
+        # @return [Array<Symbol>]
         LEVELS = %i[
           native_full
           native_partial
@@ -28,22 +31,42 @@ module Ast
         attr_reader :level, :details
 
         class << self
+          # Build a capability describing full native comment support.
+          #
+          # @param details [Hash] producer metadata
+          # @return [Capability]
           def native_full(**details)
             new(level: :native_full, **details)
           end
 
+          # Build a capability describing partial native comment support.
+          #
+          # @param details [Hash] producer metadata
+          # @return [Capability]
           def native_partial(**details)
             new(level: :native_partial, **details)
           end
 
+          # Build a capability describing native comment nodes without attachment hints.
+          #
+          # @param details [Hash] producer metadata
+          # @return [Capability]
           def native_comment_nodes_only(**details)
             new(level: :native_comment_nodes_only, **details)
           end
 
+          # Build a capability describing source-augmented comment support.
+          #
+          # @param details [Hash] producer metadata
+          # @return [Capability]
           def source_augmented(**details)
             new(level: :source_augmented, **details)
           end
 
+          # Build a capability describing no available comment support.
+          #
+          # @param details [Hash] producer metadata
+          # @return [Capability]
           def none(**details)
             new(level: :none, **details)
           end
@@ -94,6 +117,9 @@ module Ast
           details.fetch(:comment_nodes, native_full? || native_comment_nodes_only?)
         end
 
+        # Return the capability as a normalized Hash.
+        #
+        # @return [Hash]
         def to_h
           {
             level: level,
@@ -106,6 +132,9 @@ module Ast
           }
         end
 
+        # Return a concise debug representation of the capability.
+        #
+        # @return [String]
         def inspect
           "#<#{self.class.name} level=#{level} details=#{details.inspect}>"
         end

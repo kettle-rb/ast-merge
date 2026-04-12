@@ -13,6 +13,13 @@ module Ast
       module BoundarySupport
         extend self
 
+        # Build a boundary descriptor for a surviving statement adjacent to a splice.
+        #
+        # @param analysis [Object] analysis exposing shared attachment hooks
+        # @param statement [Object, nil] adjacent surviving statement
+        # @param edge [Symbol] boundary edge, +:leading+ or +:trailing+
+        # @param source [Symbol, String, nil] optional metadata source tag
+        # @return [Boundary, nil]
         def build_splice_boundary(analysis, statement, edge:, source: nil)
           return unless statement
 
@@ -27,6 +34,11 @@ module Ast
           )
         end
 
+        # Collect comment/layout attachments from removed statements when they preserve fragments.
+        #
+        # @param analysis [Object] analysis exposing attachment hooks
+        # @param statements [Array<Object>] removed statements
+        # @return [Array<Object>]
         def removed_statement_attachments_for(analysis, statements)
           Array(statements).filter_map do |statement|
             owner = statement_owner(statement)
@@ -52,6 +64,10 @@ module Ast
           gaps.any? || regions.any?
         end
 
+        # Return the starting line for a statement-like object.
+        #
+        # @param statement [Object]
+        # @return [Integer, nil]
         def statement_start_line(statement)
           if statement.respond_to?(:start_line)
             statement.start_line
@@ -60,6 +76,10 @@ module Ast
           end
         end
 
+        # Return the ending line for a statement-like object.
+        #
+        # @param statement [Object]
+        # @return [Integer, nil]
         def statement_end_line(statement)
           if statement.respond_to?(:end_line)
             statement.end_line

@@ -11,6 +11,14 @@ module Ast
       # such as PartialTemplateMergerBase and gives future remove/rehome work a
       # stable place to grow richer ownership-transfer rules.
       class SplicePlan
+        # @return [String] original source content
+        # @return [String] replacement text inserted for the removed line range
+        # @return [Integer] first replaced line number
+        # @return [Integer] last replaced line number
+        # @return [Boundary, nil] surviving boundary before the replaced range
+        # @return [Boundary, nil] surviving boundary after the replaced range
+        # @return [Boolean] whether trailing blank lines removed with the range may be preserved
+        # @return [Hash] producer metadata
         attr_reader :source,
           :replacement,
           :replace_start_line,
@@ -20,6 +28,17 @@ module Ast
           :preserve_removed_trailing_blank_lines,
           :metadata
 
+        # Build a plan for exact line-range replacement.
+        #
+        # @param source [String] original source text
+        # @param replacement [String] replacement text for the removed range
+        # @param replace_start_line [Integer] first replaced line, 1-based
+        # @param replace_end_line [Integer] last replaced line, 1-based
+        # @param leading_boundary [Boundary, nil] surviving boundary before the replaced range
+        # @param trailing_boundary [Boundary, nil] surviving boundary after the replaced range
+        # @param preserve_removed_trailing_blank_lines [Boolean] whether to preserve trailing blank lines from removed content
+        # @param metadata [Hash] base metadata
+        # @param options [Hash] extra metadata merged into +metadata+
         def initialize(source:, replacement:, replace_start_line:, replace_end_line:, leading_boundary: nil, trailing_boundary: nil, preserve_removed_trailing_blank_lines: true, metadata: {}, **options)
           @source = source.to_s
           @replacement = replacement.to_s
@@ -33,26 +52,44 @@ module Ast
           validate_range!
         end
 
+        # Return the source split into line chunks.
+        #
+        # @return [Array<String>]
         def line_chunks
           @line_chunks ||= source.lines
         end
 
+        # Return content before the replaced range.
+        #
+        # @return [String]
         def before_content
           line_chunks[0...(replace_start_line - 1)].to_a.join
         end
 
+        # Return the replaced line range.
+        #
+        # @return [Range]
         def line_range
           replace_start_line..replace_end_line
         end
 
+        # Return the content removed by the splice.
+        #
+        # @return [String]
         def removed_content
           line_chunks[(replace_start_line - 1)..(replace_end_line - 1)].to_a.join
         end
 
+        # Return content after the replaced range.
+        #
+        # @return [String]
         def after_content
           line_chunks[replace_end_line..].to_a.join
         end
 
+        # Return merged content after applying the splice.
+        #
+        # @return [String]
         def merged_content
           +before_content + replacement_with_preserved_boundary_layout + after_content
         end
@@ -61,10 +98,17 @@ module Ast
           merged_content != source
         end
 
+        # Return self so splice-compatible plans share a common adapter surface.
+        #
+        # @return [SplicePlan]
         def to_splice_plan
           self
         end
 
+        # Apply the splice to the original source or a compatible alternate source.
+        #
+        # @param alternate_source [String] alternate source text
+        # @return [String]
         def apply_to(alternate_source = source)
           alternate_text = alternate_source.to_s
           return merged_content if alternate_text == source
@@ -80,6 +124,9 @@ module Ast
           ).merged_content
         end
 
+        # Return a concise debug representation of the splice plan.
+        #
+        # @return [String]
         def inspect
           "#<#{self.class.name} lines=#{replace_start_line}..#{replace_end_line} changed=#{changed?}>"
         end

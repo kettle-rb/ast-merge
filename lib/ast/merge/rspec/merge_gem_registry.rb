@@ -2,6 +2,7 @@
 
 module Ast
   module Merge
+    # RSpec integration helpers for dependency-tagged merge-family test suites.
     module RSpec
       # Registry for merge gem dependency tag availability checkers
       #

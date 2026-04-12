@@ -20,7 +20,13 @@ module Ast
       # C-style facts such as `:block` and optional `:end_line` for multi-line
       # block spans.
       class CStyleTrackerBase
+        # Matches a full-line single-line C-style comment.
+        #
+        # @return [Regexp]
         SINGLE_LINE_COMMENT_REGEX = %r{\A(?<indent>\s*)//\s?(?<text>.*)\z}
+        # Matches a full-line block comment contained on one line.
+        #
+        # @return [Regexp]
         BLOCK_COMMENT_SINGLE_REGEX = %r{\A(?<indent>\s*)/\*\s?(?<text>.*?)\s?\*/\s*\z}
 
         attr_reader :comments, :lines
@@ -40,10 +46,17 @@ module Ast
           @comments_by_line[line_num]&.first
         end
 
+        # Return all normalized shared comment nodes eligible for region building.
+        #
+        # @return [Array<Comment::Line>]
         def comment_nodes
           @comment_nodes ||= shared_region_comments.map { |comment| build_comment_node(comment) }
         end
 
+        # Return the normalized shared comment node at a line.
+        #
+        # @param line_num [Integer] 1-based line number
+        # @return [Comment::Line, nil]
         def comment_node_at(line_num)
           comment = comment_at(line_num)
           return unless comment && shared_region_comment?(comment)
@@ -61,6 +74,12 @@ module Ast
           end
         end
 
+        # Build a normalized region from comments intersecting a line range.
+        #
+        # @param range [Range] 1-based line range
+        # @param kind [Symbol] region ownership kind
+        # @param full_line_only [Boolean] whether to keep only full-line comments
+        # @return [Region]
         def comment_region_for_range(range, kind:, full_line_only: false)
           selected = comments_in_range(range).select { |comment| shared_region_comment?(comment) }
           selected = selected.select { |comment| comment[:full_line] } if full_line_only
@@ -97,6 +116,11 @@ module Ast
           leading
         end
 
+        # Return the normalized leading comment region before a line.
+        #
+        # @param line_num [Integer] owner line number
+        # @param comments [Array<Hash>, nil] optional preselected comments
+        # @return [Region, nil]
         def leading_comment_region_before(line_num, comments: nil)
           selected = comments || leading_comments_before(line_num)
           selected = selected.select { |comment| comment[:full_line] && shared_region_comment?(comment) }
@@ -112,11 +136,20 @@ module Ast
           )
         end
 
+        # Return the inline comment tracked on a line.
+        #
+        # @param line_num [Integer] 1-based line number
+        # @return [Hash, nil]
         def inline_comment_at(line_num)
           comment = comment_at(line_num)
           comment if comment && !comment[:full_line]
         end
 
+        # Return the normalized inline region for a single line.
+        #
+        # @param line_num [Integer] 1-based line number
+        # @param comment [Hash, nil] optional preselected inline comment
+        # @return [Region, nil]
         def inline_comment_region_at(line_num, comment: nil)
           selected = [comment || inline_comment_at(line_num)].compact.select { |item| shared_region_comment?(item) }
           return if selected.empty?
@@ -170,6 +203,10 @@ module Ast
           @lines[line_num - 1].to_s.strip.empty?
         end
 
+        # Return the raw source line at a 1-based line number.
+        #
+        # @param line_num [Integer] 1-based line number
+        # @return [String, nil]
         def line_at(line_num)
           return if line_num < 1 || line_num > @lines.length
 

@@ -9,7 +9,13 @@ module Ast
       # owners can reference the same shared gap object, but only one side is the
       # active controller for output at any moment.
       class Gap
+        # Supported gap kinds.
+        #
+        # @return [Array<Symbol>]
         KINDS = %i[preamble interstitial postlude].freeze
+        # Supported owner-reference sides.
+        #
+        # @return [Array<Symbol>]
         SIDES = %i[before after].freeze
 
         attr_reader :kind, :start_line, :end_line, :lines, :before_owner, :after_owner, :controller_side, :metadata
@@ -41,28 +47,47 @@ module Ast
           kind == :postlude
         end
 
+        # Return the number of source lines spanned by the gap.
+        #
+        # @return [Integer]
         def line_count
           end_line - start_line + 1
         end
 
+        # Return the number of blank lines contained in the gap.
+        #
+        # @return [Integer]
         def blank_line_count
           lines.count { |line| line.to_s.strip.empty? }
         end
 
+        # Return the owner currently controlling output for this gap.
+        #
+        # @return [Object, nil]
         def controller
           owner_for(controller_side)
         end
 
+        # Return the opposite controller side, if any.
+        #
+        # @return [Symbol, nil]
         def fallback_side
           return unless controller_side
 
           (controller_side == :before) ? :after : :before
         end
 
+        # Return the owner on the fallback controller side.
+        #
+        # @return [Object, nil]
         def fallback_controller
           owner_for(fallback_side)
         end
 
+        # Resolve an owner by side.
+        #
+        # @param side [Symbol, String, nil]
+        # @return [Object, nil]
         def owner_for(side)
           case normalize_controller_side(side)
           when :before then before_owner
@@ -82,11 +107,21 @@ module Ast
           leading_for?(owner) || trailing_for?(owner)
         end
 
+        # Return the owner that should control output after owner removal/retention filtering.
+        #
+        # @param retained_owners [Array<Object>, nil] explicitly retained owners
+        # @param removed_owners [Array<Object>, nil] explicitly removed owners
+        # @return [Object, nil]
         def effective_controller(retained_owners: nil, removed_owners: nil)
           effective_side = effective_controller_side(retained_owners: retained_owners, removed_owners: removed_owners)
           effective_side ? owner_for(effective_side) : nil
         end
 
+        # Return the side that should control output after owner filtering.
+        #
+        # @param retained_owners [Array<Object>, nil] explicitly retained owners
+        # @param removed_owners [Array<Object>, nil] explicitly removed owners
+        # @return [Symbol, nil]
         def effective_controller_side(retained_owners: nil, removed_owners: nil)
           return controller_side if owner_available?(controller, retained_owners: retained_owners, removed_owners: removed_owners)
           return fallback_side if owner_available?(fallback_controller, retained_owners: retained_owners, removed_owners: removed_owners)
@@ -98,6 +133,9 @@ module Ast
           effective_controller(retained_owners: retained_owners, removed_owners: removed_owners).equal?(owner)
         end
 
+        # Return a concise debug representation of the gap.
+        #
+        # @return [String]
         def inspect
           "#<#{self.class.name} kind=#{kind} lines=#{start_line}..#{end_line} controller_side=#{controller_side.inspect}>"
         end

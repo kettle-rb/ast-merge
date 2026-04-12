@@ -61,6 +61,9 @@ module Ast
         validate_key_path!
       end
 
+      # Merge template content into the configured key path.
+      #
+      # @return [Result]
       def merge
         analysis = create_analysis(destination)
 

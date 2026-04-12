@@ -17,6 +17,9 @@ module Ast
           @metadata = metadata.merge(options).freeze
         end
 
+        # Return all distinct gaps referenced by this attachment.
+        #
+        # @return [Array<Gap>]
         def gaps
           [leading_gap, trailing_gap].compact.uniq
         end
@@ -33,6 +36,9 @@ module Ast
           trailing_gap&.controls_output_for?(owner, **options) || false
         end
 
+        # Return a concise debug representation of the attachment.
+        #
+        # @return [String]
         def inspect
           "#<#{self.class.name} owner=#{owner&.class&.name} gaps=#{gaps.size}>"
         end

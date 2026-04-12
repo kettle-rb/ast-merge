@@ -23,6 +23,10 @@ module Ast
           :orphan_regions
 
         class << self
+          # Build an augmenter and run augmentation immediately.
+          #
+          # @param options [Hash] arguments forwarded to {.new}
+          # @return [Augmenter]
           def call(**options)
             new(**options)
           end
@@ -49,6 +53,10 @@ module Ast
           build!
         end
 
+        # Return the inferred attachment for a specific owner.
+        #
+        # @param owner [Object] structural owner
+        # @return [Attachment, nil]
         def attachment_for(owner)
           attachments_by_owner[owner]
         end

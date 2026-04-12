@@ -9,6 +9,10 @@ module Ast
         attr_reader :lines, :owners, :attachments_by_owner, :preamble_gap, :postlude_gap, :interstitial_gaps, :metadata
 
         class << self
+          # Build an augmenter and run gap inference immediately.
+          #
+          # @param options [Hash] arguments forwarded to {.new}
+          # @return [Augmenter]
           def call(**options)
             new(**options)
           end
@@ -28,10 +32,17 @@ module Ast
           build!
         end
 
+        # Return the inferred attachment for a specific owner.
+        #
+        # @param owner [Object] structural owner
+        # @return [Attachment, nil]
         def attachment_for(owner)
           attachments_by_owner[owner]
         end
 
+        # Return all inferred gaps in source order.
+        #
+        # @return [Array<Gap>]
         def gaps
           [preamble_gap, *interstitial_gaps, postlude_gap].compact
         end

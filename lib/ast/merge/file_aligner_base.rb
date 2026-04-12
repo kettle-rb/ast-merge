@@ -23,6 +23,9 @@ module Ast
         @match_refiner = match_refiner
       end
 
+      # Align template and destination statements into match/template-only/dest-only entries.
+      #
+      # @return [Array<Hash>] ordered alignment entries consumed by conflict resolvers
       def align
         template_statements = statements_for(template_analysis)
         dest_statements = statements_for(dest_analysis)

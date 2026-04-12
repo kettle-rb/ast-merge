@@ -54,6 +54,7 @@ module Ast
       module Mergeable
         # Default placeholder prefix for extracted regions
         DEFAULT_PLACEHOLDER_PREFIX = "<<<AST_MERGE_REGION_"
+        # Default placeholder suffix for extracted regions.
         DEFAULT_PLACEHOLDER_SUFFIX = ">>>"
 
         ##

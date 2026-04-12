@@ -30,6 +30,9 @@ module Ast
       #
       # @see Ast::Merge::Comment::TrackedHashAdapter
       class HashTrackerBase
+        # Matches a full-line hash-style comment.
+        #
+        # @return [Regexp]
         FULL_LINE_COMMENT_REGEX = /\A(?<indent>\s*)#\s?(?<text>.*)\z/
 
         # @return [Array<Hash>] All extracted comments with metadata

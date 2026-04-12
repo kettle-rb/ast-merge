@@ -11,6 +11,19 @@ module Ast
       class RemovePlan
         # :reek:LongParameterList
         # :reek:ControlParameter
+        # Build a plan that removes a contiguous line range and preserves promotable attachments.
+        #
+        # @param source [String] original source text
+        # @param remove_start_line [Integer] first removed line, 1-based
+        # @param remove_end_line [Integer] last removed line, 1-based
+        # @param leading_boundary [Boundary, nil] surviving boundary before the removed range
+        # @param trailing_boundary [Boundary, nil] surviving boundary after the removed range
+        # @param removed_attachments [Array<Object>] attachments from removed owners
+        # @param removed_owners [Array<Object>, nil] explicit removed owners
+        # @param retained_owners [Array<Object>, nil] explicit surviving owners
+        # @param metadata [Hash] base metadata
+        # @param preserve_removed_trailing_blank_lines [Boolean] whether trailing blank lines should survive in the splice
+        # @param options [Hash] extra metadata merged into +metadata+
         def initialize(source:, remove_start_line:, remove_end_line:, leading_boundary: nil, trailing_boundary: nil, removed_attachments: [], removed_owners: nil, retained_owners: nil, metadata: {}, preserve_removed_trailing_blank_lines: true, **options)
           normalized_removed_attachments = Array(removed_attachments).compact.freeze
           @state = {
@@ -34,61 +47,103 @@ module Ast
             trailing_boundary: trailing_boundary,
             preserve_removed_trailing_blank_lines: preserve_removed_trailing_blank_lines,
             metadata: {source: :structural_edit_remove_plan}.merge(self.metadata),
-          )
+            )
         end
 
+        # Return the original source text.
+        #
+        # @return [String]
         def source
           splice_plan.source
         end
 
+        # Return the first removed line number.
+        #
+        # @return [Integer]
         def remove_start_line
           splice_plan.replace_start_line
         end
 
+        # Return the last removed line number.
+        #
+        # @return [Integer]
         def remove_end_line
           splice_plan.replace_end_line
         end
 
+        # Return the removed line range.
+        #
+        # @return [Range]
         def line_range
           remove_start_line..remove_end_line
         end
 
+        # Return the surviving boundary before the removed range.
+        #
+        # @return [Boundary, nil]
         def leading_boundary
           boundaries[:leading]
         end
 
+        # Return the surviving boundary after the removed range.
+        #
+        # @return [Boundary, nil]
         def trailing_boundary
           boundaries[:trailing]
         end
 
+        # Return all attachments collected from removed owners.
+        #
+        # @return [Array<Object>]
         def removed_attachments
           @state[:removed_attachments]
         end
 
+        # Return removed owners associated with the removal.
+        #
+        # @return [Array<Object>]
         def removed_owners
           @state[:removed_owners]
         end
 
+        # Return surviving owners allowed to receive promoted fragments.
+        #
+        # @return [Array<Object>]
         def retained_owners
           @state[:retained_owners]
         end
 
+        # Return metadata describing how the remove plan was constructed.
+        #
+        # @return [Hash]
         def metadata
           @state[:metadata]
         end
 
+        # Return the untouched content before the removed range.
+        #
+        # @return [String]
         def before_content
           splice_plan.before_content
         end
 
+        # Return the content removed by the plan.
+        #
+        # @return [String]
         def removed_content
           splice_plan.removed_content
         end
 
+        # Return the untouched content after the removed range.
+        #
+        # @return [String]
         def after_content
           splice_plan.after_content
         end
 
+        # Return merged content after applying the removal.
+        #
+        # @return [String]
         def merged_content
           splice_plan.merged_content
         end
@@ -97,26 +152,45 @@ module Ast
           splice_plan.changed?
         end
 
+        # Return the equivalent splice plan for exact application.
+        #
+        # @return [SplicePlan]
         def to_splice_plan
           splice_plan
         end
 
+        # Apply the removal to the original source or a compatible alternate source.
+        #
+        # @param alternate_source [String] alternate source text
+        # @return [String]
         def apply_to(alternate_source = source)
           splice_plan.apply_to(alternate_source)
         end
 
+        # Return all fragment rehome plans produced from removed attachments.
+        #
+        # @return [Array<RehomePlan>]
         def rehome_plans
           removed_attachments.flat_map { |attachment| build_rehome_plans_for(attachment) }
         end
 
+        # Return all promoted comment regions implied by the rehome plans.
+        #
+        # @return [Array<Comment::Region>]
         def promoted_comment_regions
           rehome_plans.flat_map(&:comment_regions)
         end
 
+        # Return all promoted layout gaps implied by the rehome plans.
+        #
+        # @return [Array<Layout::Gap>]
         def promoted_layout_gaps
           rehome_plans.flat_map(&:layout_gaps)
         end
 
+        # Return a concise debug representation of the remove plan.
+        #
+        # @return [String]
         def inspect
           "#<#{self.class.name} lines=#{remove_start_line}..#{remove_end_line} removed_owners=#{removed_owners.size} rehome_plans=#{rehome_plans.size}>"
         end

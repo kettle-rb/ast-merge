@@ -8,6 +8,14 @@ module Ast
       module RemovePlanSupport
         extend self
 
+        # Build a {RemovePlan} for a contiguous run of removed statements.
+        #
+        # @param analysis [Object] analysis exposing source and attachment hooks
+        # @param statements [Array<Object>] removed statements
+        # @param leading_statement [Object, nil] surviving statement before the run
+        # @param trailing_statement [Object, nil] surviving statement after the run
+        # @param source [Symbol, String, nil] optional metadata source tag
+        # @return [RemovePlan, nil]
         def build_remove_plan(analysis:, statements:, leading_statement: nil, trailing_statement: nil, source: nil)
           return unless analysis.respond_to?(:source)
 
