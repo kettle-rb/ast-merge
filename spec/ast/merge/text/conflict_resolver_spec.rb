@@ -90,7 +90,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
       end
 
       context "when add_template_only_nodes is true" do
-        it "adds template-only lines at the end" do
+        it "adds template-only lines in template order" do
           resolver = described_class.new(
             template_analysis,
             dest_analysis,
@@ -100,7 +100,7 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
 
           resolver.resolve(result)
 
-          expect(result.to_s).to include("Line two")
+          expect(result.to_s).to eq("Line one\nLine two\nLine three\n")
         end
 
         it "records added decision for template-only lines" do
@@ -115,6 +115,23 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
 
           added_decisions = result.decisions.select { |d| d[:decision] == :added }
           expect(added_decisions.size).to eq(1)
+        end
+      end
+
+      context "when a template-only line precedes the first matched line" do
+        let(:template_source) { "Header\nLine one\nLine two\nLine three" }
+
+        it "emits the prefix line before destination-backed content" do
+          resolver = described_class.new(
+            template_analysis,
+            dest_analysis,
+            add_template_only_nodes: true,
+          )
+          result = Ast::Merge::Text::MergeResult.new
+
+          resolver.resolve(result)
+
+          expect(result.to_s).to start_with("Header\nLine one\n")
         end
       end
     end
@@ -236,6 +253,24 @@ RSpec.describe Ast::Merge::Text::ConflictResolver do
           # Freeze blocks from template should be skipped
           expect(result.to_s).not_to include("Template frozen content")
         end
+      end
+    end
+
+    context "with destination-only lines between matched anchors" do
+      let(:template_source) { "Line one\nLine two\nTemplate only line\nLine three" }
+      let(:dest_source) { "Line one\nLine two\nDestination only line\nLine three" }
+
+      it "emits template-only lines before later destination-only content" do
+        resolver = described_class.new(
+          template_analysis,
+          dest_analysis,
+          add_template_only_nodes: true,
+        )
+        result = Ast::Merge::Text::MergeResult.new
+
+        resolver.resolve(result)
+
+        expect(result.to_s).to eq("Line one\nLine two\nTemplate only line\nDestination only line\nLine three\n")
       end
     end
 

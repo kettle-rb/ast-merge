@@ -8,7 +8,8 @@ module Ast
       # Uses content-based matching with destination-order preservation:
       # 1. Lines are matched by normalized content (whitespace-trimmed)
       # 2. Destination order is preserved (destination is source of truth for structure)
-      # 3. Template-only lines are optionally added at the end
+      # 3. Template-only lines are optionally inserted in template order relative
+      #    to their matched anchors
       # 4. Freeze blocks are always preserved from destination
       #
       # @example
@@ -16,6 +17,8 @@ module Ast
       #   result = MergeResult.new
       #   resolver.resolve(result)
       class ConflictResolver < ConflictResolverBase
+        include Ast::Merge::TrailingGroups::DestIterate
+
         # Initialize the conflict resolver
         #
         # @param template_analysis [FileAnalysis] Analysis of template
@@ -49,9 +52,21 @@ module Ast
 
           # Build index for matching (uses signatures when custom generator present)
           template_index = build_match_index(template_statements)
+          dest_sigs = destination_signature_set(dest_statements)
+          trailing_groups, matched_indices = build_dest_iterate_trailing_groups(
+            template_nodes: template_statements,
+            dest_sigs: dest_sigs,
+            signature_for: ->(node) { freeze_node?(node) ? nil : signature_key_for(node) },
+            add_template_only_nodes: @add_template_only_nodes,
+          )
 
           # Track matched template indices
           matched_template_indices = Set.new
+          consumed_indices = Set.new
+
+          emit_prefix_trailing_group(trailing_groups, consumed_indices) do |info|
+            add_template_only_line(result, info[:node])
+          end
 
           # Process destination in order - destination structure is preserved
           dest_statements.each do |dest_node|
@@ -68,6 +83,14 @@ module Ast
             if template_match
               matched_template_indices << template_match[:index]
               resolve_matched_pair(result, template_match[:node], dest_node)
+              consumed_indices << template_match[:index]
+              flush_ready_trailing_groups(
+                trailing_groups: trailing_groups,
+                matched_indices: matched_indices,
+                consumed_indices: consumed_indices,
+              ) do |info|
+                add_template_only_line(result, info[:node])
+              end
             else
               # Destination-only content - always preserve
               result.add_line(dest_node.content)
@@ -75,9 +98,11 @@ module Ast
             end
           end
 
-          # Add template-only lines if configured
-          if @add_template_only_nodes
-            add_unmatched_template_lines(result, template_statements, matched_template_indices)
+          emit_remaining_trailing_groups(
+            trailing_groups: trailing_groups,
+            consumed_indices: consumed_indices,
+          ) do |info|
+            add_template_only_line(result, info[:node])
           end
         end
 
@@ -118,6 +143,14 @@ module Ast
           index
         end
 
+        def destination_signature_set(statements)
+          statements.each_with_object(::Set.new) do |node, signatures|
+            next if freeze_node?(node)
+
+            signatures << signature_key_for(node)
+          end
+        end
+
         # Find first unmatched entry from a list
         #
         # @param entries [Array, nil] List of {node:, index:} hashes
@@ -140,19 +173,15 @@ module Ast
           result.record_decision(DECISION_FROZEN, nil, freeze_node)
         end
 
-        # Add unmatched template lines in their original order
-        #
-        # @param result [MergeResult] Result to populate
-        # @param template_statements [Array] All template statements
-        # @param matched_indices [Set] Indices of matched template nodes
-        def add_unmatched_template_lines(result, template_statements, matched_indices)
-          template_statements.each_with_index do |template_node, idx|
-            next if matched_indices.include?(idx)
-            next if freeze_node?(template_node)
+        def add_template_only_line(result, template_node)
+          return if freeze_node?(template_node)
 
-            result.add_line(template_node.content)
-            result.record_decision(DECISION_ADDED, template_node, nil)
-          end
+          result.add_line(template_node.content)
+          result.record_decision(DECISION_ADDED, template_node, nil)
+        end
+
+        def trailing_group_node_matched?(node, _signature)
+          freeze_node?(node)
         end
 
         # Resolve a matched pair of nodes

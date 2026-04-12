@@ -21,6 +21,8 @@ module Ast
       #     add_template_only_nodes: true
       #   )
       #   result = merger.merge
+      #   # Template-only lines are emitted in template order relative to
+      #   # their matched anchors.
       #
       # @example With freeze blocks
       #   template = <<~TEXT
