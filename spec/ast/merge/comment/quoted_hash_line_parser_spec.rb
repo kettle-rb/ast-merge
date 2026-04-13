@@ -15,7 +15,7 @@ RSpec.describe Ast::Merge::Comment::QuotedHashLineParser do
     end
 
     it "parses inline hash comments after content" do
-      result = parser.parse('key: value # inline docs')
+      result = parser.parse("key: value # inline docs")
 
       expect(result).not_to be_nil
       expect(result.inline?).to be(true)

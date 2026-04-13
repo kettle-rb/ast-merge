@@ -47,7 +47,7 @@ module Ast
             trailing_boundary: trailing_boundary,
             preserve_removed_trailing_blank_lines: preserve_removed_trailing_blank_lines,
             metadata: {source: :structural_edit_remove_plan}.merge(self.metadata),
-            )
+          )
         end
 
         # Return the original source text.
