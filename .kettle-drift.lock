@@ -1,0 +1,92 @@
+{
+  "# Continue to the next step on failure\ncontinue-on-error: true": [
+    {
+      "file": ".github/workflows/current.yml",
+      "lines": [
+        97,
+        111
+      ]
+    },
+    {
+      "file": ".github/workflows/dep-heads.yml",
+      "lines": [
+        99,
+        113
+      ]
+    },
+    {
+      "file": ".github/workflows/heads.yml",
+      "lines": [
+        98,
+        112
+      ]
+    },
+    {
+      "file": ".github/workflows/truffle.yml",
+      "lines": [
+        77,
+        91
+      ]
+    }
+  ],
+  "# Local overrides belong in .env.local (loaded via dotenvy through mise).\n# Shared development environment for this gem.": [
+    {
+      "file": "mise.toml",
+      "lines": [
+        2,
+        4,
+        6
+      ]
+    }
+  ],
+  "# Shared development environment for this gem.\n# Local overrides belong in .env.local (loaded via dotenvy through mise).": [
+    {
+      "file": "mise.toml",
+      "lines": [
+        1,
+        3,
+        5,
+        7
+      ]
+    }
+  ],
+  "appraisal: \"current\"\nexec_cmd: \"rake spec\"": [
+    {
+      "file": ".github/workflows/current.yml",
+      "lines": [
+        50,
+        58
+      ]
+    }
+  ],
+  "if: ${{ !env.ACT || (! startsWith(matrix.ruby, 'jruby') && !startsWith(matrix.ruby, 'truffleruby')) }}\nrun: bundle install": [
+    {
+      "file": ".github/workflows/current.yml",
+      "lines": [
+        90,
+        95
+      ]
+    },
+    {
+      "file": ".github/workflows/dep-heads.yml",
+      "lines": [
+        92,
+        97
+      ]
+    },
+    {
+      "file": ".github/workflows/heads.yml",
+      "lines": [
+        91,
+        96
+      ]
+    },
+    {
+      "file": ".github/workflows/truffle.yml",
+      "lines": [
+        70,
+        75
+      ]
+    }
+  ]
+}
