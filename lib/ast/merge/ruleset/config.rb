@@ -23,11 +23,21 @@ module Ast
           normalize_tracked_layout_merge
         ].freeze
 
-        IDENTIFIER_RE = /\A[A-Za-z][A-Za-z0-9_.-]*\z/.freeze
-        TOKEN_RE = /\A[!-~]+\z/.freeze
+        IDENTIFIER_RE = /\A[A-Za-z][A-Za-z0-9_.-]*\z/
+        TOKEN_RE = /\A[!-~]+\z/
 
-        attr_reader :format, :owners, :match, :read, :attach, :comment_style, :render,
-          :capabilities, :logical_owners, :directives, :source, :path
+        attr_reader :format,
+          :owners,
+          :match,
+          :read,
+          :attach,
+          :comment_style,
+          :render,
+          :capabilities,
+          :logical_owners,
+          :directives,
+          :source,
+          :path
 
         class << self
           def load(path)
@@ -179,7 +189,7 @@ module Ast
           missing = REQUIRED_DIRECTIVES.reject { |directive| instance_variable_defined?(:"@#{directive}") }
           return if missing.empty?
 
-          raise ArgumentError, "Ruleset missing required directives: #{missing.join(', ')}"
+          raise ArgumentError, "Ruleset missing required directives: #{missing.join(", ")}"
         end
 
         def validate_known_directive!(directive, line_number)

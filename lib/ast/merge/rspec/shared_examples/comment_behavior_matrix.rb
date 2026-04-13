@@ -58,6 +58,10 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
     comment_matrix_structural_owners_reader.call(analysis)
   end
 
+  def comment_matrix_line_occurrences(content, line)
+    content.lines.count { |candidate| candidate.chomp == line }
+  end
+
   describe "analysis matrix" do
     let(:matrix_analysis) { comment_matrix_analysis_class.new(source) }
 
@@ -88,15 +92,15 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
         first_attachment = matrix_analysis.comment_attachment_for(first_owner)
         second_attachment = matrix_analysis.comment_attachment_for(second_owner)
 
-        expect(augmenter.preamble_region&.normalized_content).to eq("Document header")
-        expect(first_attachment.leading_region).to be_floating
-        expect(first_attachment.leading_region&.normalized_content).to eq("Alpha docs")
-        expect(first_attachment.leading_region_layout_owned?).to be(true)
-        expect(first_attachment.leading_gap).not_to be_nil
+        expect(augmenter.preamble_region&.normalized_content).to(eq("Document header"))
+        expect(first_attachment.leading_region).to(be_floating)
+        expect(first_attachment.leading_region&.normalized_content).to(eq("Alpha docs"))
+        expect(first_attachment.leading_region_layout_owned?).to(be(true))
+        expect(first_attachment.leading_gap).not_to(be_nil)
         if comment_matrix_capabilities.fetch(:inline_comments, true) == true
-          expect(second_attachment.inline_region&.normalized_content).to eq("beta docs")
+          expect(second_attachment.inline_region&.normalized_content).to(eq("beta docs"))
         else
-          expect(second_attachment.inline_region).to be_nil
+          expect(second_attachment.inline_region).to(be_nil)
         end
       end
     end
@@ -116,17 +120,17 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
         first_attachment = matrix_analysis.comment_attachment_for(first_owner)
         second_attachment = matrix_analysis.comment_attachment_for(second_owner)
 
-        expect(first_attachment.leading_region).not_to be_floating
-        expect(first_attachment.leading_region&.normalized_content).to eq("Alpha docs")
-        expect(first_attachment.trailing_gap).not_to be_nil
-        expect(second_attachment.leading_gap).not_to be_nil
-        expect(second_attachment.leading_gap.kind).to eq(first_attachment.trailing_gap.kind)
-        expect(second_attachment.leading_gap.start_line).to eq(first_attachment.trailing_gap.start_line)
-        expect(second_attachment.leading_gap.end_line).to eq(first_attachment.trailing_gap.end_line)
-        expect(first_attachment.trailing_gap.trailing_for?(first_owner)).to be(true)
-        expect(second_attachment.leading_gap.leading_for?(second_owner)).to be(true)
-        expect(first_attachment.trailing_gap.controller_side).to eq(:after)
-        expect(second_attachment.leading_gap.controller_side).to eq(:after)
+        expect(first_attachment.leading_region).not_to(be_floating)
+        expect(first_attachment.leading_region&.normalized_content).to(eq("Alpha docs"))
+        expect(first_attachment.trailing_gap).not_to(be_nil)
+        expect(second_attachment.leading_gap).not_to(be_nil)
+        expect(second_attachment.leading_gap.kind).to(eq(first_attachment.trailing_gap.kind))
+        expect(second_attachment.leading_gap.start_line).to(eq(first_attachment.trailing_gap.start_line))
+        expect(second_attachment.leading_gap.end_line).to(eq(first_attachment.trailing_gap.end_line))
+        expect(first_attachment.trailing_gap.trailing_for?(first_owner)).to(be(true))
+        expect(second_attachment.leading_gap.leading_for?(second_owner)).to(be(true))
+        expect(first_attachment.trailing_gap.controller_side).to(eq(:after))
+        expect(second_attachment.leading_gap.controller_side).to(eq(:after))
       end
     end
 
@@ -147,9 +151,9 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
         owner = comment_matrix_structural_owners(matrix_analysis).first
         attachment = matrix_analysis.comment_attachment_for(owner)
 
-        expect(comment_matrix_owner_value_reader.call(owner)).to eq(comment_matrix_expected_literal_hash_value)
-        expect(attachment.leading_region&.normalized_content).to eq("Beta docs")
-        expect(attachment.inline_region&.normalized_content).to eq("real inline docs")
+        expect(comment_matrix_owner_value_reader.call(owner)).to(eq(comment_matrix_expected_literal_hash_value))
+        expect(attachment.leading_region&.normalized_content).to(eq("Beta docs"))
+        expect(attachment.inline_region&.normalized_content).to(eq("real inline docs"))
       end
     end
   end
@@ -161,7 +165,7 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
         comment_matrix_source(comment_matrix_line_builder.call("alpha", "9")),
       ).merge
 
-      expect(result).to eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "9")))
+      expect(result).to(eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "9"))))
     end
 
     it "uses template content for matched nodes when template preference is selected" do
@@ -171,7 +175,7 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
         preference: :template,
       ).merge
 
-      expect(result).to eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "1")))
+      expect(result).to(eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "1"))))
     end
 
     it "skips template-only nodes unless add_template_only_nodes is enabled" do
@@ -184,13 +188,13 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
       without_add = comment_matrix_merger_class.new(template, destination).merge
       with_add = comment_matrix_merger_class.new(template, destination, add_template_only_nodes: true).merge
 
-      expect(without_add).to eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "9")))
-      expect(with_add).to eq(
+      expect(without_add).to(eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "9"))))
+      expect(with_add).to(eq(
         comment_matrix_source(
           comment_matrix_line_builder.call("alpha", "9"),
           comment_matrix_line_builder.call("beta", "2"),
         ),
-      )
+      ))
     end
 
     it "adds attached leading docs with a template-only node when enabled" do
@@ -206,7 +210,7 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, "", add_template_only_nodes: true).merge
 
-      expect(result).to eq(template)
+      expect(result).to(eq(template))
     end
 
     it "adds floating leading docs with their separating gap for a template-only node" do
@@ -223,7 +227,7 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, "", add_template_only_nodes: true).merge
 
-      expect(result).to eq(template)
+      expect(result).to(eq(template))
     end
 
     it "adds first-owner preamble comments with a template-only node when enabled" do
@@ -240,7 +244,7 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, "", add_template_only_nodes: true).merge
 
-      expect(result).to eq(template)
+      expect(result).to(eq(template))
     end
 
     it "adds trailing docs with a template-only node when enabled" do
@@ -256,7 +260,7 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, "", add_template_only_nodes: true).merge
 
-      expect(result).to eq(template)
+      expect(result).to(eq(template))
     end
 
     it "adds template-only prefix nodes ahead of the first matched anchor when enabled" do
@@ -273,12 +277,127 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, destination, add_template_only_nodes: true).merge
 
-      expect(result).to eq(
+      expect(result).to(eq(
         comment_matrix_source(
           comment_matrix_line_builder.call("alpha", "1"),
           comment_matrix_line_builder.call("beta", "9"),
         ),
+      ))
+    end
+
+    it "does not duplicate a shared interstitial comment block between adjacent matched nodes" do
+      comment_matrix_skip_unless!(
+        :adjacent_shared_comment_dedup,
+        "shared interstitial comment ownership between adjacent matched nodes is not deduplicated",
       )
+
+      shared_comment = comment_matrix_comment("Shared docs")
+      template = comment_matrix_source(
+        comment_matrix_line_builder.call("alpha", "1"),
+        shared_comment,
+        comment_matrix_line_builder.call("beta", "2"),
+      )
+      destination = comment_matrix_source(
+        comment_matrix_line_builder.call("alpha", "9"),
+        shared_comment,
+        comment_matrix_line_builder.call("beta", "8"),
+      )
+
+      kept_destination = comment_matrix_merger_class.new(template, destination).merge
+      kept_template = comment_matrix_merger_class.new(template, destination, preference: :template).merge
+
+      expect(comment_matrix_line_occurrences(kept_destination, shared_comment)).to eq(1), kept_destination
+      expect(comment_matrix_line_occurrences(kept_destination, comment_matrix_line_builder.call("alpha", "9"))).to eq(1), kept_destination
+      expect(comment_matrix_line_occurrences(kept_destination, comment_matrix_line_builder.call("beta", "8"))).to eq(1), kept_destination
+
+      expect(comment_matrix_line_occurrences(kept_template, shared_comment)).to eq(1), kept_template
+      expect(comment_matrix_line_occurrences(kept_template, comment_matrix_line_builder.call("alpha", "1"))).to eq(1), kept_template
+      expect(comment_matrix_line_occurrences(kept_template, comment_matrix_line_builder.call("beta", "2"))).to eq(1), kept_template
+    end
+
+    it "keeps a destination-owned first-owner doc block singular when the template models the same position as a preamble" do
+      comment_matrix_skip_unless!(
+        :cross_source_preamble_ownership_dedup,
+        "cross-source preamble vs first-owner ownership is not deduplicated",
+      )
+
+      template_header = comment_matrix_comment("Template header")
+      destination_header = comment_matrix_comment("Destination header")
+      template = comment_matrix_source(
+        template_header,
+        "",
+        comment_matrix_line_builder.call("alpha", "1"),
+      )
+      destination = comment_matrix_source(
+        destination_header,
+        comment_matrix_line_builder.call("alpha", "9"),
+      )
+
+      merged = comment_matrix_merger_class.new(template, destination, add_template_only_nodes: true).merge
+
+      expect(comment_matrix_line_occurrences(merged, template_header)).to eq(0), merged
+      expect(comment_matrix_line_occurrences(merged, destination_header)).to eq(1), merged
+      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "9"))).to eq(1), merged
+    end
+
+    it "does not duplicate a first-owner doc block when only blank-line ownership differs across sources" do
+      comment_matrix_skip_unless!(
+        :cross_source_preamble_spacing_dedup,
+        "equivalent preamble blocks with different blank-line ownership are not deduplicated",
+      )
+
+      shared_header = comment_matrix_comment("Shared header")
+      template = comment_matrix_source(
+        shared_header,
+        "",
+        comment_matrix_line_builder.call("alpha", "1"),
+      )
+      destination = comment_matrix_source(
+        shared_header,
+        comment_matrix_line_builder.call("alpha", "9"),
+      )
+
+      merged = comment_matrix_merger_class.new(
+        template,
+        destination,
+        preference: :template,
+        add_template_only_nodes: true,
+      ).merge
+
+      expect(comment_matrix_line_occurrences(merged, shared_header)).to eq(1), merged
+      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "1"))).to eq(1), merged
+      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "9"))).to eq(0), merged
+    end
+
+    it "collapses duplicated template-owned preamble prefixes back to the destination-specific first-owner docs" do
+      comment_matrix_skip_unless!(
+        :duplicate_template_preamble_prefix_collapse,
+        "duplicated template preamble prefixes are not collapsed back to the destination-specific docs",
+      )
+
+      template_header = comment_matrix_comment("Shared header")
+      destination_header = comment_matrix_comment("Destination header")
+      template = comment_matrix_source(
+        template_header,
+        "",
+        comment_matrix_line_builder.call("alpha", "1"),
+      )
+      destination = comment_matrix_source(
+        template_header,
+        template_header,
+        destination_header,
+        comment_matrix_line_builder.call("alpha", "9"),
+      )
+
+      merged = comment_matrix_merger_class.new(
+        template,
+        destination,
+        add_template_only_nodes: true,
+      ).merge
+
+      expect(comment_matrix_line_occurrences(merged, template_header)).to eq(0), merged
+      expect(comment_matrix_line_occurrences(merged, destination_header)).to eq(1), merged
+      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "9"))).to eq(1), merged
     end
 
     it "preserves destination-only nodes unless remove_template_missing_nodes is enabled" do
@@ -296,13 +415,13 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
       without_remove = comment_matrix_merger_class.new(template, destination).merge
       with_remove = comment_matrix_merger_class.new(template, destination, remove_template_missing_nodes: true).merge
 
-      expect(without_remove).to eq(
+      expect(without_remove).to(eq(
         comment_matrix_source(
           comment_matrix_line_builder.call("alpha", "9"),
           comment_matrix_line_builder.call("beta", "2"),
         ),
-      )
-      expect(with_remove).to eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "9")))
+      ))
+      expect(with_remove).to(eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "9"))))
     end
 
     it "removes destination-only prefix nodes when removal mode is enabled" do
@@ -319,7 +438,7 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, destination, remove_template_missing_nodes: true).merge
 
-      expect(result).to eq(comment_matrix_source(comment_matrix_line_builder.call("beta", "2")))
+      expect(result).to(eq(comment_matrix_source(comment_matrix_line_builder.call("beta", "2"))))
     end
 
     it "applies preference to matched inline comments as part of the chosen node payload" do
@@ -338,8 +457,8 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
       kept_destination = comment_matrix_merger_class.new(template, destination).merge
       kept_template = comment_matrix_merger_class.new(template, destination, preference: :template).merge
 
-      expect(kept_destination).to eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "9", inline: "dest docs")))
-      expect(kept_template).to eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "1", inline: "template docs")))
+      expect(kept_destination).to(eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "9", inline: "dest docs"))))
+      expect(kept_template).to(eq(comment_matrix_source(comment_matrix_line_builder.call("alpha", "1", inline: "template docs"))))
     end
 
     it "can add template-only nodes while removing destination-only nodes under template preference" do
@@ -374,13 +493,13 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
         remove_template_missing_nodes: true,
       ).merge
 
-      expect(result).to eq(
+      expect(result).to(eq(
         comment_matrix_source(
           comment_matrix_line_builder.call("alpha", "1"),
           comment_matrix_line_builder.call("beta", "2", inline: "template docs"),
           comment_matrix_line_builder.call("gamma", "3"),
         ),
-      )
+      ))
     end
 
     it "promotes floating leading docs when removing a destination-only node" do
@@ -403,13 +522,13 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, destination, remove_template_missing_nodes: true).merge
 
-      expect(result).to eq(
+      expect(result).to(eq(
         comment_matrix_source(
           comment_matrix_comment("Beta docs"),
           "",
           comment_matrix_line_builder.call("alpha", "9"),
         ),
-      )
+      ))
     end
 
     it "promotes attached leading docs when removing a destination-only node" do
@@ -427,12 +546,12 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, destination, remove_template_missing_nodes: true).merge
 
-      expect(result).to eq(
+      expect(result).to(eq(
         comment_matrix_source(
           comment_matrix_comment("Beta docs"),
           comment_matrix_line_builder.call("alpha", "9"),
         ),
-      )
+      ))
     end
 
     it "promotes inline docs from removed destination-only nodes into standalone comments" do
@@ -453,12 +572,12 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, destination, remove_template_missing_nodes: true).merge
 
-      expect(result).to eq(
+      expect(result).to(eq(
         comment_matrix_source(
           comment_matrix_comment("beta docs", indent: comment_matrix_default_indent),
           comment_matrix_line_builder.call("alpha", "9"),
         ),
-      )
+      ))
     end
 
     it "preserves first-owner preamble comments when removing the first destination-only node" do
@@ -481,13 +600,13 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, destination, remove_template_missing_nodes: true).merge
 
-      expect(result).to eq(
+      expect(result).to(eq(
         comment_matrix_source(
           comment_matrix_comment("Document header"),
           "",
           comment_matrix_line_builder.call("alpha", "9"),
         ),
-      )
+      ))
     end
 
     it "preserves trailing docs when removing a destination-only node" do
@@ -509,12 +628,38 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       result = comment_matrix_merger_class.new(template, destination, remove_template_missing_nodes: true).merge
 
-      expect(result).to eq(
+      expect(result).to(eq(
         comment_matrix_source(
           comment_matrix_comment("Beta trailing docs", indent: comment_matrix_default_indent),
           comment_matrix_line_builder.call("alpha", "9"),
         ),
+      ))
+    end
+
+    it "does not duplicate a terminal trailing comment block when last-owner and document-postlude ownership overlap" do
+      comment_matrix_skip_unless!(
+        :terminal_comment_postlude_dedup,
+        "terminal trailing vs document-postlude ownership is not deduplicated",
       )
+
+      trailing_comment = comment_matrix_comment("Terminal docs", indent: comment_matrix_default_indent)
+      template = comment_matrix_source(
+        comment_matrix_line_builder.call("alpha", "1"),
+        trailing_comment,
+      )
+      destination = comment_matrix_source(
+        comment_matrix_line_builder.call("alpha", "9"),
+        trailing_comment,
+      )
+
+      kept_destination = comment_matrix_merger_class.new(template, destination).merge
+      kept_template = comment_matrix_merger_class.new(template, destination, preference: :template).merge
+
+      expect(comment_matrix_line_occurrences(kept_destination, trailing_comment)).to eq(1), kept_destination
+      expect(comment_matrix_line_occurrences(kept_destination, comment_matrix_line_builder.call("alpha", "9"))).to eq(1), kept_destination
+
+      expect(comment_matrix_line_occurrences(kept_template, trailing_comment)).to eq(1), kept_template
+      expect(comment_matrix_line_occurrences(kept_template, comment_matrix_line_builder.call("alpha", "1"))).to eq(1), kept_template
     end
   end
 end

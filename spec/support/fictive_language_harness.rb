@@ -267,6 +267,7 @@ module SpecSupport
 
         matched_template_indices = Set.new
         consumed_indices = Set.new
+        @emitted_comment_blocks = Set.new
 
         emit_prefix_trailing_group(trailing_groups, consumed_indices) do |info|
           add_template_only_statement(result, info[:node])
@@ -328,38 +329,32 @@ module SpecSupport
       end
 
       def add_template_only_statement(result, template_node)
-        attachment = @template_analysis.comment_attachment_for(template_node)
-
-        emit_region_lines(result, addable_preamble_region_for(template_node))
-        emit_region_lines(result, attachment.leading_region)
-        emit_layout_gap(result, attachment.leading_gap)
-        result.add_line(template_node.raw_line)
-        emit_region_lines(result, attachment.trailing_region)
-        emit_layout_gap(result, attachment.trailing_gap)
+        emit_statement(result, template_node, @template_analysis)
         result.record_decision(DECISION_ADDED, template_node, nil)
       end
 
       def add_destination_only_statement(result, dest_node)
-        result.add_line(dest_node.raw_line)
+        emit_statement(result, dest_node, @dest_analysis)
         result.record_decision(DECISION_APPENDED, nil, dest_node)
       end
 
       def resolve_matched_pair(result, template_node, dest_node)
-        if template_node.raw_line == dest_node.raw_line
-          result.add_line(dest_node.raw_line)
-          result.record_decision(DECISION_IDENTICAL, template_node, dest_node)
-          return
-        end
-
         preferred_node = if preference_for_node(template_node) == :template
           template_node
         else
           dest_node
         end
+        preferred_analysis = preferred_node.equal?(template_node) ? @template_analysis : @dest_analysis
 
-        result.add_line(preferred_node.raw_line)
+        emit_statement(result, preferred_node, preferred_analysis)
         result.record_decision(
-          preferred_node.equal?(template_node) ? DECISION_KEPT_TEMPLATE : DECISION_KEPT_DEST,
+          if template_node.raw_line == dest_node.raw_line
+            DECISION_IDENTICAL
+          elsif preferred_node.equal?(template_node)
+            DECISION_KEPT_TEMPLATE
+          else
+            DECISION_KEPT_DEST
+          end,
           template_node,
           dest_node,
         )
@@ -382,11 +377,13 @@ module SpecSupport
 
         emit_region_lines(result, attachment.trailing_region)
         emit_layout_gap(result, attachment.trailing_gap)
-
       end
 
       def emit_region_lines(result, region)
         return unless region
+        return if duplicate_comment_region?(region)
+
+        remember_comment_region(region)
 
         region.text.split("\n").each do |line|
           result.add_line(line)
@@ -411,6 +408,99 @@ module SpecSupport
         return unless @template_analysis.statements.first.equal?(template_node)
 
         @template_analysis.comment_augmenter.preamble_region
+      end
+
+      def emit_statement(result, node, analysis)
+        attachment = analysis.comment_attachment_for(node)
+        leading_region = canonical_leading_region_for(node, analysis, attachment)
+
+        emit_region_lines(result, leading_region)
+        emit_layout_gap(result, attachment.leading_gap)
+        result.add_line(node.raw_line)
+        emit_region_lines(result, attachment.trailing_region)
+        emit_layout_gap(result, attachment.trailing_gap)
+        emit_postlude_region_for_last_node(result, node, analysis, attachment)
+      end
+
+      def canonical_leading_region_for(node, analysis, attachment)
+        region = attachment.leading_region
+        return collapse_template_preamble_prefix_region(region) if first_statement?(node, analysis) && region
+
+        return region if region
+        return unless first_statement?(node, analysis)
+
+        collapse_template_preamble_prefix_region(analysis.comment_augmenter.preamble_region)
+      end
+
+      def emit_postlude_region_for_last_node(result, node, analysis, attachment)
+        return unless last_statement?(node, analysis)
+
+        postlude_region = analysis.comment_augmenter.postlude_region
+        return unless postlude_region
+        return if attachment.trailing_region && attachment.trailing_region.normalized_content == postlude_region.normalized_content
+
+        emit_region_lines(result, postlude_region)
+      end
+
+      def first_statement?(node, analysis)
+        analysis.statements.first.equal?(node)
+      end
+
+      def last_statement?(node, analysis)
+        analysis.statements.last.equal?(node)
+      end
+
+      def collapse_template_preamble_prefix_region(region)
+        return region unless region
+
+        template_preamble = @template_analysis.comment_augmenter.preamble_region
+        return region unless template_preamble
+
+        region_nodes = Array(region.nodes)
+        template_nodes = Array(template_preamble.nodes)
+        return region if region_nodes.empty? || template_nodes.empty?
+        return region if region.normalized_content == template_preamble.normalized_content
+        return region if region_nodes.length < template_nodes.length
+
+        repeat_count = 0
+        while prefix_matches_region_nodes?(region_nodes.drop(repeat_count * template_nodes.length), template_nodes)
+          repeat_count += 1
+        end
+        return region if repeat_count.zero?
+
+        remainder_nodes = region_nodes.drop(repeat_count * template_nodes.length)
+        return region if remainder_nodes.empty?
+
+        Ast::Merge::Comment::Region.new(
+          kind: region.kind,
+          nodes: remainder_nodes,
+          metadata: region.metadata,
+        )
+      end
+
+      def prefix_matches_region_nodes?(candidate_nodes, prefix_nodes)
+        candidate = candidate_nodes.first(prefix_nodes.length)
+        return false unless candidate.length == prefix_nodes.length
+
+        candidate.zip(prefix_nodes).all? do |left, right|
+          left.respond_to?(:normalized_content) &&
+            right.respond_to?(:normalized_content) &&
+            left.normalized_content == right.normalized_content
+        end
+      end
+
+      def duplicate_comment_region?(region)
+        normalized = region.normalized_content
+        return false if normalized.nil? || normalized.empty?
+
+        @emitted_comment_blocks.include?(normalized)
+      end
+
+      def remember_comment_region(region)
+        normalized = region.normalized_content
+        return if normalized.nil? || normalized.empty?
+
+        @emitted_comment_blocks.add(normalized)
       end
     end
 
