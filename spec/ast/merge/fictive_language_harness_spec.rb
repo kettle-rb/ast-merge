@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable RSpec/DescribeClass
 RSpec.describe "fictive language harness" do
   describe SpecSupport::FictiveLanguageHarness::FlatAnalysis do
     subject(:analysis) { described_class.new(source) }
@@ -38,7 +39,7 @@ RSpec.describe "fictive language harness" do
     end
 
     it_behaves_like "Ast::Merge::CommentBehaviorMatrix" do
-      let(:comment_matrix_analysis_class) { SpecSupport::FictiveLanguageHarness::FlatAnalysis }
+      let(:comment_matrix_analysis_class) { described_class }
       let(:comment_matrix_merger_class) { SpecSupport::FictiveLanguageHarness::FlatSmartMerger }
       let(:comment_matrix_source_builder) { ->(*lines) { "#{lines.join("\n")}\n" } }
       let(:comment_matrix_comment_line_builder) { ->(text, indent: "") { "#{indent}# #{text}" } }
@@ -62,7 +63,7 @@ RSpec.describe "fictive language harness" do
 
     it_behaves_like "Ast::Merge::CommentBehaviorMatrix" do
       let(:comment_matrix_analysis_class) { SpecSupport::FictiveLanguageHarness::FlatAnalysis }
-      let(:comment_matrix_merger_class) { SpecSupport::FictiveLanguageHarness::FlatSmartMerger }
+      let(:comment_matrix_merger_class) { described_class }
       let(:comment_matrix_source_builder) { ->(*lines) { "#{lines.join("\n")}\n" } }
       let(:comment_matrix_comment_line_builder) { ->(text, indent: "") { "#{indent}# #{text}" } }
       let(:comment_matrix_default_indent) { "" }
@@ -96,7 +97,7 @@ RSpec.describe "fictive language harness" do
     end
 
     it_behaves_like "Ast::Merge::CommentBehaviorMatrix" do
-      let(:comment_matrix_analysis_class) { SpecSupport::FictiveLanguageHarness::IndentedAnalysis }
+      let(:comment_matrix_analysis_class) { described_class }
       let(:comment_matrix_merger_class) { SpecSupport::FictiveLanguageHarness::IndentedSmartMerger }
       let(:comment_matrix_source_builder) { ->(*lines) { "#{lines.join("\n")}\n" } }
       let(:comment_matrix_comment_line_builder) { ->(text, indent: "") { "#{indent}# #{text}" } }
@@ -150,7 +151,7 @@ RSpec.describe "fictive language harness" do
 
     it_behaves_like "Ast::Merge::CommentBehaviorMatrix" do
       let(:comment_matrix_analysis_class) { SpecSupport::FictiveLanguageHarness::IndentedAnalysis }
-      let(:comment_matrix_merger_class) { SpecSupport::FictiveLanguageHarness::IndentedSmartMerger }
+      let(:comment_matrix_merger_class) { described_class }
       let(:comment_matrix_source_builder) { ->(*lines) { "#{lines.join("\n")}\n" } }
       let(:comment_matrix_comment_line_builder) { ->(text, indent: "") { "#{indent}# #{text}" } }
       let(:comment_matrix_default_indent) { "  " }
@@ -158,3 +159,4 @@ RSpec.describe "fictive language harness" do
     end
   end
 end
+# rubocop:enable RSpec/DescribeClass

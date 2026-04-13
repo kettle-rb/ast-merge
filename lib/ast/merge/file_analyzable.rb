@@ -434,8 +434,7 @@ module Ast
       end
 
       def layout_owner_supported?(owner)
-        owner &&
-          owner.respond_to?(:start_line) &&
+        owner&.respond_to?(:start_line) &&
           owner.respond_to?(:end_line) &&
           !owner.start_line.nil? &&
           !owner.end_line.nil?

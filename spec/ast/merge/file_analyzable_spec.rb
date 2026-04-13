@@ -128,7 +128,7 @@ RSpec.describe Ast::Merge::FileAnalyzable do
     end
 
     it "dispatches the layout-only shared attachment strategy" do
-      expect(analysis).to receive(:merge_comment_attachment_with_layout)
+      allow(analysis).to receive(:merge_comment_attachment_with_layout)
         .with(owner, nil, repository: :ast_merge)
         .and_return(:layout_only_attachment)
 
@@ -140,7 +140,7 @@ RSpec.describe Ast::Merge::FileAnalyzable do
     it "dispatches the tracker-layout shared attachment strategy" do
       tracker_attachment = double(:tracker_attachment)
 
-      expect(analysis).to receive(:merge_comment_attachment_with_layout)
+      allow(analysis).to receive(:merge_comment_attachment_with_layout)
         .with(owner, tracker_attachment, repository: :ast_merge)
         .and_return(:tracker_layout_attachment)
 
@@ -157,7 +157,7 @@ RSpec.describe Ast::Merge::FileAnalyzable do
     it "dispatches the augmenter-preferred shared attachment strategy" do
       tracker_attachment = double(:tracker_attachment)
 
-      expect(analysis).to receive(:merge_augmented_comment_attachment_with_layout)
+      allow(analysis).to receive(:merge_augmented_comment_attachment_with_layout)
         .with(owner, tracker_attachment: tracker_attachment, repository: :ast_merge)
         .and_return(:augmenter_attachment)
 
@@ -174,7 +174,7 @@ RSpec.describe Ast::Merge::FileAnalyzable do
     it "dispatches the normalized tracked-layout shared attachment strategy" do
       tracker_attachment = double(:tracker_attachment)
 
-      expect(analysis).to receive(:normalize_tracked_comment_attachment_with_layout)
+      allow(analysis).to receive(:normalize_tracked_comment_attachment_with_layout)
         .with(owner, tracker_attachment: tracker_attachment, repository: :ast_merge)
         .and_return(:normalized_attachment)
 
