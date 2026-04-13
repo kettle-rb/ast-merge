@@ -29,12 +29,12 @@
       ]
     }
   ],
-  "# Support for PostgreSQL (commented out by default)\n# apt-get install -y postgresql libpq-dev": [
+  "# Shared development environment for this gem.\n# Local overrides belong in .env.local (loaded via dotenvy through mise).": [
     {
-      "file": ".devcontainer/apt-install/install.sh",
+      "file": "mise.toml",
       "lines": [
-        8,
-        18
+        1,
+        3
       ]
     }
   ],
