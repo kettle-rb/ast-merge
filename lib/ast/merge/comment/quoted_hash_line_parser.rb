@@ -76,7 +76,7 @@ module Ast
 
           indent = stringify(node[:indent]).length
           text = stringify(node[:comment_text]).rstrip
-          raw = source[indent..] || source
+          raw = source
 
           Result.new(
             kind: :full_line,

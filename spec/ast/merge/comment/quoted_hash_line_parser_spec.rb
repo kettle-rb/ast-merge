@@ -11,7 +11,7 @@ RSpec.describe Ast::Merge::Comment::QuotedHashLineParser do
       expect(result.full_line?).to be(true)
       expect(result.indent).to eq(2)
       expect(result.text).to eq("docs here")
-      expect(result.raw).to eq("# docs here")
+      expect(result.raw).to eq("  # docs here")
     end
 
     it "parses inline hash comments after content" do
