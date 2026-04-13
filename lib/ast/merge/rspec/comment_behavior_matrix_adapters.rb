@@ -21,11 +21,7 @@ module Ast
           let(:comment_matrix_merger_class) { merger_class }
           let(:comment_matrix_source_builder) { source_builder }
           let(:comment_matrix_comment_line_builder) { comment_line_builder }
-          if capabilities.respond_to?(:call)
-            let(:comment_matrix_capabilities, &capabilities)
-          else
-            let(:comment_matrix_capabilities) { capabilities }
-          end
+          let(:comment_matrix_capabilities) { capabilities }
           let(:comment_matrix_structural_owners_reader) { structural_owners_reader }
           let(:comment_matrix_owner_value_reader) { owner_value_reader }
           let(:comment_matrix_expected_literal_hash_value) { expected_literal_hash_value }

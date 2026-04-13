@@ -161,6 +161,31 @@ module Ast
         end
       end
 
+      # Build a shared support-style declaration for analyses that already know
+      # their read/write model.
+      #
+      # @param source [Symbol] support-style source identifier
+      # @param style [Symbol] comment syntax family
+      # @param read_strategy [Symbol] support-style read/write strategy
+      # @param capability [Symbol] advertised capability level
+      # @return [Comment::SupportStyle]
+      def shared_comment_support_style(source:, style:, read_strategy:, capability: comment_capability.level)
+        details = {
+          source: source,
+          capability: capability,
+          style: style,
+        }
+
+        case read_strategy
+        when :source_augmented_synthetic
+          Comment::SupportStyle.source_augmented_synthetic(**details)
+        when :native_read_synthetic_write
+          Comment::SupportStyle.native_read_synthetic_write(**details)
+        else
+          raise ArgumentError, "Unknown comment support read strategy: #{read_strategy.inspect}"
+        end
+      end
+
       # Return the shared comment node at a specific line.
       #
       # @param _line_num [Integer] 1-based line number
@@ -212,6 +237,43 @@ module Ast
         )
       end
 
+      # Describe the shared attachment strategy used by this analysis.
+      #
+      # Analyses that rely on one of the common tracked/augmented attachment
+      # shapes can override this and delegate `comment_attachment_for` through
+      # {#shared_comment_attachment_for} instead of open-coding the merge path.
+      #
+      # @return [Symbol]
+      def comment_attachment_strategy
+        :layout_only
+      end
+
+      # Build a comment attachment through one of the shared runtime strategies.
+      #
+      # This surfaces the current repeated runtime seam explicitly so
+      # format-specific analyses can declare which ownership path they use while
+      # still preserving any custom tracker attachment selection they need.
+      #
+      # @param owner [Object] structural owner
+      # @param tracker_attachment [Comment::Attachment, nil] tracker-built or custom base attachment
+      # @param strategy [Symbol] attachment strategy override
+      # @param options [Hash] attachment metadata
+      # @return [Comment::Attachment]
+      def shared_comment_attachment_for(owner, tracker_attachment: nil, strategy: comment_attachment_strategy, **options)
+        case strategy
+        when :layout_only
+          merge_comment_attachment_with_layout(owner, nil, **options)
+        when :tracker_layout_merge
+          merge_comment_attachment_with_layout(owner, tracker_attachment, **options)
+        when :augmenter_preferred_tracker_layout
+          merge_augmented_comment_attachment_with_layout(owner, tracker_attachment: tracker_attachment, **options)
+        when :normalize_tracked_layout_merge
+          normalize_tracked_comment_attachment_with_layout(owner, tracker_attachment: tracker_attachment, **options)
+        else
+          raise ArgumentError, "Unknown comment attachment strategy: #{strategy.inspect}"
+        end
+      end
+
       # Merge a format-specific comment attachment with shared inferred layout gaps.
       #
       # This lets analyses keep custom comment-region logic while still exposing
@@ -233,6 +295,74 @@ module Ast
           leading_gap: layout_attachment&.leading_gap,
           trailing_gap: layout_attachment&.trailing_gap,
           metadata: (comment_attachment&.metadata || {}).merge(options),
+        )
+      end
+
+      # Prefer an augmenter-built attachment when available, then merge the
+      # result with shared layout ownership data.
+      #
+      # This lets analyses use richer augmenter ownership (for example floating
+      # leading regions) while preserving tracker-based fallback behavior.
+      #
+      # @param owner [Object] structural owner
+      # @param tracker_attachment [Comment::Attachment, nil] tracker-built fallback
+      # @param options [Hash] attachment metadata
+      # @return [Comment::Attachment]
+      def merge_augmented_comment_attachment_with_layout(owner, tracker_attachment:, **options)
+        augmenter_attachment = comment_augmenter(owners: [owner]).attachment_for(owner)
+
+        merge_comment_attachment_with_layout(
+          owner,
+          augmenter_attachment || tracker_attachment,
+          **options,
+        )
+      end
+
+      # Merge a tracker-built attachment with shared layout ownership and then
+      # normalize any layout-owned leading region metadata.
+      #
+      # @param owner [Object] structural owner
+      # @param tracker_attachment [Comment::Attachment, nil] tracker-built attachment
+      # @param options [Hash] attachment metadata
+      # @return [Comment::Attachment]
+      def normalize_tracked_comment_attachment_with_layout(owner, tracker_attachment:, **options)
+        normalize_layout_owned_comment_attachment(
+          merge_comment_attachment_with_layout(
+            owner,
+            tracker_attachment,
+            **options,
+          ),
+        )
+      end
+
+      # Mark a leading region as floating when shared layout already proves it is
+      # gap-owned, without changing the underlying region content.
+      #
+      # Some format analyzers still build attachments from tracker-level comment
+      # regions that do not set `floating: true` even though the shared layout
+      # augmenter has already established a leading gap. This helper preserves the
+      # attachment shape while normalizing that metadata in one place.
+      #
+      # @param attachment [Comment::Attachment, nil]
+      # @return [Comment::Attachment, nil]
+      def normalize_layout_owned_comment_attachment(attachment)
+        return attachment unless attachment&.leading_region
+        return attachment if attachment.leading_region.floating?
+        return attachment unless attachment.leading_gap
+
+        Comment::Attachment.new(
+          owner: attachment.owner,
+          leading_region: Comment::Region.new(
+            kind: attachment.leading_region.kind,
+            nodes: attachment.leading_region.nodes,
+            metadata: attachment.leading_region.metadata.merge(floating: true),
+          ),
+          inline_region: attachment.inline_region,
+          trailing_region: attachment.trailing_region,
+          orphan_regions: attachment.orphan_regions,
+          leading_gap: attachment.leading_gap,
+          trailing_gap: attachment.trailing_gap,
+          metadata: attachment.metadata,
         )
       end
 

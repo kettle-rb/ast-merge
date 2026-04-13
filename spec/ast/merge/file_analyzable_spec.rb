@@ -33,6 +33,43 @@ RSpec.describe Ast::Merge::FileAnalyzable do
       expect(analysis.comment_node_at(2)).to be_nil
     end
 
+    it "builds a shared source-augmented support style" do
+      support_style = analysis.shared_comment_support_style(
+        source: :fixture_source,
+        style: :hash_comment,
+        read_strategy: :source_augmented_synthetic,
+        capability: :full,
+      )
+
+      expect(support_style.source_augmented_synthetic?).to be(true)
+      expect(support_style.details[:style]).to eq(:hash_comment)
+      expect(support_style.details[:source]).to eq(:fixture_source)
+    end
+
+    it "builds a shared native-read support style" do
+      support_style = analysis.shared_comment_support_style(
+        source: :fixture_native,
+        style: :hash_comment,
+        read_strategy: :native_read_synthetic_write,
+        capability: :full,
+      )
+
+      expect(support_style.native_read_synthetic_write?).to be(true)
+      expect(support_style.details[:style]).to eq(:hash_comment)
+      expect(support_style.details[:source]).to eq(:fixture_native)
+    end
+
+    it "raises for an unknown shared support-style strategy" do
+      expect do
+        analysis.shared_comment_support_style(
+          source: :fixture_source,
+          style: :hash_comment,
+          read_strategy: :mystery_strategy,
+          capability: :full,
+        )
+      end.to raise_error(ArgumentError, /Unknown comment support read strategy/)
+    end
+
     it "returns an empty region for any requested range" do
       region = analysis.comment_region_for_range(1..2, kind: :leading, repository: :ast_merge)
 
@@ -84,6 +121,77 @@ RSpec.describe Ast::Merge::FileAnalyzable do
       expect(attachment.leading_gap).to be_preamble
       expect(attachment.metadata[:source]).to eq(:custom_tracker)
       expect(attachment.metadata[:repository]).to eq(:ast_merge)
+    end
+
+    it "reports the default shared attachment strategy" do
+      expect(analysis.comment_attachment_strategy).to eq(:layout_only)
+    end
+
+    it "dispatches the layout-only shared attachment strategy" do
+      expect(analysis).to receive(:merge_comment_attachment_with_layout)
+        .with(owner, nil, repository: :ast_merge)
+        .and_return(:layout_only_attachment)
+
+      result = analysis.shared_comment_attachment_for(owner, repository: :ast_merge)
+
+      expect(result).to eq(:layout_only_attachment)
+    end
+
+    it "dispatches the tracker-layout shared attachment strategy" do
+      tracker_attachment = double(:tracker_attachment)
+
+      expect(analysis).to receive(:merge_comment_attachment_with_layout)
+        .with(owner, tracker_attachment, repository: :ast_merge)
+        .and_return(:tracker_layout_attachment)
+
+      result = analysis.shared_comment_attachment_for(
+        owner,
+        tracker_attachment: tracker_attachment,
+        strategy: :tracker_layout_merge,
+        repository: :ast_merge,
+      )
+
+      expect(result).to eq(:tracker_layout_attachment)
+    end
+
+    it "dispatches the augmenter-preferred shared attachment strategy" do
+      tracker_attachment = double(:tracker_attachment)
+
+      expect(analysis).to receive(:merge_augmented_comment_attachment_with_layout)
+        .with(owner, tracker_attachment: tracker_attachment, repository: :ast_merge)
+        .and_return(:augmenter_attachment)
+
+      result = analysis.shared_comment_attachment_for(
+        owner,
+        tracker_attachment: tracker_attachment,
+        strategy: :augmenter_preferred_tracker_layout,
+        repository: :ast_merge,
+      )
+
+      expect(result).to eq(:augmenter_attachment)
+    end
+
+    it "dispatches the normalized tracked-layout shared attachment strategy" do
+      tracker_attachment = double(:tracker_attachment)
+
+      expect(analysis).to receive(:normalize_tracked_comment_attachment_with_layout)
+        .with(owner, tracker_attachment: tracker_attachment, repository: :ast_merge)
+        .and_return(:normalized_attachment)
+
+      result = analysis.shared_comment_attachment_for(
+        owner,
+        tracker_attachment: tracker_attachment,
+        strategy: :normalize_tracked_layout_merge,
+        repository: :ast_merge,
+      )
+
+      expect(result).to eq(:normalized_attachment)
+    end
+
+    it "raises for an unknown shared attachment strategy" do
+      expect do
+        analysis.shared_comment_attachment_for(owner, strategy: :mystery_strategy)
+      end.to raise_error(ArgumentError, /Unknown comment attachment strategy/)
     end
 
     it "builds an empty augmenter that preserves the no-comment capability" do
