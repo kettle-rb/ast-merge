@@ -89,81 +89,12 @@
       ]
     }
   ],
-  "# Continue to the next step on failure\ncontinue-on-error: true": [
-    {
-      "file": ".github/workflows/current.yml",
-      "lines": [
-        96,
-        109
-      ]
-    },
-    {
-      "file": ".github/workflows/dep-heads.yml",
-      "lines": [
-        99,
-        112
-      ]
-    },
-    {
-      "file": ".github/workflows/heads.yml",
-      "lines": [
-        98,
-        111
-      ]
-    },
-    {
-      "file": ".github/workflows/truffle.yml",
-      "lines": [
-        77,
-        90
-      ]
-    }
-  ],
   "# files:\n#   README.md:": [
     {
       "file": ".kettle-jem.yml",
       "lines": [
         234,
         404
-      ]
-    }
-  ],
-  "appraisal: \"current\"\nexec_cmd: \"rake spec\"": [
-    {
-      "file": ".github/workflows/current.yml",
-      "lines": [
-        50,
-        57
-      ]
-    }
-  ],
-  "if: ${{ !env.ACT || (! startsWith(matrix.ruby, 'jruby') && !startsWith(matrix.ruby, 'truffleruby')) }}\nrun: bundle install": [
-    {
-      "file": ".github/workflows/current.yml",
-      "lines": [
-        89,
-        94
-      ]
-    },
-    {
-      "file": ".github/workflows/dep-heads.yml",
-      "lines": [
-        92,
-        97
-      ]
-    },
-    {
-      "file": ".github/workflows/heads.yml",
-      "lines": [
-        91,
-        96
-      ]
-    },
-    {
-      "file": ".github/workflows/truffle.yml",
-      "lines": [
-        70,
-        75
       ]
     }
   ]
