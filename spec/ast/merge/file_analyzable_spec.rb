@@ -65,6 +65,27 @@ RSpec.describe Ast::Merge::FileAnalyzable do
       expect(attachment).to be_empty
     end
 
+    it "can merge inferred layout gaps into an existing comment attachment" do
+      owner_with_gap = Struct.new(:start_line, :end_line).new(3, 3)
+      gap_analysis = analysis_class.new("header\n\nbody\n", statements: [owner_with_gap])
+      comment_attachment = Ast::Merge::Comment::Attachment.new(
+        owner: owner_with_gap,
+        leading_region: Ast::Merge::Comment::Region.new(
+          kind: :leading,
+          nodes: [Ast::Merge::Comment::Line.new(text: "# docs", line_number: 1)],
+        ),
+        metadata: {source: :custom_tracker},
+      )
+
+      attachment = gap_analysis.merge_comment_attachment_with_layout(owner_with_gap, comment_attachment, repository: :ast_merge)
+
+      expect(attachment.leading_region&.normalized_content).to eq("docs")
+      expect(attachment.leading_gap).not_to be_nil
+      expect(attachment.leading_gap).to be_preamble
+      expect(attachment.metadata[:source]).to eq(:custom_tracker)
+      expect(attachment.metadata[:repository]).to eq(:ast_merge)
+    end
+
     it "builds an empty augmenter that preserves the no-comment capability" do
       augmenter = analysis.comment_augmenter(repository: :ast_merge)
 

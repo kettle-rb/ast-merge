@@ -212,6 +212,30 @@ module Ast
         )
       end
 
+      # Merge a format-specific comment attachment with shared inferred layout gaps.
+      #
+      # This lets analyses keep custom comment-region logic while still exposing
+      # the shared gap ownership model through the returned comment attachment.
+      #
+      # @param owner [Object] structural owner
+      # @param comment_attachment [Comment::Attachment, nil] existing comment attachment
+      # @param options [Hash] attachment metadata
+      # @return [Comment::Attachment]
+      def merge_comment_attachment_with_layout(owner, comment_attachment, **options)
+        layout_attachment = layout_attachment_for(owner, **options)
+
+        Comment::Attachment.new(
+          owner: comment_attachment&.owner || owner,
+          leading_region: comment_attachment&.leading_region,
+          inline_region: comment_attachment&.inline_region,
+          trailing_region: comment_attachment&.trailing_region,
+          orphan_regions: comment_attachment&.orphan_regions || [],
+          leading_gap: layout_attachment.leading_gap,
+          trailing_gap: layout_attachment.trailing_gap,
+          metadata: (comment_attachment&.metadata || {}).merge(options),
+        )
+      end
+
       # Build a passive shared comment augmenter for the current analysis.
       #
       # Format-specific analyses should override this when they can provide
