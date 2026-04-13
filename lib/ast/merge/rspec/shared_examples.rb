@@ -9,6 +9,7 @@
 # making them available for use in any *-merge gem's test suite.
 #
 # Available shared examples:
+# - "Ast::Merge::CommentBehaviorMatrix" - validates standardized comment/layout and merge-option behavior
 # - "Ast::Merge::Comment::Attachment" - validates merge-facing comment attachments
 # - "Ast::Merge::Comment::Augmenter" - validates shared comment augmenter behavior
 # - "Ast::Merge::Comment::Region" - validates merge-facing comment regions
@@ -25,6 +26,8 @@
 # - "a reproducible merge" - validates merge scenarios with fixtures and idempotency
 # - "a reproducible partial merge" - validates partial-merge scenarios with idempotency
 
+require_relative "shared_examples/comment_behavior_matrix"
+require_relative "comment_behavior_matrix_adapters"
 require_relative "shared_examples/comment_attachment"
 require_relative "shared_examples/comment_augmenter"
 require_relative "shared_examples/comment_region"

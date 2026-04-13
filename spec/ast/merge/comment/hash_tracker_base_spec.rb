@@ -184,7 +184,7 @@ RSpec.describe Ast::Merge::Comment::HashTrackerBase do
   end
 
   describe "#comment_attachment_for" do
-    let(:owner) { double("Owner", start_line: 4) }
+    let(:owner) { double("Owner", start_line: 4, end_line: 4) }
 
     it "returns an Attachment" do
       attachment = tracker.comment_attachment_for(owner)
@@ -196,6 +196,24 @@ RSpec.describe Ast::Merge::Comment::HashTrackerBase do
       attachment = tracker.comment_attachment_for(owner)
       expect(attachment.leading_region).to be_a(Ast::Merge::Comment::Region)
       expect(attachment.inline_region).to be_a(Ast::Merge::Comment::Region)
+    end
+
+    context "with adjacent trailing docs after the owner" do
+      let(:source) do
+        <<~SRC
+          key: value # inline note
+          # Trailing docs
+        SRC
+      end
+
+      let(:owner) { double("Owner", start_line: 1, end_line: 1) }
+
+      it "includes a trailing region" do
+        attachment = tracker.comment_attachment_for(owner)
+        expect(attachment.trailing_region).to be_a(Ast::Merge::Comment::Region)
+        expect(attachment.trailing_region.kind).to eq(:trailing)
+        expect(attachment.trailing_region.normalized_content).to eq("Trailing docs")
+      end
     end
   end
 

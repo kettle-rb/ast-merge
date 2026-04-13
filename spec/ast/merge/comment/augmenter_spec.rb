@@ -44,7 +44,7 @@ RSpec.describe Ast::Merge::Comment::Augmenter do
       ]
     end
 
-    it "infers leading comments, inline comments, and postlude comments" do
+    it "infers leading, inline, and trailing comments without duplicating them into postlude" do
       augmenter = described_class.new(lines: lines, comments: comments, owners: owners)
 
       first_attachment = augmenter.attachment_for(owners.first)
@@ -68,10 +68,31 @@ RSpec.describe Ast::Merge::Comment::Augmenter do
       expect(second_attachment.inline_region).to be_inline
       expect(second_attachment.inline_region.normalized_content).to eq("inline tokens")
 
-      postlude = augmenter.postlude_region
-      expect(postlude).not_to be_nil
-      expect(postlude).to be_postlude
-      expect(postlude&.normalized_content).to eq("trailing doc comment")
+      expect(second_attachment.trailing_region).not_to be_nil
+      expect(second_attachment.trailing_region).to be_trailing
+      expect(second_attachment.trailing_region.normalized_content).to eq("trailing doc comment")
+
+      expect(augmenter.postlude_region).to be_nil
+    end
+
+    it "keeps separated comments after the last owner as postlude instead of trailing ownership" do
+      augmenter = described_class.new(
+        lines: [
+          "tokens: value",
+          "",
+          "# postlude docs",
+        ],
+        comments: [
+          {line: 3, indent: 0, text: "postlude docs", full_line: true, raw: "# postlude docs"},
+        ],
+        owners: [Owner.new(start_line: 1, end_line: 1, label: :tokens)],
+      )
+
+      attachment = augmenter.attachment_for(augmenter.owners.first)
+
+      expect(attachment.trailing_region).to be_nil
+      expect(augmenter.postlude_region).not_to be_nil
+      expect(augmenter.postlude_region.normalized_content).to eq("postlude docs")
     end
 
     it "wires shared layout gaps onto comment attachments when owners are separated by blank lines" do

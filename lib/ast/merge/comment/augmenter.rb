@@ -70,6 +70,7 @@ module Ast
           owners.each do |owner|
             leading_comments = infer_leading_comments(owner, claimed)
             inline_comments = infer_inline_comments(owner, claimed)
+            trailing_comments = infer_trailing_comments(owner, claimed)
             layout_attachment = layout_attachments[owner]
 
             leading_floating = leading_comments.any? && gap_before_owner?(leading_comments, owner)
@@ -78,12 +79,14 @@ module Ast
               owner: owner,
               leading_region: build_region(:leading, leading_comments, floating: leading_floating),
               inline_region: build_region(:inline, inline_comments, include_blank_lines: false),
+              trailing_region: build_region(:trailing, trailing_comments),
               leading_gap: layout_attachment&.leading_gap,
               trailing_gap: layout_attachment&.trailing_gap,
             )
 
             leading_comments.each { |comment| claimed << comment.object_id }
             inline_comments.each { |comment| claimed << comment.object_id }
+            trailing_comments.each { |comment| claimed << comment.object_id }
           end
 
           infer_postlude!(claimed)
@@ -127,6 +130,33 @@ module Ast
               !claimed.include?(comment.object_id) &&
               (owner.start_line..owner.end_line).cover?(comment[:line])
           end
+        end
+
+        def infer_trailing_comments(owner, claimed)
+          return [] unless owner.respond_to?(:end_line)
+          return [] unless owner.end_line
+
+          next_owner = next_owner_after(owner)
+          max_line = next_owner&.start_line ? next_owner.start_line - 1 : lines.length
+          current = owner.end_line + 1
+          return [] if current > max_line || blank_line?(current)
+
+          selected = []
+          while current <= max_line
+            comment = tracked_comments.find do |candidate|
+              candidate[:full_line] &&
+                !claimed.include?(candidate.object_id) &&
+                candidate[:line] == current &&
+                trailing_comment_owned_by?(candidate, owner)
+            end
+            break unless comment
+
+            selected << comment
+            current += 1
+            current += 1 while current <= max_line && blank_line?(current)
+          end
+
+          selected
         end
 
         def infer_postlude!(claimed)
@@ -227,6 +257,20 @@ module Ast
           return true if to_line <= from_line + 1
 
           ((from_line + 1)...to_line).all? { |line_number| blank_line?(line_number) }
+        end
+
+        def next_owner_after(owner)
+          index = owners.index(owner)
+          return unless index
+
+          owners[index + 1]
+        end
+
+        def trailing_comment_owned_by?(comment, owner)
+          return true unless owner.respond_to?(:indent) && !owner.indent.nil?
+          return true unless comment.key?(:indent)
+
+          comment[:indent].to_i == owner.indent.to_i
         end
 
         def build_region(kind, comments, include_blank_lines: true, floating: false)

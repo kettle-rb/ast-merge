@@ -200,12 +200,12 @@ module Ast
       # @param options [Hash] attachment metadata
       # @return [Comment::Attachment]
       def comment_attachment_for(owner, **options)
-        layout_attachment = layout_attachment_for(owner, **options)
+        layout_attachment = layout_owner_supported?(owner) ? layout_attachment_for(owner, **options) : nil
 
         Comment::Attachment.new(
           owner: owner,
-          leading_gap: layout_attachment.leading_gap,
-          trailing_gap: layout_attachment.trailing_gap,
+          leading_gap: layout_attachment&.leading_gap,
+          trailing_gap: layout_attachment&.trailing_gap,
           metadata: {
             source: :file_analyzable_default,
           }.merge(options),
@@ -222,7 +222,7 @@ module Ast
       # @param options [Hash] attachment metadata
       # @return [Comment::Attachment]
       def merge_comment_attachment_with_layout(owner, comment_attachment, **options)
-        layout_attachment = layout_attachment_for(owner, **options)
+        layout_attachment = layout_owner_supported?(owner) ? layout_attachment_for(owner, **options) : nil
 
         Comment::Attachment.new(
           owner: comment_attachment&.owner || owner,
@@ -230,8 +230,8 @@ module Ast
           inline_region: comment_attachment&.inline_region,
           trailing_region: comment_attachment&.trailing_region,
           orphan_regions: comment_attachment&.orphan_regions || [],
-          leading_gap: layout_attachment.leading_gap,
-          trailing_gap: layout_attachment.trailing_gap,
+          leading_gap: layout_attachment&.leading_gap,
+          trailing_gap: layout_attachment&.trailing_gap,
           metadata: (comment_attachment&.metadata || {}).merge(options),
         )
       end
@@ -301,6 +301,14 @@ module Ast
           owners: owners || layout_augmenter_default_owners,
           **options,
         )
+      end
+
+      def layout_owner_supported?(owner)
+        owner &&
+          owner.respond_to?(:start_line) &&
+          owner.respond_to?(:end_line) &&
+          !owner.start_line.nil? &&
+          !owner.end_line.nil?
       end
 
       # Check whether an owner's leading normalized comment attachment contains a freeze directive.

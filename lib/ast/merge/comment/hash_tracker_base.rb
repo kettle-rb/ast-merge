@@ -210,6 +210,56 @@ module Ast
           )
         end
 
+        # Get adjacent full-line trailing comments after an owner line/span.
+        #
+        # Trailing ownership is stricter than leading ownership: the first
+        # trailing comment must begin immediately on the next line after the
+        # owner. Once attached, blank lines between later comment lines are
+        # preserved inside the trailing region.
+        #
+        # @param line_num [Integer] 1-based end line of the owner
+        # @param upper_bound [Integer, nil] exclusive upper bound before the next owner
+        # @return [Array<Hash>]
+        def trailing_comments_after(line_num, upper_bound: nil, owner: nil)
+          trailing = []
+          current = line_num + 1
+          max_line = upper_bound ? upper_bound - 1 : @lines.length
+          return trailing if current > max_line || blank_line?(current)
+
+          while current <= max_line
+            comment = comment_at(current)
+            break unless comment && comment[:full_line] && trailing_comment_owned_by?(comment, owner)
+
+            trailing << comment
+            current += 1
+            current += 1 while current <= max_line && blank_line?(current)
+          end
+
+          trailing
+        end
+
+        # Get a shared trailing comment region after a line/span.
+        #
+        # @param line_num [Integer] 1-based end line of the owner
+        # @param upper_bound [Integer, nil] exclusive upper bound before the next owner
+        # @param comments [Array<Hash>, nil] Optional preselected trailing comments
+        # @return [Ast::Merge::Comment::Region, nil]
+        def trailing_comment_region_after(line_num, upper_bound: nil, comments: nil, owner: nil)
+          selected = comments || trailing_comments_after(line_num, upper_bound: upper_bound, owner: owner)
+          selected = selected.select { |c| c[:full_line] }
+          return if selected.empty?
+
+          build_region(
+            kind: :trailing,
+            comments: selected,
+            metadata: {
+              line_num: line_num,
+              upper_bound: upper_bound,
+              source: :comment_tracker,
+            },
+          )
+        end
+
         # ----------------------------------------------------------------
         # Attachment building
         # ----------------------------------------------------------------
@@ -220,23 +270,30 @@ module Ast
         # @param line_num [Integer, nil] Line number to use for leading/inline lookup
         # @param leading_comments [Array<Hash>, nil] Optional preselected leading comments
         # @param inline_comment [Hash, nil] Optional preselected inline comment
+        # @param trailing_comments [Array<Hash>, nil] Optional preselected trailing comments
         # @param metadata [Hash] Additional metadata preserved on the attachment
         # @return [Ast::Merge::Comment::Attachment]
-        def comment_attachment_for(owner, line_num: nil, leading_comments: nil, inline_comment: nil, **metadata)
+        def comment_attachment_for(owner, line_num: nil, leading_comments: nil, inline_comment: nil, trailing_comments: nil, **metadata)
           resolved_line_num = line_num || owner_line_num(owner)
+          resolved_end_line = owner_end_line(owner) || resolved_line_num
           leading_region = if resolved_line_num
             leading_comment_region_before(resolved_line_num, comments: leading_comments)
           end
           inline_region = if resolved_line_num
             inline_comment_region_at(resolved_line_num, comment: inline_comment)
           end
+          trailing_region = if resolved_end_line
+            trailing_comment_region_after(resolved_end_line, comments: trailing_comments, owner: owner)
+          end
 
           Attachment.new(
             owner: owner,
             leading_region: leading_region,
             inline_region: inline_region,
+            trailing_region: trailing_region,
             metadata: metadata.merge(
               line_num: resolved_line_num,
+              end_line: resolved_end_line,
               source: :comment_tracker,
             ),
           )
@@ -303,6 +360,19 @@ module Ast
           return if line_num < 1 || line_num > @lines.length
 
           @lines[line_num - 1]
+        end
+
+        def owner_end_line(owner)
+          return owner.end_line if owner.respond_to?(:end_line) && owner.end_line
+
+          owner_line_num(owner)
+        end
+
+        def trailing_comment_owned_by?(comment, owner)
+          return true unless owner&.respond_to?(:indent) && !owner.indent.nil?
+          return true unless comment.key?(:indent)
+
+          comment[:indent].to_i == owner.indent.to_i
         end
 
         # ----------------------------------------------------------------

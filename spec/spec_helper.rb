@@ -29,6 +29,7 @@ require "ast/merge"
 
 # Test support files
 require_relative "support/testable_node"
+require_relative "support/fictive_language_harness"
 
 # Load ONLY the registry and helper classes (not RSpec configuration yet)
 # This allows us to register known gems before RSpec.configure runs

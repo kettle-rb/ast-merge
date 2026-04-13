@@ -82,13 +82,33 @@ RSpec.describe Ast::Merge::Comment::CStyleTrackerBase do
   end
 
   describe "#comment_attachment_for" do
-    let(:owner) { Struct.new(:start_line).new(6) }
+    let(:owner) { Struct.new(:start_line, :end_line).new(6, 6) }
 
     it "filters block leading comments while preserving shared inline comments" do
       attachment = tracker.comment_attachment_for(owner)
       expect(attachment.leading_region).to be_nil
       expect(attachment.inline_region).not_to be_nil
       expect(attachment.inline_region.normalized_content).to eq("inline note")
+    end
+
+    context "with an adjacent trailing line comment after the owner" do
+      let(:source) do
+        <<~SRC
+          {
+            "key": "value"
+            // trailing docs
+          }
+        SRC
+      end
+
+      let(:owner) { Struct.new(:start_line, :end_line).new(2, 2) }
+
+      it "includes a trailing region" do
+        attachment = tracker.comment_attachment_for(owner)
+        expect(attachment.trailing_region).not_to be_nil
+        expect(attachment.trailing_region.kind).to eq(:trailing)
+        expect(attachment.trailing_region.normalized_content).to eq("trailing docs")
+      end
     end
   end
 
