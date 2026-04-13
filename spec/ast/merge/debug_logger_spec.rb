@@ -39,6 +39,7 @@ RSpec.describe Ast::Merge::DebugLogger do
   describe "#enabled?" do
     it "returns false when env var is not set" do
       stub_env("TEST_DEBUG" => nil)
+      stub_env("KETTLE_DEV_DEBUG" => nil)
       expect(test_class.enabled?).to be(false)
     end
 
@@ -54,7 +55,13 @@ RSpec.describe Ast::Merge::DebugLogger do
 
     it "returns false when env var is set to other values" do
       stub_env("TEST_DEBUG" => "false")
+      stub_env("KETTLE_DEV_DEBUG" => nil)
       expect(test_class.enabled?).to be(false)
+    end
+
+    it "returns true when KETTLE_DEV_DEBUG is set even if the local env var is not set" do
+      stub_env("TEST_DEBUG" => nil, "KETTLE_DEV_DEBUG" => "true")
+      expect(test_class.enabled?).to be(true)
     end
   end
 
@@ -171,6 +178,19 @@ RSpec.describe Ast::Merge::DebugLogger do
   describe "#warning" do
     it "always outputs warning message" do
       expect { test_class.warning("danger") }.to output(/WARNING.*danger/).to_stderr
+    end
+  end
+
+  describe "#debug_warning" do
+    it "outputs when debug is enabled" do
+      stub_env("TEST_DEBUG" => "1")
+      expect { test_class.debug_warning("danger", key: "value") }
+        .to output(/WARNING.*danger.*key.*value/).to_stderr
+    end
+
+    it "does not output when debug is disabled" do
+      stub_env("TEST_DEBUG" => nil, "KETTLE_DEV_DEBUG" => nil)
+      expect { test_class.debug_warning("danger") }.not_to output.to_stderr
     end
   end
 

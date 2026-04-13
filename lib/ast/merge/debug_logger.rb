@@ -115,6 +115,8 @@ module Ast
         end
       end
 
+      UNIVERSAL_DEBUG_ENV_VAR = "KETTLE_DEV_DEBUG"
+
       # Default configuration
       self.env_var_name = "AST_MERGE_DEBUG"
       self.log_prefix = "[Ast::Merge]"
@@ -123,8 +125,7 @@ module Ast
       #
       # @return [Boolean]
       def enabled?
-        val = ENV[env_var_name]
-        %w[1 true].include?(val)
+        truthy_env_value?(ENV[UNIVERSAL_DEBUG_ENV_VAR]) || truthy_env_value?(ENV[env_var_name])
       end
 
       # Get the environment variable name.
@@ -185,6 +186,21 @@ module Ast
       # @param message [String] The warning message
       def warning(message)
         warn("#{log_prefix} WARNING] #{message}")
+      end
+
+      # Log a warning message only when debug mode is enabled.
+      #
+      # Use this for internal safety rails that indicate a logic bug when they
+      # fire, but should remain silent in normal runs.
+      #
+      # @param message [String] The warning message
+      # @param context [Hash] Optional context to include
+      def debug_warning(message, context = {})
+        return unless enabled?
+
+        output = "#{log_prefix} WARNING] #{message}"
+        output += " #{context.inspect}" unless context.empty?
+        warn(output)
       end
 
       # Time a block and log the duration
@@ -266,6 +282,10 @@ module Ast
         elsif node.respond_to?(:start_line) && node.respond_to?(:end_line)
           "#{node.start_line}..#{node.end_line}"
         end
+      end
+
+      def truthy_env_value?(value)
+        %w[1 true].include?(value.to_s.downcase)
       end
 
       # Make all methods available as both instance and module methods

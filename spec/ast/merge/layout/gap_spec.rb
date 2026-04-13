@@ -30,6 +30,14 @@ RSpec.describe Ast::Merge::Layout::Gap do
       expect(gap.controls_output_for?(before_owner, removed_owners: [after_owner])).to be(true)
       expect(gap.controls_output_for?(after_owner, removed_owners: [after_owner])).to be(false)
     end
+
+    it "reports adjacency sides and attachment roles for each owner" do
+      expect(gap.adjacent_side_for(before_owner)).to eq(:before)
+      expect(gap.adjacent_side_for(after_owner)).to eq(:after)
+      expect(gap.role_for(before_owner)).to eq(:trailing)
+      expect(gap.role_for(after_owner)).to eq(:leading)
+      expect(gap.role_for(Object.new)).to be_nil
+    end
   end
 
   describe "edge ownership" do

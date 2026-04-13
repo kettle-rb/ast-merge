@@ -90,6 +90,49 @@ RSpec.describe Ast::Merge::Comment::Attachment do
     end
   end
 
+  describe "#leading_region_layout_owned? / #layout_owned_regions" do
+    it "treats a floating leading region plus its controlling leading gap as layout-owned" do
+      floating_leading = Ast::Merge::Comment::Region.new(
+        kind: :leading,
+        nodes: [Ast::Merge::Comment::Line.new(text: "# Floating", line_number: 18)],
+        metadata: {floating: true},
+      )
+      attachment = described_class.new(
+        owner: owner,
+        leading_region: floating_leading,
+        leading_gap: leading_gap,
+      )
+
+      expect(attachment.leading_region_layout_owned?).to be(true)
+      expect(attachment.layout_owned_regions).to eq([floating_leading])
+    end
+
+    it "stops treating the leading region as layout-owned when the gap controller falls back elsewhere" do
+      floating_leading = Ast::Merge::Comment::Region.new(
+        kind: :leading,
+        nodes: [Ast::Merge::Comment::Line.new(text: "# Floating", line_number: 18)],
+        metadata: {floating: true},
+      )
+      alternate_owner = Ast::Merge::Comment::Line.new(text: "# alternate", line_number: 17)
+      interstitial_gap = Ast::Merge::Layout::Gap.new(
+        kind: :interstitial,
+        start_line: 19,
+        end_line: 19,
+        lines: [""],
+        before_owner: alternate_owner,
+        after_owner: owner,
+      )
+      attachment = described_class.new(
+        owner: owner,
+        leading_region: floating_leading,
+        leading_gap: interstitial_gap,
+      )
+
+      expect(attachment.leading_region_layout_owned?(removed_owners: [owner])).to be(false)
+      expect(attachment.layout_owned_regions(removed_owners: [owner])).to eq([])
+    end
+  end
+
   describe "#leading_freeze? / #leading_unfreeze?" do
     it "detects freeze directives in the leading region only" do
       attachment = described_class.new(

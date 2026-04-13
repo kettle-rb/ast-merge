@@ -103,6 +103,20 @@ module Ast
           before_owner.equal?(owner)
         end
 
+        def adjacent_side_for(owner)
+          return :before if trailing_for?(owner)
+          return :after if leading_for?(owner)
+
+          nil
+        end
+
+        def role_for(owner)
+          case adjacent_side_for(owner)
+          when :before then :trailing
+          when :after then :leading
+          end
+        end
+
         def owned_by?(owner)
           leading_for?(owner) || trailing_for?(owner)
         end

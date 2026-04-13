@@ -68,6 +68,25 @@ module Ast
           [leading_gap, trailing_gap].compact.uniq
         end
 
+        def leading_region_layout_owned?(**options)
+          leading_region&.floating? &&
+            leading_gap&.leading_for?(owner) &&
+            leading_gap&.controls_output_for?(owner, **options)
+        end
+
+        def trailing_region_layout_owned?(**options)
+          trailing_region&.floating? &&
+            trailing_gap&.trailing_for?(owner) &&
+            trailing_gap&.controls_output_for?(owner, **options)
+        end
+
+        def layout_owned_regions(**options)
+          [
+            (leading_region if leading_region_layout_owned?(**options)),
+            (trailing_region if trailing_region_layout_owned?(**options)),
+          ].compact
+        end
+
         def leading_freeze?(freeze_token)
           leading_region.respond_to?(:freeze?) && leading_region.freeze?(freeze_token)
         end
