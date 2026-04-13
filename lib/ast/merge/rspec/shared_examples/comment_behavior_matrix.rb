@@ -306,13 +306,13 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
       kept_destination = comment_matrix_merger_class.new(template, destination).merge
       kept_template = comment_matrix_merger_class.new(template, destination, preference: :template).merge
 
-      expect(comment_matrix_line_occurrences(kept_destination, shared_comment)).to eq(1), kept_destination
-      expect(comment_matrix_line_occurrences(kept_destination, comment_matrix_line_builder.call("alpha", "9"))).to eq(1), kept_destination
-      expect(comment_matrix_line_occurrences(kept_destination, comment_matrix_line_builder.call("beta", "8"))).to eq(1), kept_destination
+      expect(comment_matrix_line_occurrences(kept_destination, shared_comment)).to(eq(1), kept_destination)
+      expect(comment_matrix_line_occurrences(kept_destination, comment_matrix_line_builder.call("alpha", "9"))).to(eq(1), kept_destination)
+      expect(comment_matrix_line_occurrences(kept_destination, comment_matrix_line_builder.call("beta", "8"))).to(eq(1), kept_destination)
 
-      expect(comment_matrix_line_occurrences(kept_template, shared_comment)).to eq(1), kept_template
-      expect(comment_matrix_line_occurrences(kept_template, comment_matrix_line_builder.call("alpha", "1"))).to eq(1), kept_template
-      expect(comment_matrix_line_occurrences(kept_template, comment_matrix_line_builder.call("beta", "2"))).to eq(1), kept_template
+      expect(comment_matrix_line_occurrences(kept_template, shared_comment)).to(eq(1), kept_template)
+      expect(comment_matrix_line_occurrences(kept_template, comment_matrix_line_builder.call("alpha", "1"))).to(eq(1), kept_template)
+      expect(comment_matrix_line_occurrences(kept_template, comment_matrix_line_builder.call("beta", "2"))).to(eq(1), kept_template)
     end
 
     it "keeps a destination-owned first-owner doc block singular when the template models the same position as a preamble" do
@@ -335,9 +335,9 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
 
       merged = comment_matrix_merger_class.new(template, destination, add_template_only_nodes: true).merge
 
-      expect(comment_matrix_line_occurrences(merged, template_header)).to eq(0), merged
-      expect(comment_matrix_line_occurrences(merged, destination_header)).to eq(1), merged
-      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "9"))).to eq(1), merged
+      expect(comment_matrix_line_occurrences(merged, template_header)).to(eq(0), merged)
+      expect(comment_matrix_line_occurrences(merged, destination_header)).to(eq(1), merged)
+      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "9"))).to(eq(1), merged)
     end
 
     it "does not duplicate a first-owner doc block when only blank-line ownership differs across sources" do
@@ -364,9 +364,9 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
         add_template_only_nodes: true,
       ).merge
 
-      expect(comment_matrix_line_occurrences(merged, shared_header)).to eq(1), merged
-      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "1"))).to eq(1), merged
-      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "9"))).to eq(0), merged
+      expect(comment_matrix_line_occurrences(merged, shared_header)).to(eq(1), merged)
+      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "1"))).to(eq(1), merged)
+      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "9"))).to(eq(0), merged)
     end
 
     it "collapses duplicated template-owned preamble prefixes back to the destination-specific first-owner docs" do
@@ -395,9 +395,9 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
         add_template_only_nodes: true,
       ).merge
 
-      expect(comment_matrix_line_occurrences(merged, template_header)).to eq(0), merged
-      expect(comment_matrix_line_occurrences(merged, destination_header)).to eq(1), merged
-      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "9"))).to eq(1), merged
+      expect(comment_matrix_line_occurrences(merged, template_header)).to(eq(0), merged)
+      expect(comment_matrix_line_occurrences(merged, destination_header)).to(eq(1), merged)
+      expect(comment_matrix_line_occurrences(merged, comment_matrix_line_builder.call("alpha", "9"))).to(eq(1), merged)
     end
 
     it "preserves destination-only nodes unless remove_template_missing_nodes is enabled" do
@@ -655,11 +655,11 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
       kept_destination = comment_matrix_merger_class.new(template, destination).merge
       kept_template = comment_matrix_merger_class.new(template, destination, preference: :template).merge
 
-      expect(comment_matrix_line_occurrences(kept_destination, trailing_comment)).to eq(1), kept_destination
-      expect(comment_matrix_line_occurrences(kept_destination, comment_matrix_line_builder.call("alpha", "9"))).to eq(1), kept_destination
+      expect(comment_matrix_line_occurrences(kept_destination, trailing_comment)).to(eq(1), kept_destination)
+      expect(comment_matrix_line_occurrences(kept_destination, comment_matrix_line_builder.call("alpha", "9"))).to(eq(1), kept_destination)
 
-      expect(comment_matrix_line_occurrences(kept_template, trailing_comment)).to eq(1), kept_template
-      expect(comment_matrix_line_occurrences(kept_template, comment_matrix_line_builder.call("alpha", "1"))).to eq(1), kept_template
+      expect(comment_matrix_line_occurrences(kept_template, trailing_comment)).to(eq(1), kept_template)
+      expect(comment_matrix_line_occurrences(kept_template, comment_matrix_line_builder.call("alpha", "1"))).to(eq(1), kept_template)
     end
   end
 end

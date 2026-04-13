@@ -37,7 +37,7 @@ RSpec.describe "fictive language harness" do
       expect(second_attachment.inline_region&.normalized_content).to eq("beta docs")
     end
 
-    include_examples "Ast::Merge::CommentBehaviorMatrix" do
+    it_behaves_like "Ast::Merge::CommentBehaviorMatrix" do
       let(:comment_matrix_analysis_class) { SpecSupport::FictiveLanguageHarness::FlatAnalysis }
       let(:comment_matrix_merger_class) { SpecSupport::FictiveLanguageHarness::FlatSmartMerger }
       let(:comment_matrix_source_builder) { ->(*lines) { "#{lines.join("\n")}\n" } }
@@ -60,7 +60,7 @@ RSpec.describe "fictive language harness" do
       end
     end
 
-    include_examples "Ast::Merge::CommentBehaviorMatrix" do
+    it_behaves_like "Ast::Merge::CommentBehaviorMatrix" do
       let(:comment_matrix_analysis_class) { SpecSupport::FictiveLanguageHarness::FlatAnalysis }
       let(:comment_matrix_merger_class) { SpecSupport::FictiveLanguageHarness::FlatSmartMerger }
       let(:comment_matrix_source_builder) { ->(*lines) { "#{lines.join("\n")}\n" } }
@@ -95,7 +95,7 @@ RSpec.describe "fictive language harness" do
       expect(child_attachment.inline_region&.normalized_content).to eq("child inline docs")
     end
 
-    include_examples "Ast::Merge::CommentBehaviorMatrix" do
+    it_behaves_like "Ast::Merge::CommentBehaviorMatrix" do
       let(:comment_matrix_analysis_class) { SpecSupport::FictiveLanguageHarness::IndentedAnalysis }
       let(:comment_matrix_merger_class) { SpecSupport::FictiveLanguageHarness::IndentedSmartMerger }
       let(:comment_matrix_source_builder) { ->(*lines) { "#{lines.join("\n")}\n" } }
@@ -148,7 +148,7 @@ RSpec.describe "fictive language harness" do
       end
     end
 
-    include_examples "Ast::Merge::CommentBehaviorMatrix" do
+    it_behaves_like "Ast::Merge::CommentBehaviorMatrix" do
       let(:comment_matrix_analysis_class) { SpecSupport::FictiveLanguageHarness::IndentedAnalysis }
       let(:comment_matrix_merger_class) { SpecSupport::FictiveLanguageHarness::IndentedSmartMerger }
       let(:comment_matrix_source_builder) { ->(*lines) { "#{lines.join("\n")}\n" } }
