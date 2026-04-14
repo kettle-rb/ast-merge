@@ -145,7 +145,7 @@ module SpecSupport
       end
 
       def comment_support_style
-        Ast::Merge::Comment::SupportStyle.source_augmented_synthetic(
+        Ast::Merge::Comment::SupportStyle.source_augmented_portable_write(
           source: :fictive_language_harness,
           language: language_name,
         )

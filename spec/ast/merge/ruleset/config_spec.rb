@@ -8,7 +8,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
       format toml
       owners line_bound_statements
       match signature
-      read native_read_synthetic_write
+      read native_read_portable_write
       attach normalize_tracked_layout_merge
       comment_style hash_comment
       render toml_pairs_and_tables
@@ -26,7 +26,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
         format: :toml,
         owners: :line_bound_statements,
         match: :signature,
-        read: :native_read_synthetic_write,
+        read: :native_read_portable_write,
         attach: :normalize_tracked_layout_merge,
         comment_style: :hash_comment,
         render: :toml_pairs_and_tables,
@@ -52,7 +52,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
         described_class.parse(<<~RULESET)
           format toml
           owners line_bound_statements
-          read native_read_synthetic_write
+          read native_read_portable_write
           attach normalize_tracked_layout_merge
         RULESET
       }.to raise_error(ArgumentError, /missing required directives: match/)
@@ -64,7 +64,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
           format toml
           owners line_bound_statements
           match signature
-          read native_read_synthetic_write
+          read native_read_portable_write
           attach normalize_tracked_layout_merge
           frobnicate yes
         RULESET
@@ -78,7 +78,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
           format yaml
           owners line_bound_statements
           match signature
-          read native_read_synthetic_write
+          read native_read_portable_write
           attach normalize_tracked_layout_merge
         RULESET
       }.to raise_error(ArgumentError, /Duplicate directive format/)
@@ -102,7 +102,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
           format toml
           owners line_bound_statements
           match signature
-          read native_read_synthetic_write
+          read native_read_portable_write
           attach mystery_strategy
         RULESET
       }.to raise_error(ArgumentError, /Unknown attach strategy/)
@@ -114,7 +114,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
           format toml
           owners line_bound_statements
           match signature
-          read native_read_synthetic_write
+          read native_read_portable_write
           attach normalize_tracked_layout_merge
           render bad#token
         RULESET
@@ -127,7 +127,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
           format toml
           owners line_bound_statements
           match signature
-          read native_read_synthetic_write
+          read native_read_portable_write
           attach normalize_tracked_layout_merge
           capability inline_comments true
           capability inline_comments false
@@ -141,7 +141,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
           format markdown
           owners link_definitions
           match normalized_reference
-          read source_augmented_synthetic
+          read source_augmented_portable_write
           attach tracker_layout_merge
           logical_owner link_definition preserve_if_referenced
           logical_owner link_definition preserve_always
@@ -158,7 +158,7 @@ RSpec.describe Ast::Merge::Ruleset::Config do
 
       expect(ruleset.path).to eq(fixture_path)
       expect(ruleset.format).to eq(:toml)
-      expect(ruleset.read).to eq(:native_read_synthetic_write)
+      expect(ruleset.read).to eq(:native_read_portable_write)
     end
   end
 
@@ -167,9 +167,21 @@ RSpec.describe Ast::Merge::Ruleset::Config do
       ruleset = described_class.parse(valid_ruleset)
       support_style = ruleset.support_style(source: :toml_native, capability: :full)
 
-      expect(support_style.native_read_synthetic_write?).to be(true)
+      expect(support_style.native_read_portable_write?).to be(true)
       expect(support_style.details[:source]).to eq(:toml_native)
       expect(support_style.details[:style]).to eq(:hash_comment)
+    end
+
+    it "normalizes legacy read-strategy names to the new portable-write vocabulary" do
+      ruleset = described_class.parse(<<~RULESET)
+        format toml
+        owners line_bound_statements
+        match signature
+        read native_read_synthetic_write
+        attach normalize_tracked_layout_merge
+      RULESET
+
+      expect(ruleset.read).to eq(:native_read_portable_write)
     end
   end
 end

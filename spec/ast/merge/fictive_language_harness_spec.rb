@@ -16,14 +16,14 @@ RSpec.describe "fictive language harness" do
       SRC
     end
 
-    it "models a flat source-augmented synthetic analysis through shared hooks" do
+    it "models a flat source-augmented portable-write analysis through shared hooks" do
       first_owner, second_owner = analysis.statements
       augmenter = analysis.comment_augmenter
       first_attachment = analysis.comment_attachment_for(first_owner)
       second_attachment = analysis.comment_attachment_for(second_owner)
 
       expect(analysis.comment_capability).to be_source_augmented
-      expect(analysis.comment_support_style).to be_source_augmented_synthetic
+      expect(analysis.comment_support_style).to be_source_augmented_portable_write
 
       expect(first_owner.name).to eq("alpha")
       expect(second_owner.name).to eq("beta")

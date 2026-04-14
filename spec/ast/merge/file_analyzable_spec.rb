@@ -37,11 +37,11 @@ RSpec.describe Ast::Merge::FileAnalyzable do
       support_style = analysis.shared_comment_support_style(
         source: :fixture_source,
         style: :hash_comment,
-        read_strategy: :source_augmented_synthetic,
+        read_strategy: :source_augmented_portable_write,
         capability: :full,
       )
 
-      expect(support_style.source_augmented_synthetic?).to be(true)
+      expect(support_style.source_augmented_portable_write?).to be(true)
       expect(support_style.details[:style]).to eq(:hash_comment)
       expect(support_style.details[:source]).to eq(:fixture_source)
     end
@@ -50,11 +50,11 @@ RSpec.describe Ast::Merge::FileAnalyzable do
       support_style = analysis.shared_comment_support_style(
         source: :fixture_native,
         style: :hash_comment,
-        read_strategy: :native_read_synthetic_write,
+        read_strategy: :native_read_portable_write,
         capability: :full,
       )
 
-      expect(support_style.native_read_synthetic_write?).to be(true)
+      expect(support_style.native_read_portable_write?).to be(true)
       expect(support_style.details[:style]).to eq(:hash_comment)
       expect(support_style.details[:source]).to eq(:fixture_native)
     end

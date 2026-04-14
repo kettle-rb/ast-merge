@@ -11,10 +11,14 @@ module Ast
         KNOWN_DIRECTIVES = (REQUIRED_DIRECTIVES + OPTIONAL_SINGLE_VALUE_DIRECTIVES + MULTI_VALUE_DIRECTIVES).freeze
 
         READ_STRATEGIES = %i[
-          source_augmented_synthetic
-          native_read_synthetic_write
+          source_augmented_portable_write
+          native_read_portable_write
           native_mutation
         ].freeze
+        LEGACY_READ_STRATEGIES = {
+          source_augmented_synthetic: :source_augmented_portable_write,
+          native_read_synthetic_write: :native_read_portable_write,
+        }.freeze
 
         ATTACHMENT_STRATEGIES = %i[
           layout_only
@@ -82,14 +86,14 @@ module Ast
 
         def support_style(source:, capability: :full)
           case read
-          when :source_augmented_synthetic
-            Comment::SupportStyle.source_augmented_synthetic(
+          when :source_augmented_portable_write
+            Comment::SupportStyle.source_augmented_portable_write(
               source: source,
               capability: capability,
               style: comment_style,
             )
-          when :native_read_synthetic_write
-            Comment::SupportStyle.native_read_synthetic_write(
+          when :native_read_portable_write
+            Comment::SupportStyle.native_read_portable_write(
               source: source,
               capability: capability,
               style: comment_style,
@@ -152,7 +156,7 @@ module Ast
           when :format, :owners, :match, :comment_style, :render
             value = value.to_sym
           when :read
-            value = parse_strategy!(value, READ_STRATEGIES, directive, line_number)
+            value = parse_strategy!(value, READ_STRATEGIES, directive, line_number, aliases: LEGACY_READ_STRATEGIES)
           when :attach
             value = parse_strategy!(value, ATTACHMENT_STRATEGIES, directive, line_number)
           end
@@ -212,8 +216,8 @@ module Ast
           raise ArgumentError, "Invalid #{field} #{token.inspect} on line #{line_number}"
         end
 
-        def parse_strategy!(value, allowed_values, directive, line_number)
-          strategy = value.to_sym
+        def parse_strategy!(value, allowed_values, directive, line_number, aliases: {})
+          strategy = aliases.fetch(value.to_sym, value.to_sym)
           return strategy if allowed_values.include?(strategy)
 
           raise ArgumentError, "Unknown #{directive} strategy #{value.inspect} on line #{line_number}"

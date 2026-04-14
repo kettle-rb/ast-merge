@@ -155,9 +155,9 @@ module Ast
         if capability.none?
           Comment::SupportStyle.unavailable(**details)
         elsif capability.source_augmented?
-          Comment::SupportStyle.source_augmented_synthetic(**details)
+          Comment::SupportStyle.source_augmented_portable_write(**details)
         else
-          Comment::SupportStyle.native_read_synthetic_write(**details)
+          Comment::SupportStyle.native_read_portable_write(**details)
         end
       end
 
@@ -177,10 +177,12 @@ module Ast
         }
 
         case read_strategy
-        when :source_augmented_synthetic
-          Comment::SupportStyle.source_augmented_synthetic(**details)
-        when :native_read_synthetic_write
-          Comment::SupportStyle.native_read_synthetic_write(**details)
+        when :source_augmented_portable_write, :source_augmented_synthetic
+          Comment::SupportStyle.source_augmented_portable_write(**details)
+        when :native_read_portable_write, :native_read_synthetic_write
+          Comment::SupportStyle.native_read_portable_write(**details)
+        when :native_mutation
+          Comment::SupportStyle.native_mutation(**details)
         else
           raise ArgumentError, "Unknown comment support read strategy: #{read_strategy.inspect}"
         end
