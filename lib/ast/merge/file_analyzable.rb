@@ -155,9 +155,19 @@ module Ast
         if capability.none?
           Comment::SupportStyle.unavailable(**details)
         elsif capability.source_augmented?
-          Comment::SupportStyle.source_augmented_portable_write(**details)
+          Ruleset::SupportStyleResolver.call(
+            read: :source_augmented_portable_write,
+            source: details[:source],
+            capability: details[:capability],
+            style: details[:style],
+          )
         else
-          Comment::SupportStyle.native_read_portable_write(**details)
+          Ruleset::SupportStyleResolver.call(
+            read: :native_read_portable_write,
+            source: details[:source],
+            capability: details[:capability],
+            style: details[:style],
+          )
         end
       end
 
@@ -176,16 +186,78 @@ module Ast
           style: style,
         }
 
-        case read_strategy
-        when :source_augmented_portable_write, :source_augmented_synthetic
-          Comment::SupportStyle.source_augmented_portable_write(**details)
-        when :native_read_portable_write, :native_read_synthetic_write
-          Comment::SupportStyle.native_read_portable_write(**details)
-        when :native_mutation
-          Comment::SupportStyle.native_mutation(**details)
-        else
-          raise ArgumentError, "Unknown comment support read strategy: #{read_strategy.inspect}"
-        end
+        normalized_read_strategy =
+          case read_strategy
+          when :source_augmented_synthetic then :source_augmented_portable_write
+          when :native_read_synthetic_write then :native_read_portable_write
+          else read_strategy
+          end
+
+        Ruleset::SupportStyleResolver.call(read: normalized_read_strategy, **details)
+      rescue ArgumentError => e
+        raise unless e.message.start_with?("Unknown ruleset read strategy:")
+
+        raise ArgumentError, "Unknown comment support read strategy: #{read_strategy.inspect}"
+      end
+
+      # Describe the current analysis using spec-aligned merge feature terms.
+      #
+      # Analyses can override the individual `ruleset_*` hooks below to make this
+      # surface more specific without replacing the whole profile object.
+      #
+      # @return [Ruleset::FeatureProfile]
+      def feature_profile
+        Ruleset::FeatureProfile.new(
+          owner_selector: ruleset_owner_selector,
+          match_key: ruleset_match_key,
+          read_strategy: ruleset_read_strategy,
+          attachment_strategy: ruleset_attachment_strategy,
+          comment_style: ruleset_comment_style,
+          render_family: ruleset_render_family,
+          comment_capability: comment_capability,
+          support_style: comment_support_style,
+          capabilities: ruleset_capabilities,
+          logical_owners: ruleset_logical_owners,
+          metadata: {source: :file_analyzable_default},
+        )
+      end
+
+      def ruleset_owner_selector
+        :shared_default
+      end
+
+      def ruleset_match_key
+        :signature
+      end
+
+      def ruleset_read_strategy
+        support_style = comment_support_style
+        return unless support_style.respond_to?(:available?) && support_style.available?
+
+        support_style.style
+      end
+
+      def ruleset_attachment_strategy
+        comment_attachment_strategy
+      end
+
+      def ruleset_comment_style
+        comment_support_style.details[:style] || comment_capability.details[:style]
+      end
+
+      def ruleset_render_family
+        nil
+      end
+
+      def ruleset_capabilities
+        {
+          layout_aware: true,
+          logical_owner: ruleset_logical_owners.any?,
+        }
+      end
+
+      def ruleset_logical_owners
+        {}
       end
 
       # Return the shared comment node at a specific line.

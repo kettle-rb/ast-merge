@@ -109,6 +109,12 @@ module Ast
     # @api public
     class DestinationParseError < ParseError; end
 
+    # Raised when corruption handling is configured to fail instead of heal.
+    #
+    # Format-specific merge gems can subclass this to preserve local error names
+    # while sharing the same healing-policy contract.
+    class CorruptionDetectedError < Error; end
+
     # Raised when the document contains text that matches the region placeholder.
     #
     # Region placeholders are used internally to mark positions in a document
@@ -158,6 +164,7 @@ module Ast
     autoload :FileAnalyzable, "ast/merge/file_analyzable"
     autoload :Freezable, "ast/merge/freezable"
     autoload :FreezeNodeBase, "ast/merge/freeze_node_base"
+    autoload :Healer, "ast/merge/healer"
     autoload :JaccardSimilarity, "ast/merge/jaccard_similarity"
     autoload :Layout, "ast/merge/layout"
     autoload :MatchRefinerBase, "ast/merge/match_refiner_base"

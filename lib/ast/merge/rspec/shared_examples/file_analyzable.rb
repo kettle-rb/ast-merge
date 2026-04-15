@@ -176,6 +176,23 @@ RSpec.shared_examples("Ast::Merge::FileAnalyzable") do
     end
   end
 
+  describe "#feature_profile" do
+    let(:analysis) { build_file_analysis.call(sample_source) }
+
+    it "responds to the method" do
+      expect(analysis).to(respond_to(:feature_profile))
+    end
+
+    it "returns a spec-aligned feature profile" do
+      profile = analysis.feature_profile
+
+      expect(profile).to(be_a(Ast::Merge::Ruleset::FeatureProfile))
+      expect(profile.owner_selector).to(eq(analysis.ruleset_owner_selector))
+      expect(profile.match_key).to(eq(analysis.ruleset_match_key))
+      expect(profile.attachment_strategy).to(eq(analysis.ruleset_attachment_strategy))
+    end
+  end
+
   describe "#generate_signature" do
     let(:analysis) { build_file_analysis.call(sample_source) }
 

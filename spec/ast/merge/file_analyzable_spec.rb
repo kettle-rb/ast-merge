@@ -154,6 +154,17 @@ RSpec.describe Ast::Merge::FileAnalyzable do
       expect(result).to eq(:tracker_layout_attachment)
     end
 
+    it "builds a feature profile from the shared hooks" do
+      profile = analysis.feature_profile
+
+      expect(profile).to be_a(Ast::Merge::Ruleset::FeatureProfile)
+      expect(profile.owner_selector).to eq(:shared_default)
+      expect(profile.match_key).to eq(:signature)
+      expect(profile.attachment_strategy).to eq(:layout_only)
+      expect(profile.layout_aware?).to be(true)
+      expect(profile.logical_owner?).to be(false)
+    end
+
     it "dispatches the augmenter-preferred shared attachment strategy" do
       tracker_attachment = double(:tracker_attachment)
 
