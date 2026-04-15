@@ -18,6 +18,8 @@
 #   a quoted literal containing `#` (defaults to the harness-preserved quoted form)
 # - comment_matrix_capabilities: optional hash of capability flags / skip reasons.
 #   Use `true` for supported, `false` for unsupported, or a string/symbol reason.
+# - comment_matrix_line_equivalents: lambda returning equivalent output lines
+#   that should count as the same logical line for exact-occurrence assertions.
 # - comment_matrix_structural_owners_reader: lambda returning the structural
 #   owners under test from an analysis (defaults to `analysis.statements`)
 #
@@ -36,6 +38,7 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
   let(:comment_matrix_owner_value_reader) { ->(owner) { owner.value } }
   let(:comment_matrix_expected_literal_hash_value) { '"literal # hash"' }
   let(:comment_matrix_capabilities) { {} }
+  let(:comment_matrix_line_equivalents) { ->(line) { [line] } }
   let(:comment_matrix_structural_owners_reader) { ->(analysis) { analysis.statements } }
 
   def comment_matrix_source(*lines)
@@ -59,7 +62,8 @@ RSpec.shared_examples("Ast::Merge::CommentBehaviorMatrix") do
   end
 
   def comment_matrix_line_occurrences(content, line)
-    content.lines.count { |candidate| candidate.chomp == line }
+    expected_lines = Array(comment_matrix_line_equivalents.call(line)).uniq
+    content.lines.count { |candidate| expected_lines.include?(candidate.chomp) }
   end
 
   describe "analysis matrix" do
