@@ -152,7 +152,10 @@ module Ast
 
         # Get the normalize_whitespace setting.
         #
-        # @return [Boolean] Whether to collapse excessive blank lines
+        # This is a format-specific post-processing option forwarded to mergers
+        # that explicitly support it (currently markdown-family recipe flows).
+        #
+        # @return [Boolean]
         def normalize_whitespace
           merge_config[:normalize_whitespace] == true
         end

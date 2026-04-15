@@ -14,7 +14,7 @@
 - `node_typing`
 - `match_refiner`
 - `freeze_token`
-- `normalize_whitespace`
+- `normalize_whitespace` (forwarded only to mergers that explicitly support whitespace post-processing)
 - `rehydrate_link_references`
 
 Use `Preset#to_h` when you want to pass those options directly to a format-specific `SmartMerger`.
@@ -212,7 +212,7 @@ The built-in runner forwards these options to Markdown partial-template mergers 
 - `merge.normalize_whitespace`
 - `merge.rehydrate_link_references`
 
-Those options stay in the recipe model so callers can keep a single YAML representation even when execution happens elsewhere.
+The stock runner does **not** apply any generic whitespace cleanup pass of its own after a smart merge. These options stay in the recipe model so callers can keep a single YAML representation even when execution happens elsewhere.
 
 ## Stock runner extension boundaries
 

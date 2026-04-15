@@ -857,8 +857,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
         expect(results.first.content).to eq("class Example\n  VALUE = 1\nend\n")
       end
 
-      it "normalizes consecutive blank lines left behind by comment dedup" do
-        # Simulates a merge result with triple blank lines (comment dedup artifact)
+      it "preserves smart merger output without runner-level blank-line cleanup" do
         merge_result = instance_double(
           Prism::Merge::MergeResult,
           content: "class Example\n  # A\n\n\n\n  # B\n  VALUE = 1\nend\n",
@@ -870,7 +869,7 @@ RSpec.describe Ast::Merge::Recipe::Runner do
         runner = described_class.new(smart_recipe, dry_run: true, base_dir: base_dir, parser: :prism)
         results = runner.run
 
-        expect(results.first.content).to eq("class Example\n  # A\n\n  # B\n  VALUE = 1\nend\n")
+        expect(results.first.content).to eq("class Example\n  # A\n\n\n\n  # B\n  VALUE = 1\nend\n")
       end
     end
 
