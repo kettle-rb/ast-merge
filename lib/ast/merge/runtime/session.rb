@@ -45,6 +45,20 @@ module Ast
           end
         end
 
+        def operation_trees
+          root_operations.map { |operation| operation_tree(operation) }
+        end
+
+        def operation_tree(operation_or_id)
+          operation = resolve_operation(operation_or_id)
+          return if operation.nil?
+
+          operation.to_h.merge(
+            frame: frame_for(operation.operation_id)&.to_h,
+            children: operation.children.filter_map { |child| operation_tree(child) },
+          )
+        end
+
         def resolve_delegate_for(surface, capability: nil)
           delegation_registry.resolve(surface, capability: capability)
         end
@@ -71,11 +85,18 @@ module Ast
             summary: summary,
             delegation_registry: delegation_registry.to_h,
             operations: operations.map(&:to_h),
+            operation_trees: operation_trees,
             diagnostics: diagnostics.map(&:to_h),
           }
         end
 
         private
+
+        def resolve_operation(operation_or_id)
+          return operation_or_id if operation_or_id.respond_to?(:operation_id)
+
+          operation(operation_or_id)
+        end
 
         def tally_by(items)
           items.each_with_object({}) do |item, counts|

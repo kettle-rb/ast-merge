@@ -389,5 +389,106 @@ RSpec.describe Ast::Merge::Runtime do
       )
       expect(session.to_h[:summary]).to eq(session.summary)
     end
+
+    it "projects nested operation trees with frame metadata" do
+      root_surface = Ast::Merge::Runtime::Surface.new(
+        surface_kind: :markdown_document,
+        effective_language: :markdown,
+        address: "document[0]",
+      )
+      child_surface = Ast::Merge::Runtime::Surface.new(
+        surface_kind: :markdown_fenced_code_block,
+        declared_language: :markdown,
+        effective_language: :markdown,
+        address: "document[0] > fence[lang=markdown,index=0]",
+        parent_address: "document[0]",
+      )
+      grandchild_surface = Ast::Merge::Runtime::Surface.new(
+        surface_kind: :markdown_fenced_code_block,
+        declared_language: :ruby,
+        effective_language: :ruby,
+        address: "document[0] > fence[lang=markdown,index=0] > fence[lang=ruby,index=0]",
+        parent_address: "document[0] > fence[lang=markdown,index=0]",
+      )
+      root_operation = Ast::Merge::Runtime::Operation.new(
+        operation_id: "root-op",
+        surface: root_surface,
+        template_fragment: "template",
+        destination_fragment: "destination",
+      )
+      child_operation = Ast::Merge::Runtime::Operation.new(
+        operation_id: "child-op",
+        surface: child_surface,
+        template_fragment: "## Template\n",
+        destination_fragment: "## Destination\n",
+      )
+      grandchild_operation = Ast::Merge::Runtime::Operation.new(
+        operation_id: "grandchild-op",
+        surface: grandchild_surface,
+        template_fragment: "puts :template\n",
+        destination_fragment: "puts :destination\n",
+      )
+      root_operation.add_child(child_operation)
+      child_operation.add_child(grandchild_operation)
+      grandchild_operation.complete!(
+        result: Ast::Merge::Runtime::ChildResult.new(replacement_text: "puts :destination\n"),
+      )
+      child_operation.complete!(
+        result: Ast::Merge::Runtime::ChildResult.new(replacement_text: "## Destination\n"),
+      )
+      root_operation.complete!(
+        result: Ast::Merge::Runtime::ChildResult.new(replacement_text: "destination"),
+      )
+      session = described_class.new
+
+      session.register(
+        root_operation,
+        frame: Ast::Merge::Runtime::Frame.new(
+          operation_id: "root-op",
+          depth: 0,
+          surface_path: "document[0]",
+          language_chain: %i[markdown],
+        ),
+      )
+      session.register(
+        child_operation,
+        frame: Ast::Merge::Runtime::Frame.new(
+          parent_operation_id: "root-op",
+          operation_id: "child-op",
+          depth: 1,
+          surface_path: "document[0] > fence[lang=markdown,index=0]",
+          language_chain: %i[markdown markdown],
+        ),
+      )
+      session.register(
+        grandchild_operation,
+        frame: Ast::Merge::Runtime::Frame.new(
+          parent_operation_id: "child-op",
+          operation_id: "grandchild-op",
+          depth: 2,
+          surface_path: "document[0] > fence[lang=markdown,index=0] > fence[lang=ruby,index=0]",
+          language_chain: %i[markdown markdown ruby],
+        ),
+      )
+
+      root_tree = session.operation_trees.fetch(0)
+      child_tree = root_tree.fetch(:children).fetch(0)
+      grandchild_tree = child_tree.fetch(:children).fetch(0)
+
+      expect(root_tree).to include(
+        operation_id: "root-op",
+        frame: hash_including(root: true, depth: 0),
+      )
+      expect(child_tree).to include(
+        operation_id: "child-op",
+        frame: hash_including(root: false, depth: 1),
+      )
+      expect(grandchild_tree).to include(
+        operation_id: "grandchild-op",
+        frame: hash_including(root: false, depth: 2),
+        children: [],
+      )
+      expect(session.to_h[:operation_trees]).to eq(session.operation_trees)
+    end
   end
 end

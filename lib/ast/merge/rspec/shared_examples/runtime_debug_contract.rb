@@ -31,6 +31,12 @@ RSpec.shared_examples "Ast::Merge::RuntimeDebugContract" do
     )
   end
 
+  it "includes a nested runtime operation tree projection" do
+    expect(debug_result.dig(:runtime, :operation_trees)).to be_a(Array)
+    expect(debug_result.dig(:runtime, :operation_trees)).not_to be_empty
+    expect(debug_result.dig(:runtime, :operation_trees, 0)).to include(:operation_id, :frame, :children)
+  end
+
   it "keeps debug runtime counters aligned with the runtime summary" do
     summary = debug_result.dig(:runtime, :summary)
 
