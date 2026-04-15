@@ -421,13 +421,16 @@ module Ast
           return if before_comment.to_s.strip.empty?
           return unless inline_comment_candidate?(before_comment, after_comment, line: line, line_num: line_num)
 
+          comment_column = before_comment.length
+          raw = line[comment_column..]
+
           {
             line: line_num,
-            indent: 0,
+            indent: comment_column,
             text: after_comment.strip,
             full_line: false,
             block: false,
-            raw: "// #{after_comment.strip}",
+            raw: raw,
           }
         end
 

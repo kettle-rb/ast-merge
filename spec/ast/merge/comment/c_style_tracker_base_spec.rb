@@ -33,6 +33,22 @@ RSpec.describe Ast::Merge::Comment::CStyleTrackerBase do
       ])
     end
 
+    it "preserves the raw inline comment slice exactly" do
+      source = <<~SRC
+        {
+          "key": "value" // inline note  
+        }
+      SRC
+
+      tracker = tracker_class.new(source)
+      inline_comment = tracker.comments.find { |comment| !comment[:full_line] }
+
+      expect(inline_comment).to include(
+        indent: 17,
+        raw: "// inline note  ",
+      )
+    end
+
     it "tracks end_line for multi-line block comments" do
       block_comment = tracker.comments.find { |comment| comment[:block] }
       expect(block_comment).to include(line: 3, end_line: 5)
@@ -89,6 +105,20 @@ RSpec.describe Ast::Merge::Comment::CStyleTrackerBase do
       expect(attachment.leading_region).to be_nil
       expect(attachment.inline_region).not_to be_nil
       expect(attachment.inline_region.normalized_content).to eq("inline note")
+    end
+
+    it "preserves trailing spaces in shared inline region text" do
+      source = <<~SRC
+        {
+          "key": "value" // inline note  
+        }
+      SRC
+
+      tracker = tracker_class.new(source)
+      owner = Struct.new(:start_line, :end_line).new(2, 2)
+      attachment = tracker.comment_attachment_for(owner)
+
+      expect(attachment.inline_region.text).to eq("// inline note  ")
     end
 
     context "with an adjacent trailing line comment after the owner" do

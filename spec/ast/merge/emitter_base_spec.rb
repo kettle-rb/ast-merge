@@ -70,6 +70,36 @@ RSpec.describe Ast::Merge::EmitterBase do
       expect(emitter.lines).to eq(["key: value # inline note  "])
     end
 
+    it "raises when asked to emit a full-line region with unsupported node shapes" do
+      region = Ast::Merge::Comment::Region.new(
+        kind: :leading,
+        nodes: [Struct.new(:normalized_content).new("normalized only")],
+      )
+
+      expect {
+        emitter.emit_comment_region(region)
+      }.to raise_error(
+        Ast::Merge::EmitterBase::UnsupportedCommentNodeError,
+        /without raw text/,
+      )
+    end
+
+    it "raises when asked to emit an inline region with unsupported node shapes" do
+      region = Ast::Merge::Comment::Region.new(
+        kind: :inline,
+        nodes: [Struct.new(:normalized_content).new("normalized only")],
+      )
+
+      emitter.emit_raw_lines(["key: value"])
+
+      expect {
+        emitter.emit_comment_region(region)
+      }.to raise_error(
+        Ast::Merge::EmitterBase::UnsupportedCommentNodeError,
+        /without raw slice and style/,
+      )
+    end
+
     it "lets subclasses normalize region nodes before emission" do
       deduplicating_emitter_class = Class.new(emitter_class) do
         private

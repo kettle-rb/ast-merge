@@ -24,6 +24,8 @@ module Ast
     #     end
     #   end
     class EmitterBase
+      class UnsupportedCommentNodeError < Ast::Merge::Error; end
+
       # @return [Array<String>] Output lines
       attr_reader :lines
 
@@ -331,31 +333,34 @@ module Ast
         elsif node.respond_to?(:text)
           @lines << node.text.to_s.chomp
         else
-          emit_comment(node.respond_to?(:normalized_content) ? node.normalized_content : node.to_s)
+          raise UnsupportedCommentNodeError,
+            "Cannot emit comment node without raw text: #{node.class}"
         end
       end
 
       def inline_comment_node_text(node)
         return unless node
 
-        if node.respond_to?(:slice) && node.respond_to?(:style)
-          slice = node.slice.to_s
-          line_start = node.style.respond_to?(:line_start) ? node.style.line_start.to_s : ""
+        raise UnsupportedCommentNodeError,
+          "Cannot emit inline comment node without raw slice and style: #{node.class}" unless node.respond_to?(:slice) && node.respond_to?(:style)
 
-          unless slice.empty? || line_start.empty?
-            stripped = slice.lstrip
-            if stripped.start_with?(line_start)
-              content = stripped.delete_prefix(line_start)
-              content = content.delete_prefix(" ")
-              if node.style.respond_to?(:line_end) && node.style.line_end
-                content = content.sub(/\s*#{Regexp.escape(node.style.line_end.to_s)}\z/, "")
-              end
-              return content
-            end
-          end
+        slice = node.slice.to_s
+        line_start = node.style.respond_to?(:line_start) ? node.style.line_start.to_s : ""
+        raise UnsupportedCommentNodeError,
+          "Cannot emit inline comment node without a line comment delimiter: #{node.class}" if line_start.empty?
+
+        stripped = slice.lstrip
+        unless stripped.start_with?(line_start)
+          raise UnsupportedCommentNodeError,
+            "Cannot emit inline comment node whose raw slice does not start with the comment delimiter: #{node.class}"
         end
 
-        node.respond_to?(:normalized_content) ? node.normalized_content : node.to_s
+        content = stripped.delete_prefix(line_start)
+        content = content.delete_prefix(" ")
+        if node.style.respond_to?(:line_end) && node.style.line_end
+          content = content.sub(/\s*#{Regexp.escape(node.style.line_end.to_s)}\z/, "")
+        end
+        content
       end
 
       def emit_region_gap_lines(previous_line, current_line, source_lines)
