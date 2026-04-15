@@ -68,7 +68,6 @@ module Ast
             capabilities: {
               inline_comments: "Markdown standalone HTML comment tracking does not attach inline comments to structural owners",
               quoted_hash_inline_literals: "Markdown matrix adapter uses link-reference definitions without inline comment syntax",
-              preamble_floating_split: "Markdown link-definition attachments currently coalesce file-preamble and first-owner comment blocks on the direct path",
               remove_template_missing_nodes: "Markdown link-reference definitions are preserved even in removal mode",
             }.merge(capabilities),
             expected_literal_hash_value: '"/literal#hash"',
