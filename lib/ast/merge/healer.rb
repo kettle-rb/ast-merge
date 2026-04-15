@@ -37,6 +37,27 @@ module Ast
       def format_message(prefix:, kind:, message:)
         "#{prefix} Suspected corruption (#{kind}): #{message}"
       end
+
+      def filter_items(items, mode:, kind:, message:, prefix:, error_class: CorruptionDetectedError, warner: nil, on_filter: nil)
+        matches = Array(items).map { |item| [item, yield(item)] }
+        return items unless matches.any? { |_, matched| matched }
+        return items unless handle(
+          mode: mode,
+          kind: kind,
+          message: message,
+          prefix: prefix,
+          error_class: error_class,
+          warner: warner,
+        )
+
+        matches.each_with_object([]) do |(item, matched), filtered|
+          if matched
+            on_filter&.call(item)
+          else
+            filtered << item
+          end
+        end
+      end
     end
   end
 end
