@@ -23,6 +23,7 @@
 # - "Ast::Merge::MergerConfig" - validates merger configuration
 # - "Ast::Merge::Recipe::PresetContract" - validates preset loading and companion-script resolution
 # - "Ast::Merge::RemovalModeCompliance" - validates generic remove_template_missing_nodes behavior
+# - "Ast::Merge::RuntimeDebugContract" - validates runtime-aware merge_with_debug payloads
 # - "a reproducible merge" - validates merge scenarios with fixtures and idempotency
 # - "a reproducible partial merge" - validates partial-merge scenarios with idempotency
 
@@ -43,3 +44,4 @@ require_relative "shared_examples/recipe_preset_contract"
 require_relative "shared_examples/removal_mode_compliance"
 require_relative "shared_examples/reproducible_merge"
 require_relative "shared_examples/reproducible_partial_merge"
+require_relative "shared_examples/runtime_debug_contract"
