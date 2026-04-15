@@ -278,5 +278,116 @@ RSpec.describe Ast::Merge::Runtime do
       expect(session.to_h[:policy_context]).to eq({corruption_handling: :warn})
       expect(session.to_h[:operations].first[:delegate_name]).to eq("markdown-runtime")
     end
+
+    it "builds a consumable session summary" do
+      root_surface = Ast::Merge::Runtime::Surface.new(
+        surface_kind: :markdown_document,
+        effective_language: :markdown,
+        address: "document[0]",
+      )
+      child_surface = Ast::Merge::Runtime::Surface.new(
+        surface_kind: :markdown_fenced_code_block,
+        declared_language: :ruby,
+        effective_language: :ruby,
+        address: "document[0] > fence[lang=ruby,index=0]",
+        parent_address: "document[0]",
+      )
+      root_operation = Ast::Merge::Runtime::Operation.new(
+        operation_id: "root-op",
+        surface: root_surface,
+        template_fragment: "template",
+        destination_fragment: "destination",
+      )
+      child_operation = Ast::Merge::Runtime::Operation.new(
+        operation_id: "child-op",
+        surface: child_surface,
+        template_fragment: "puts :template\n",
+        destination_fragment: "puts :dest\n",
+      )
+      started = Ast::Merge::Runtime::Diagnostic.new(
+        severity: :info,
+        kind: :started,
+        operation_id: "root-op",
+        surface_path: root_surface.address,
+        message: "Started merge",
+      )
+      unsupported = Ast::Merge::Runtime::Diagnostic.new(
+        severity: :warn,
+        kind: :unsupported_capability,
+        operation_id: "child-op",
+        surface_path: child_surface.address,
+        message: "Missing capability",
+      )
+      root_operation.add_diagnostic(started)
+      child_operation.add_diagnostic(unsupported)
+      root_operation.complete!(
+        result: Ast::Merge::Runtime::ChildResult.new(
+          replacement_text: "destination",
+          capabilities_used: [:source_spans],
+        ),
+      )
+      child_operation.complete!(
+        result: Ast::Merge::Runtime::ChildResult.new(
+          replacement_text: "puts :dest\n",
+          capabilities_used: %i[nested_surfaces source_spans],
+          capabilities_missing: [:reintegrate_into_parent],
+        ),
+      )
+      markdown_delegate = Ast::Merge::Runtime::Delegate.new(
+        name: "markdown-runtime",
+        priority: 10,
+        surface_kinds: [:markdown_document],
+        languages: [:markdown],
+        capabilities: {merge: true},
+      )
+      ruby_delegate = Ast::Merge::Runtime::Delegate.new(
+        name: "ruby-runtime",
+        priority: 10,
+        surface_kinds: [:markdown_fenced_code_block],
+        languages: [:ruby],
+        capabilities: {merge: true},
+      )
+      session = described_class.new(
+        delegation_registry: Ast::Merge::Runtime::DelegationRegistry.new(
+          delegates: [markdown_delegate, ruby_delegate],
+        ),
+      )
+
+      session.register(
+        root_operation,
+        frame: Ast::Merge::Runtime::Frame.new(
+          operation_id: "root-op",
+          depth: 0,
+          surface_path: "document[0]",
+          language_chain: %i[markdown],
+        ),
+        delegate: markdown_delegate,
+      )
+      session.register(
+        child_operation,
+        frame: Ast::Merge::Runtime::Frame.new(
+          parent_operation_id: "root-op",
+          operation_id: "child-op",
+          depth: 1,
+          surface_path: "document[0] > fence[lang=ruby,index=0]",
+          language_chain: %i[markdown ruby],
+        ),
+        delegate: ruby_delegate,
+      )
+
+      expect(session.summary).to eq(
+        operation_count: 2,
+        root_operation_count: 1,
+        status_counts: {completed: 2},
+        diagnostic_count: 2,
+        diagnostic_severity_counts: {info: 1, warn: 1},
+        delegate_names: %w[markdown-runtime ruby-runtime],
+        surface_kinds: %i[markdown_document markdown_fenced_code_block],
+        effective_languages: %i[markdown ruby],
+        capabilities_used: %i[nested_surfaces source_spans],
+        capabilities_missing: [:reintegrate_into_parent],
+      )
+      expect(session.to_h[:summary]).to eq(session.summary)
+    end
   end
 end

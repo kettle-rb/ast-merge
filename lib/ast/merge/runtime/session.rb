@@ -49,14 +49,43 @@ module Ast
           delegation_registry.resolve(surface, capability: capability)
         end
 
+        def summary
+          {
+            operation_count: operations.size,
+            root_operation_count: root_operations.size,
+            status_counts: tally_by(operations, &:status),
+            diagnostic_count: diagnostics.size,
+            diagnostic_severity_counts: tally_by(diagnostics, &:severity),
+            delegate_names: normalized_values(operations.map(&:delegate_name)),
+            surface_kinds: normalized_values(operations.filter_map { |operation| operation.surface&.surface_kind }),
+            effective_languages: normalized_values(operations.filter_map { |operation| operation.surface&.effective_language }),
+            capabilities_used: normalized_values(operations.filter_map { |operation| operation.result&.capabilities_used }.flatten),
+            capabilities_missing: normalized_values(operations.filter_map { |operation| operation.result&.capabilities_missing }.flatten),
+          }
+        end
+
         def to_h
           {
             policy_context: policy_context,
             metadata: metadata,
+            summary: summary,
             delegation_registry: delegation_registry.to_h,
             operations: operations.map(&:to_h),
             diagnostics: diagnostics.map(&:to_h),
           }
+        end
+
+        private
+
+        def tally_by(items)
+          items.each_with_object({}) do |item, counts|
+            key = yield(item)
+            counts[key] = counts.fetch(key, 0) + 1
+          end
+        end
+
+        def normalized_values(values)
+          values.compact.uniq.sort_by(&:to_s)
         end
       end
     end
