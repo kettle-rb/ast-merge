@@ -186,6 +186,7 @@ module Ast
     # Namespaces
     autoload :Detector, "ast/merge/detector/base"  # Detector::Region, Detector::Base, Detector::Mergeable, etc.
     autoload :Recipe, "ast/merge/recipe"
+    autoload :Runtime, "ast/merge/runtime"
     autoload :Ruleset, "ast/merge/ruleset"
   end
 end
