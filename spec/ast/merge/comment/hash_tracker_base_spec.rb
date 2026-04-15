@@ -7,9 +7,9 @@ RSpec.describe Ast::Merge::Comment::HashTrackerBase do
 
   let(:tracker_class) do
     Class.new(described_class) do
-      def initialize(source)
+      def initialize(source, tree_haver_comments: nil)
         @source = source
-        super(source.lines.map(&:chomp))
+        super(source.lines.map(&:chomp), tree_haver_comments: tree_haver_comments)
       end
 
       private
@@ -269,6 +269,43 @@ RSpec.describe Ast::Merge::Comment::HashTrackerBase do
     it "returns a Comment::Augmenter" do
       augmenter = tracker.augment
       expect(augmenter).to be_a(Ast::Merge::Comment::Augmenter)
+    end
+  end
+
+  describe "tree_haver comment input" do
+    let(:tree_comment_class) do
+      Struct.new(:text, :start_line, :start_point, :attachment_hint, keyword_init: true)
+    end
+
+    it "preserves trailing spaces from the tracked source line" do
+      source = "# Leading comment  \nkey: value\n"
+      tree_comment = tree_comment_class.new(
+        text: "# Leading comment",
+        start_line: 1,
+        start_point: {column: 0},
+        attachment_hint: :leading,
+      )
+
+      tracker = tracker_class.new(source, tree_haver_comments: [tree_comment])
+
+      expect(tracker.comment_at(1)[:raw]).to eq("# Leading comment  ")
+    end
+
+    it "raises when a tree_haver comment line is outside the tracked source" do
+      source = "# Leading comment\n"
+      tree_comment = tree_comment_class.new(
+        text: "# Leading comment",
+        start_line: 2,
+        start_point: {column: 0},
+        attachment_hint: :leading,
+      )
+
+      expect {
+        tracker_class.new(source, tree_haver_comments: [tree_comment])
+      }.to raise_error(
+        described_class::MissingTrackedLineError,
+        /could not be mapped back to tracker source lines/,
+      )
     end
   end
 

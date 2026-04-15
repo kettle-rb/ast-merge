@@ -255,6 +255,8 @@ module Ast
           if line_end
             content = content.sub(/\s*#{Regexp.escape(line_end)}\s*$/, "")
           end
+          # Content extraction normalizes trailing spaces for comparison/parsing.
+          # Callers that need source-preserving output should use the raw line.
           content.rstrip
         end
 

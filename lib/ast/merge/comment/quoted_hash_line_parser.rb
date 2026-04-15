@@ -75,6 +75,7 @@ module Ast
           return unless node
 
           indent = stringify(node[:indent]).length
+          # Parser text is normalized; the raw source line stays available separately.
           text = stringify(node[:comment_text]).rstrip
           raw = source
 
@@ -101,6 +102,7 @@ module Ast
           Result.new(
             kind: :inline,
             indent: source[/\A\s*/].to_s.length,
+            # Parser text is normalized; the raw inline slice is preserved in :raw.
             text: stringify(node[:comment_text]).rstrip,
             raw: raw,
             column: column,

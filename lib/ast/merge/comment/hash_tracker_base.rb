@@ -30,6 +30,8 @@ module Ast
       #
       # @see Ast::Merge::Comment::TrackedHashAdapter
       class HashTrackerBase
+        class MissingTrackedLineError < Ast::Merge::Error; end
+
         # Matches a full-line hash-style comment.
         #
         # @return [Regexp]
@@ -435,7 +437,7 @@ module Ast
         # @return [Hash]
         def build_entry_from_tree_haver(th_comment)
           line_num = th_comment.start_line
-          raw_line = line_at(line_num) || th_comment.text.rstrip
+          raw_line = required_tree_haver_line(th_comment, line_num)
           indent = th_comment.start_point[:column]
           # Strip the leading `# ` or `#` prefix to get the bare content text.
           # tree_haver's #text includes the delimiter, matching Prism's #slice.
@@ -451,6 +453,15 @@ module Ast
             full_line: full_line,
             raw: raw_line,
           }
+        end
+
+        def required_tree_haver_line(th_comment, line_num)
+          line = line_at(line_num)
+          return line if line
+
+          raise MissingTrackedLineError,
+                "tree_haver comment at line #{line_num} could not be mapped back to tracker source lines. " \
+                "HashTrackerBase requires source lines and tree_haver comments to describe the same input."
         end
 
         # Resolve a structural owner to a 1-based line number.

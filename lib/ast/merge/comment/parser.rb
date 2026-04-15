@@ -132,6 +132,8 @@ module Ast
 
           lines.each_with_index do |line, idx|
             line_number = idx + 1
+            # Parsing treats trailing-space-only differences as non-semantic for
+            # comment/blank classification. Raw blank lines are still preserved.
             stripped = line.to_s.rstrip
 
             if stripped.empty?
@@ -184,6 +186,8 @@ module Ast
 
           lines.each_with_index do |line, idx|
             line_number = idx + 1
+            # Block-comment detection is trailing-space-insensitive; emitted raw text
+            # comes from the original line content, not this classification string.
             stripped = line.to_s.rstrip
 
             if stripped.empty? && !in_block_comment
