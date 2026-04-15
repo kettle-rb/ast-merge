@@ -491,4 +491,79 @@ RSpec.describe Ast::Merge::Runtime do
       expect(session.to_h[:operation_trees]).to eq(session.operation_trees)
     end
   end
+
+  describe Ast::Merge::Runtime::RootSessionSupport do
+    let(:host_class) do
+      Class.new do
+        include Ast::Merge::Runtime::RootSessionSupport
+
+        attr_reader :template_content, :dest_content, :runtime_session
+
+        def initialize(template_content, dest_content)
+          @template_content = template_content
+          @dest_content = dest_content
+        end
+
+        def start!(**options)
+          start_runtime_root_session!(**options)
+        end
+
+        def complete!(**options)
+          complete_runtime_root_session!(**options)
+        end
+
+        def fail!(**options)
+          fail_runtime_root_session!(**options)
+        end
+      end
+    end
+
+    it "builds, completes, and fails a root runtime session" do
+      host = host_class.new("template", "destination")
+      root_operation = host.start!(
+        surface_kind: :yaml_document,
+        declared_language: :yaml,
+        effective_language: :yaml,
+        operation_id: "yaml-root",
+        delegate_name: "psych-yaml",
+        policy_context: {preference: :destination},
+        metadata: {merger: "ExampleMerger"},
+        options: {recursive: true},
+        surface_metadata: {recursive: true},
+        language_chain: [:yaml],
+        delegate_metadata: {merger: "ExampleMerger"},
+      )
+
+      expect(host.runtime_session.summary).to include(
+        operation_count: 1,
+        root_operation_count: 1,
+        delegate_names: ["psych-yaml"],
+      )
+
+      host.complete!(
+        root_operation: root_operation,
+        replacement_text: "key: value\n",
+        metadata: {stats: {total_decisions: 1}},
+      )
+
+      expect(root_operation.status).to eq(:completed)
+      expect(root_operation.result.metadata[:stats]).to eq({total_decisions: 1})
+
+      other_host = host_class.new("template", "destination")
+      failed_operation = other_host.start!(
+        surface_kind: :yaml_document,
+        declared_language: :yaml,
+        effective_language: :yaml,
+        operation_id: "yaml-root",
+        delegate_name: "psych-yaml",
+      )
+      other_host.fail!(root_operation: failed_operation, error: StandardError.new("boom"))
+
+      expect(failed_operation.status).to eq(:failed)
+      expect(failed_operation.diagnostics.last.to_h).to include(
+        kind: :merge_failed,
+        message: "boom",
+      )
+    end
+  end
 end

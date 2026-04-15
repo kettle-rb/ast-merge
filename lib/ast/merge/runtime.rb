@@ -11,6 +11,7 @@ module Ast
       autoload :Diagnostic, "ast/merge/runtime/diagnostic"
       autoload :Frame, "ast/merge/runtime/frame"
       autoload :Operation, "ast/merge/runtime/operation"
+      autoload :RootSessionSupport, "ast/merge/runtime/root_session_support"
       autoload :Session, "ast/merge/runtime/session"
       autoload :Surface, "ast/merge/runtime/surface"
     end
