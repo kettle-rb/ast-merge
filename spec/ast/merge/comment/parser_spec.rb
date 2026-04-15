@@ -94,6 +94,13 @@ RSpec.describe Ast::Merge::Comment::Parser do
       expect(nodes[2]).to be_a(Ast::Merge::Comment::Block)
       expect(nodes[2].children.size).to eq(1)
     end
+
+    it "preserves trailing spaces in parsed line-comment slices" do
+      parser = described_class.new(["# First comment  "])
+      nodes = parser.parse
+
+      expect(nodes.first.children.first.slice).to eq("# First comment  ")
+    end
   end
 
   describe "#parse with non-comment lines" do
@@ -125,6 +132,13 @@ RSpec.describe Ast::Merge::Comment::Parser do
       expect(nodes[0].raw_content).to include("start")
       expect(nodes[0].raw_content).to include("middle")
       expect(nodes[0].raw_content).to include("end */")
+    end
+
+    it "preserves trailing spaces in raw block content" do
+      parser = described_class.new(["/* start  ", "middle  ", "end */  "], style: :c_style_block)
+      nodes = parser.parse
+
+      expect(nodes[0].raw_content).to eq("/* start  \nmiddle  \nend */  ")
     end
   end
 
@@ -230,6 +244,13 @@ RSpec.describe Ast::Merge::Comment::Parser do
 
     it "treats non-comment content as Line in block context" do
       expect(nodes[1]).to be_a(Ast::Merge::Comment::Line)
+    end
+
+    it "preserves trailing spaces on non-comment lines in block-comment mode" do
+      parser = described_class.new(["/* block */", "regular text  ", "/* another */"], style: :c_style_block)
+      nodes = parser.parse
+
+      expect(nodes[1].slice).to eq("regular text  ")
     end
   end
 

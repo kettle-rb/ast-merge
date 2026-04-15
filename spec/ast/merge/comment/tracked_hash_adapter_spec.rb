@@ -30,6 +30,18 @@ RSpec.describe Ast::Merge::Comment::TrackedHashAdapter do
       expect(comment.content).to eq("inline note")
     end
 
+    it "preserves trailing spaces when reconstructing inline comment text from a full source line" do
+      comment = described_class.node({
+        line: 9,
+        indent: 11,
+        text: "inline note",
+        full_line: false,
+        raw: "key: value # inline note  ",
+      })
+
+      expect(comment.text).to eq("           # inline note  ")
+    end
+
     it "accepts symbolized or stringified keys" do
       comment = described_class.node({
         "line" => 2,

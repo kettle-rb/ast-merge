@@ -56,6 +56,20 @@ RSpec.describe Ast::Merge::EmitterBase do
       expect(emitter.lines).to eq(["key: value # inline note"])
     end
 
+    it "preserves trailing spaces in inline comment text when emitting a shared region" do
+      region = Ast::Merge::Comment::TrackedHashAdapter.region(
+        kind: :inline,
+        comments: [
+          {line: 2, indent: 11, text: "inline note", full_line: false, raw: "key: value # inline note  "},
+        ],
+      )
+
+      emitter.emit_raw_lines(["key: value"])
+      emitter.emit_comment_region(region)
+
+      expect(emitter.lines).to eq(["key: value # inline note  "])
+    end
+
     it "lets subclasses normalize region nodes before emission" do
       deduplicating_emitter_class = Class.new(emitter_class) do
         private

@@ -98,7 +98,10 @@ module Ast
 
           def line_text_from(hash, style)
             raw = hash[:raw].to_s
-            return raw unless raw.empty? || inline_raw?(hash, raw, style)
+            unless raw.empty?
+              return extracted_inline_slice(hash, raw, style) if inline_raw?(hash, raw, style)
+              return raw
+            end
 
             indent = hash.fetch(:indent, 0).to_i
             text = hash[:text].to_s
@@ -116,6 +119,17 @@ module Ast
 
             stripped = raw.lstrip
             !stripped.start_with?(style.line_start)
+          end
+
+          def extracted_inline_slice(hash, raw, style)
+            indent = hash.fetch(:indent, 0).to_i
+            comment_index = raw.rindex(style.line_start.to_s)
+            return raw unless comment_index
+
+            inline_slice = raw[comment_index..]
+            return raw unless inline_slice.start_with?(style.line_start.to_s)
+
+            (" " * indent) + inline_slice
           end
         end
       end

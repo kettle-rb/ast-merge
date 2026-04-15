@@ -306,13 +306,15 @@ module Ast
       end
 
       def inline_comment_region_text(region)
-        comment_region_nodes(region).filter_map do |node|
-          if node.respond_to?(:normalized_content)
-            node.normalized_content
-          else
-            node.to_s
-          end
-        end.join(" ").strip
+        texts = comment_region_nodes(region).filter_map { |node| inline_comment_node_text(node) }
+        return "" if texts.empty?
+
+        texts.each_with_index.reduce(+"") do |memo, (text, index)|
+          next text.dup if index.zero?
+
+          memo << " " unless memo.end_with?(" ") || text.start_with?(" ")
+          memo << text
+        end
       end
 
       def inline_comment_region_target_column(region, current_line:)
@@ -331,6 +333,29 @@ module Ast
         else
           emit_comment(node.respond_to?(:normalized_content) ? node.normalized_content : node.to_s)
         end
+      end
+
+      def inline_comment_node_text(node)
+        return unless node
+
+        if node.respond_to?(:slice) && node.respond_to?(:style)
+          slice = node.slice.to_s
+          line_start = node.style.respond_to?(:line_start) ? node.style.line_start.to_s : ""
+
+          unless slice.empty? || line_start.empty?
+            stripped = slice.lstrip
+            if stripped.start_with?(line_start)
+              content = stripped.delete_prefix(line_start)
+              content = content.delete_prefix(" ")
+              if node.style.respond_to?(:line_end) && node.style.line_end
+                content = content.sub(/\s*#{Regexp.escape(node.style.line_end.to_s)}\z/, "")
+              end
+              return content
+            end
+          end
+        end
+
+        node.respond_to?(:normalized_content) ? node.normalized_content : node.to_s
       end
 
       def emit_region_gap_lines(previous_line, current_line, source_lines)
