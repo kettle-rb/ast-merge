@@ -218,6 +218,9 @@ module Ast
           support_style: comment_support_style,
           capabilities: ruleset_capabilities,
           logical_owners: ruleset_logical_owners,
+          repair_policies: ruleset_repair_policies,
+          surfaces: ruleset_surfaces,
+          delegation_policies: ruleset_delegation_policies,
           metadata: {source: :file_analyzable_default},
         )
       end
@@ -258,6 +261,18 @@ module Ast
 
       def ruleset_logical_owners
         {}
+      end
+
+      def ruleset_repair_policies
+        []
+      end
+
+      def ruleset_surfaces
+        []
+      end
+
+      def ruleset_delegation_policies
+        []
       end
 
       # Return the shared comment node at a specific line.

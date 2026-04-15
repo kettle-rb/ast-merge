@@ -163,6 +163,9 @@ RSpec.describe Ast::Merge::FileAnalyzable do
       expect(profile.attachment_strategy).to eq(:layout_only)
       expect(profile.layout_aware?).to be(true)
       expect(profile.logical_owner?).to be(false)
+      expect(profile.repair_policies).to eq([])
+      expect(profile.surfaces).to eq([])
+      expect(profile.delegation_policies).to eq([])
     end
 
     it "dispatches the augmenter-preferred shared attachment strategy" do

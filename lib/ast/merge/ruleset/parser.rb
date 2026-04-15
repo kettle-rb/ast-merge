@@ -7,7 +7,7 @@ module Ast
       class Parser
         REQUIRED_DIRECTIVES = %i[format owners match read attach].freeze
         OPTIONAL_SINGLE_VALUE_DIRECTIVES = %i[comment_style render].freeze
-        MULTI_VALUE_DIRECTIVES = %i[capability logical_owner].freeze
+        MULTI_VALUE_DIRECTIVES = %i[capability logical_owner repair surface delegate].freeze
         KNOWN_DIRECTIVES = (REQUIRED_DIRECTIVES + OPTIONAL_SINGLE_VALUE_DIRECTIVES + MULTI_VALUE_DIRECTIVES).freeze
 
         READ_STRATEGIES = %i[
@@ -30,7 +30,7 @@ module Ast
         IDENTIFIER_RE = /\A[A-Za-z][A-Za-z0-9_.-]*\z/
         TOKEN_RE = /\A[!-~]+\z/
 
-        attr_reader :source, :path, :directives, :capabilities, :logical_owners
+        attr_reader :source, :path, :directives, :capabilities, :logical_owners, :repair_policies, :surfaces, :delegation_policies
 
         class << self
           def parse(source, path: nil)
@@ -44,6 +44,9 @@ module Ast
           @directives = []
           @capabilities = {}
           @logical_owners = {}
+          @repair_policies = {}
+          @surfaces = []
+          @delegation_policies = []
           @parsed_values = {}
         end
 
@@ -57,6 +60,9 @@ module Ast
             directives: directives.dup,
             capabilities: capabilities.dup,
             logical_owners: logical_owners.dup,
+            repair_policies: repair_policies.dup,
+            surfaces: surfaces.map(&:dup),
+            delegation_policies: delegation_policies.map(&:dup),
           }.merge(@parsed_values)
         end
 
@@ -87,6 +93,12 @@ module Ast
             parse_capability!(tokens, line_number)
           when :logical_owner
             parse_logical_owner!(tokens, line_number)
+          when :repair
+            parse_repair_policy!(tokens, line_number)
+          when :surface
+            parse_surface!(tokens, line_number)
+          when :delegate
+            parse_delegate!(tokens, line_number)
           end
 
           directives << {
@@ -137,6 +149,47 @@ module Ast
           raise ArgumentError, "Duplicate logical_owner #{owner_kind} on line #{line_number}" if logical_owners.key?(owner_kind)
 
           logical_owners[owner_kind] = parse_scalar(tokens[1], line_number).to_sym
+        end
+
+        def parse_repair_policy!(tokens, line_number)
+          if tokens.length != 2
+            raise ArgumentError, "Directive repair on line #{line_number} requires exactly 2 arguments"
+          end
+
+          kind = parse_identifier!(tokens[0], line_number, field: :repair).to_sym
+          raise ArgumentError, "Duplicate repair #{kind} on line #{line_number}" if repair_policies.key?(kind)
+
+          repair_policies[kind] = Ast::Merge::Healer.normalize_mode(parse_identifier!(tokens[1], line_number, field: :repair_handling))
+        end
+
+        def parse_surface!(tokens, line_number)
+          if tokens.length != 2
+            raise ArgumentError, "Directive surface on line #{line_number} requires exactly 2 arguments"
+          end
+
+          name = parse_identifier!(tokens[0], line_number, field: :surface).to_sym
+          raise ArgumentError, "Duplicate surface #{name} on line #{line_number}" if surfaces.any? { |surface| surface[:name] == name }
+
+          surfaces << {
+            name: name,
+            selector: parse_identifier!(tokens[1], line_number, field: :surface_selector).to_sym,
+          }
+        end
+
+        def parse_delegate!(tokens, line_number)
+          if tokens.length != 2
+            raise ArgumentError, "Directive delegate on line #{line_number} requires exactly 2 arguments"
+          end
+
+          surface_name = parse_identifier!(tokens[0], line_number, field: :delegate_surface).to_sym
+          if delegation_policies.any? { |policy| policy[:surface_name] == surface_name }
+            raise ArgumentError, "Duplicate delegate #{surface_name} on line #{line_number}"
+          end
+
+          delegation_policies << {
+            surface_name: surface_name,
+            strategy: parse_identifier!(tokens[1], line_number, field: :delegate_strategy).to_sym,
+          }
         end
 
         def validate_required_directives!

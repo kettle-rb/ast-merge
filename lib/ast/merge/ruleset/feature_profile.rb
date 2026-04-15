@@ -16,6 +16,9 @@ module Ast
           :support_style,
           :capabilities,
           :logical_owners,
+          :repair_policies,
+          :surfaces,
+          :delegation_policies,
           :metadata
 
         def initialize(
@@ -29,6 +32,9 @@ module Ast
           support_style: nil,
           capabilities: {},
           logical_owners: {},
+          repair_policies: [],
+          surfaces: [],
+          delegation_policies: [],
           metadata: {}
         )
           @owner_selector = owner_selector&.to_sym
@@ -41,6 +47,9 @@ module Ast
           @support_style = support_style
           @capabilities = capabilities.dup.freeze
           @logical_owners = logical_owners.dup.freeze
+          @repair_policies = normalize_repair_policies(repair_policies)
+          @surfaces = normalize_surfaces(surfaces)
+          @delegation_policies = normalize_delegation_policies(delegation_policies)
           @metadata = metadata.dup.freeze
         end
 
@@ -66,6 +75,18 @@ module Ast
           !layout_aware? && !comment_aware? && !logical_owner?
         end
 
+        def repair_aware?
+          repair_policies.any?
+        end
+
+        def surface_aware?
+          surfaces.any?
+        end
+
+        def delegated_surface_aware?
+          delegation_policies.any?
+        end
+
         def to_h
           {
             owner_selector: owner_selector,
@@ -78,12 +99,38 @@ module Ast
             support_style: support_style&.to_h,
             capabilities: capabilities,
             logical_owners: logical_owners,
+            repair_policies: repair_policies.map(&:to_h),
+            surfaces: surfaces.map(&:to_h),
+            delegation_policies: delegation_policies.map(&:to_h),
             metadata: metadata,
             layout_aware: layout_aware?,
             logical_owner: logical_owner?,
             comment_aware: comment_aware?,
             structural_only: structural_only?,
+            repair_aware: repair_aware?,
+            surface_aware: surface_aware?,
+            delegated_surface_aware: delegated_surface_aware?,
           }.compact
+        end
+
+        private
+
+        def normalize_repair_policies(values)
+          Array(values).map do |value|
+            value.is_a?(RepairPolicy) ? value : RepairPolicy.new(**value)
+          end.freeze
+        end
+
+        def normalize_surfaces(values)
+          Array(values).map do |value|
+            value.is_a?(SurfaceDeclaration) ? value : SurfaceDeclaration.new(**value)
+          end.freeze
+        end
+
+        def normalize_delegation_policies(values)
+          Array(values).map do |value|
+            value.is_a?(DelegationPolicy) ? value : DelegationPolicy.new(**value)
+          end.freeze
         end
       end
     end

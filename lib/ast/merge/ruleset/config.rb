@@ -14,6 +14,9 @@ module Ast
           :render,
           :capabilities,
           :logical_owners,
+          :repair_policies,
+          :surfaces,
+          :delegation_policies,
           :directives,
           :source,
           :path
@@ -42,6 +45,9 @@ module Ast
           render: nil,
           capabilities: {},
           logical_owners: {},
+          repair_policies: {},
+          surfaces: [],
+          delegation_policies: [],
           directives: []
         )
           @source = source.to_s
@@ -55,6 +61,9 @@ module Ast
           @render = render
           @capabilities = capabilities.dup
           @logical_owners = logical_owners.dup
+          @repair_policies = normalize_repair_policies(repair_policies)
+          @surfaces = normalize_surfaces(surfaces)
+          @delegation_policies = normalize_delegation_policies(delegation_policies)
           @directives = directives.dup
         end
 
@@ -69,6 +78,9 @@ module Ast
             render: render,
             capabilities: capabilities.dup,
             logical_owners: logical_owners.dup,
+            repair_policies: repair_policies.map(&:to_h),
+            surfaces: surfaces.map(&:to_h),
+            delegation_policies: delegation_policies.map(&:to_h),
           }.compact
         end
 
@@ -90,6 +102,9 @@ module Ast
               logical_owner: logical_owners.any?,
             ),
             logical_owners: logical_owners,
+            repair_policies: repair_policies,
+            surfaces: surfaces,
+            delegation_policies: delegation_policies,
             metadata: {
               source: source,
               path: path,
@@ -99,6 +114,31 @@ module Ast
 
         def support_style(source:, capability: :full)
           SupportStyleResolver.call(read: read, source: source, capability: capability, style: comment_style)
+        end
+
+        private
+
+        def normalize_repair_policies(values)
+          case values
+          when Hash
+            values.map { |kind, handling| RepairPolicy.new(kind: kind, handling: handling) }.freeze
+          else
+            Array(values).map do |value|
+              value.is_a?(RepairPolicy) ? value : RepairPolicy.new(**value)
+            end.freeze
+          end
+        end
+
+        def normalize_surfaces(values)
+          Array(values).map do |value|
+            value.is_a?(SurfaceDeclaration) ? value : SurfaceDeclaration.new(**value)
+          end.freeze
+        end
+
+        def normalize_delegation_policies(values)
+          Array(values).map do |value|
+            value.is_a?(DelegationPolicy) ? value : DelegationPolicy.new(**value)
+          end.freeze
         end
       end
     end

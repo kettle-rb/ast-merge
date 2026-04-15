@@ -15,6 +15,9 @@ RSpec.describe Ast::Merge::Ruleset::Config do
       capability inline_comments true
       capability quoted_hash_inline_literals false
       logical_owner link_definition preserve_if_referenced
+      repair comment_ownership_overlap warn
+      surface fenced_code_block language_tag
+      delegate fenced_code_block by_language
     RULESET
   end
 
@@ -38,13 +41,22 @@ RSpec.describe Ast::Merge::Ruleset::Config do
       expect(ruleset.logical_owners).to eq(
         link_definition: :preserve_if_referenced,
       )
+      expect(ruleset.repair_policies.map(&:to_h)).to eq(
+        [{kind: :comment_ownership_overlap, handling: :warn, metadata: {}}],
+      )
+      expect(ruleset.surfaces.map(&:to_h)).to eq(
+        [{name: :fenced_code_block, selector: :language_tag, metadata: {}}],
+      )
+      expect(ruleset.delegation_policies.map(&:to_h)).to eq(
+        [{surface_name: :fenced_code_block, strategy: :by_language, metadata: {}}],
+      )
     end
 
     it "tracks parsed directives with line numbers" do
       ruleset = described_class.parse(valid_ruleset)
 
       expect(ruleset.directives.first).to include(name: :format, line_number: 3)
-      expect(ruleset.directives.last).to include(name: :logical_owner)
+      expect(ruleset.directives.last).to include(name: :delegate)
     end
 
     it "rejects missing required directives" do
@@ -182,6 +194,23 @@ RSpec.describe Ast::Merge::Ruleset::Config do
       RULESET
 
       expect(ruleset.read).to eq(:native_read_portable_write)
+    end
+  end
+
+  describe "#feature_profile" do
+    it "carries repair policies, surfaces, and delegation policies into the shared profile" do
+      ruleset = described_class.parse(valid_ruleset)
+      profile = ruleset.feature_profile
+
+      expect(profile.repair_policies.map(&:to_h)).to eq(
+        [{kind: :comment_ownership_overlap, handling: :warn, metadata: {}}],
+      )
+      expect(profile.surfaces.map(&:to_h)).to eq(
+        [{name: :fenced_code_block, selector: :language_tag, metadata: {}}],
+      )
+      expect(profile.delegation_policies.map(&:to_h)).to eq(
+        [{surface_name: :fenced_code_block, strategy: :by_language, metadata: {}}],
+      )
     end
   end
 end
