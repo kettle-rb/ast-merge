@@ -35,6 +35,11 @@ RSpec.describe Ast::Merge::MergerConfig do
       config = described_class.destination_wins(node_typing: typing)
       expect(config.node_typing).to eq(typing)
     end
+
+    it "accepts resolution_mode option" do
+      config = described_class.destination_wins(resolution_mode: :unresolved)
+      expect(config.resolution_mode).to eq(:unresolved)
+    end
   end
 
   describe ".template_wins" do
@@ -63,6 +68,11 @@ RSpec.describe Ast::Merge::MergerConfig do
       typing = {CallNode: ->(node) { node }}
       config = described_class.template_wins(node_typing: typing)
       expect(config.node_typing).to eq(typing)
+    end
+
+    it "accepts resolution_mode option" do
+      config = described_class.template_wins(resolution_mode: :unresolved)
+      expect(config.resolution_mode).to eq(:unresolved)
     end
   end
 
@@ -204,6 +214,15 @@ RSpec.describe Ast::Merge::MergerConfig do
       config = described_class.new(node_typing: typing)
       new_config = config.with(preference: :template)
       expect(new_config.node_typing).to eq(typing)
+    end
+  end
+
+  describe "#resolution_mode" do
+    it "reports eager and unresolved predicates" do
+      config = described_class.new(resolution_mode: :unresolved)
+
+      expect(config.unresolved_resolution?).to be(true)
+      expect(config.eager_resolution?).to be(false)
     end
   end
 end

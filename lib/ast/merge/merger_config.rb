@@ -46,6 +46,7 @@ module Ast
     class MergerConfig
       # Valid values for preference (when using Symbol)
       VALID_PREFERENCES = %i[destination template].freeze
+      VALID_RESOLUTION_MODES = %i[eager unresolved].freeze
 
       # @return [Symbol, Hash] Which version to prefer when nodes have matching signatures.
       #   As Symbol:
@@ -74,6 +75,11 @@ module Ast
       #   and optionally add merge_type attributes for per-node-type preferences.
       attr_reader :node_typing
 
+      # @return [Symbol] How merge differences should be surfaced to callers.
+      attr_reader :resolution_mode
+      # @return [UnresolvedPolicy] Caller-facing policy for reviewable unresolved behavior.
+      attr_reader :unresolved_policy
+
       # Initialize a new MergerConfig.
       #
       # @param preference [Symbol, Hash] Which version to prefer on match.
@@ -92,9 +98,12 @@ module Ast
         add_template_only_nodes: false,
         freeze_token: nil,
         signature_generator: nil,
-        node_typing: nil
+        node_typing: nil,
+        resolution_mode: :eager,
+        unresolved_policy: nil
       )
         validate_preference!(preference)
+        validate_resolution_mode!(resolution_mode)
         NodeTyping.validate!(node_typing) if node_typing
 
         @preference = preference
@@ -102,6 +111,8 @@ module Ast
         @freeze_token = freeze_token
         @signature_generator = signature_generator
         @node_typing = node_typing
+        @resolution_mode = resolution_mode
+        @unresolved_policy = normalize_unresolved_policy(unresolved_policy)
       end
 
       # Check if destination version should be preferred on signature match.
@@ -163,6 +174,22 @@ module Ast
         @preference.is_a?(Hash)
       end
 
+      def eager_resolution?
+        @resolution_mode == :eager
+      end
+
+      def unresolved_resolution?
+        @resolution_mode == :unresolved
+      end
+
+      def unresolved_for?(kind)
+        unresolved_resolution? && unresolved_policy.unresolved_for?(kind)
+      end
+
+      def provisional_unresolved_winner_for(kind, fallback: nil)
+        unresolved_policy.provisional_winner_for(kind, fallback: fallback)
+      end
+
       # Convert config to a hash suitable for passing to SmartMerger.
       #
       # @param default_freeze_token [String, nil] Default freeze token to use if none specified
@@ -172,6 +199,8 @@ module Ast
         result = {
           preference: @preference,
           add_template_only_nodes: @add_template_only_nodes,
+          resolution_mode: @resolution_mode,
+          unresolved_policy: @unresolved_policy.to_h,
         }
         result[:freeze_token] = @freeze_token || default_freeze_token if @freeze_token || default_freeze_token
         result[:signature_generator] = @signature_generator if @signature_generator
@@ -190,6 +219,8 @@ module Ast
           freeze_token: options.fetch(:freeze_token, @freeze_token),
           signature_generator: options.fetch(:signature_generator, @signature_generator),
           node_typing: options.fetch(:node_typing, @node_typing),
+          resolution_mode: options.fetch(:resolution_mode, @resolution_mode),
+          unresolved_policy: options.fetch(:unresolved_policy, @unresolved_policy),
         )
       end
 
@@ -201,13 +232,15 @@ module Ast
         # @param signature_generator [Proc, nil] Optional signature generator
         # @param node_typing [Hash, nil] Optional node typing configuration
         # @return [MergerConfig] Config preset
-        def destination_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
+        def destination_wins(freeze_token: nil, signature_generator: nil, node_typing: nil, resolution_mode: :eager, unresolved_policy: nil)
           new(
             preference: :destination,
             add_template_only_nodes: false,
             freeze_token: freeze_token,
             signature_generator: signature_generator,
             node_typing: node_typing,
+            resolution_mode: resolution_mode,
+            unresolved_policy: unresolved_policy,
           )
         end
 
@@ -218,13 +251,15 @@ module Ast
         # @param signature_generator [Proc, nil] Optional signature generator
         # @param node_typing [Hash, nil] Optional node typing configuration
         # @return [MergerConfig] Config preset
-        def template_wins(freeze_token: nil, signature_generator: nil, node_typing: nil)
+        def template_wins(freeze_token: nil, signature_generator: nil, node_typing: nil, resolution_mode: :eager, unresolved_policy: nil)
           new(
             preference: :template,
             add_template_only_nodes: true,
             freeze_token: freeze_token,
             signature_generator: signature_generator,
             node_typing: node_typing,
+            resolution_mode: resolution_mode,
+            unresolved_policy: unresolved_policy,
           )
         end
       end
@@ -254,6 +289,18 @@ module Ast
                 "got #{value.inspect} for key #{key.inspect}"
           end
         end
+      end
+
+      def validate_resolution_mode!(resolution_mode)
+        return if VALID_RESOLUTION_MODES.include?(resolution_mode)
+
+        raise ArgumentError,
+          "Invalid resolution_mode: #{resolution_mode.inspect}. " \
+            "Must be one of: #{VALID_RESOLUTION_MODES.map(&:inspect).join(", ")}"
+      end
+
+      def normalize_unresolved_policy(unresolved_policy)
+        UnresolvedPolicy.coerce(unresolved_policy)
       end
     end
   end

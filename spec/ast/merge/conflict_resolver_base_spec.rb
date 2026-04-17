@@ -242,6 +242,23 @@ RSpec.describe Ast::Merge::ConflictResolverBase do
       end
     end
 
+    describe "unresolved path helpers" do
+      let(:resolver) do
+        described_class.new(
+          strategy: :batch,
+          preference: :destination,
+          template_analysis: template_analysis,
+          dest_analysis: dest_analysis,
+        )
+      end
+
+      let(:unresolved_helper_host) { resolver }
+      let(:unresolved_case_id_parts) { ["json", :pair_value, "name"] }
+      let(:expected_unresolved_case_id) { "json-pair_value-name-12" }
+
+      it_behaves_like "Ast::Merge::UnresolvedHelperContract"
+    end
+
     describe "#ranges_overlap?" do
       let(:resolver) do
         described_class.new(

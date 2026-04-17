@@ -28,6 +28,9 @@ RSpec.describe Ast::Merge::Ruleset::FeatureProfile do
         comment_style: :hash_comment,
         render_family: :toml_pairs_and_tables,
         capabilities: {layout_aware: true},
+        owner_selector_family: :generic,
+        match_key_family: :structural_signature,
+        attachment_strategy_family: :layout_merge,
         logical_owners: {link_definition: :preserve_if_referenced},
         repair_policies: [{kind: :comment_ownership_overlap, handling: :warn, metadata: {}}],
         surfaces: [{name: :fenced_code_block, selector: :language_tag, metadata: {}}],
@@ -40,6 +43,9 @@ RSpec.describe Ast::Merge::Ruleset::FeatureProfile do
         repair_aware: true,
         surface_aware: true,
         delegated_surface_aware: true,
+        tracked_attachment: true,
+        normalized_attachment: true,
+        augmenter_preferred_attachment: false,
       )
     end
 
@@ -55,7 +61,31 @@ RSpec.describe Ast::Merge::Ruleset::FeatureProfile do
       expect(profile.repair_aware?).to be(false)
       expect(profile.surface_aware?).to be(false)
       expect(profile.delegated_surface_aware?).to be(false)
+      expect(profile.owner_selector_family).to eq(:generic)
+      expect(profile.match_key_family).to eq(:structural_signature)
+      expect(profile.attachment_strategy_family).to be_nil
+      expect(profile.tracked_attachment?).to be(false)
+      expect(profile.normalized_attachment?).to be(false)
+      expect(profile.augmenter_preferred_attachment?).to be(false)
       expect(profile.structural_only?).to be(true)
+    end
+
+    it "surfaces vocabulary metadata for the profile axes" do
+      profile = described_class.new(
+        owner_selector: :assignment_lines_plus_freeze_blocks,
+        match_key: :env_key,
+        attachment_strategy: :augmenter_preferred_tracker_layout,
+      )
+
+      expect(profile.owner_selector_metadata).to include(family: :line_oriented)
+      expect(profile.match_key_metadata).to include(family: :named_key)
+      expect(profile.attachment_strategy_metadata).to include(
+        family: :layout_merge,
+        tracked_comments: true,
+        augmenter_preferred: true,
+        normalized: false,
+      )
+      expect(profile.augmenter_preferred_attachment?).to be(true)
     end
   end
 end

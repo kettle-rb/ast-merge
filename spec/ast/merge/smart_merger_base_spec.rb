@@ -196,6 +196,17 @@ RSpec.describe Ast::Merge::SmartMergerBase do
     end
   end
 
+  describe "unresolved helper surface" do
+    let(:template) { "line one" }
+    let(:dest) { "line two" }
+    let(:merger) { concrete_merger_class.new(template, dest) }
+    let(:unresolved_helper_host) { merger }
+    let(:unresolved_case_id_parts) { ["bash", "variable_assignment", "MY_VAR"] }
+    let(:expected_unresolved_case_id) { "bash-variable_assignment-MY_VAR-12" }
+
+    it_behaves_like "Ast::Merge::UnresolvedHelperContract"
+  end
+
   describe "with regions" do
     let(:yaml_detector) { Ast::Merge::Detector::YamlFrontmatter.new }
 

@@ -29,7 +29,9 @@ module Ast
           template_analysis,
           dest_analysis,
           preference: :destination,
-          add_template_only_nodes: false
+          add_template_only_nodes: false,
+          resolution_mode: :eager,
+          unresolved_policy: nil
         )
           super(
             strategy: :batch,
@@ -38,6 +40,8 @@ module Ast
             dest_analysis: dest_analysis,
             add_template_only_nodes: add_template_only_nodes
           )
+          @resolution_mode = resolution_mode
+          @unresolved_policy = Ast::Merge::UnresolvedPolicy.coerce(unresolved_policy)
         end
 
         protected
@@ -194,6 +198,42 @@ module Ast
             # Identical content
             result.add_line(dest_node.content)
             result.record_decision(DECISION_IDENTICAL, template_node, dest_node)
+          elsif unresolved_mode? && @unresolved_policy.unresolved_for?(:matched_line)
+            provisional_winner = @unresolved_policy.provisional_winner_for(
+              :matched_line,
+              fallback: (@preference == :template ? :template : :destination),
+            )
+            chosen_content = provisional_winner == :template ? template_node.content : dest_node.content
+            result.add_line(chosen_content)
+            result.record_decision(Ast::Merge::MergeResultBase::DECISION_UNRESOLVED, template_node, dest_node)
+            record_unresolved_node_choice(
+              result: result,
+              template_node: template_node,
+              destination_node: dest_node,
+              template_text: template_node.content,
+              destination_text: dest_node.content,
+              provisional_winner: provisional_winner,
+              case_prefix: "text",
+              case_parts: [:matched_line],
+              case_id: "text-line-#{result.line_count}",
+              surface_path: nil,
+              metadata: {
+                match_kind: :matched_line,
+                line: result.line_count,
+                match_key: signature_key_for(dest_node),
+                review_identity: review_identity_for_unresolved_choice(
+                  template_text: template_node.content,
+                  destination_text: dest_node.content,
+                  provisional_winner: provisional_winner,
+                  match_kind: :matched_line,
+                  line: result.line_count,
+                  match_key: signature_key_for(dest_node),
+                ),
+              },
+              conflict_fields: {
+                line: result.line_count,
+              },
+            )
           elsif @preference == :template
             # Template wins - use template content
             result.add_line(template_node.content)

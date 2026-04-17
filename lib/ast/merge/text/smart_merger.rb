@@ -61,6 +61,7 @@ module Ast
         # @param add_template_only_nodes [Boolean] Whether to add template-only lines
         # @param freeze_token [String] Token for freeze block markers
         # @param signature_generator [Proc, nil] Custom signature generator
+        # @param resolution_mode [Symbol] :eager (default) or :unresolved
         # @param regions [Array<Hash>, nil] Region configurations for nested merging
         # @param region_placeholder [String, nil] Custom placeholder for regions
         def initialize(
@@ -70,6 +71,8 @@ module Ast
           add_template_only_nodes: false,
           freeze_token: DEFAULT_FREEZE_TOKEN,
           signature_generator: nil,
+          resolution_mode: :eager,
+          unresolved_policy: nil,
           regions: nil,
           region_placeholder: nil
         )
@@ -80,6 +83,8 @@ module Ast
             preference: preference,
             add_template_only_nodes: add_template_only_nodes,
             freeze_token: freeze_token,
+            resolution_mode: resolution_mode,
+            unresolved_policy: unresolved_policy,
             regions: regions,
             region_placeholder: region_placeholder,
           )
@@ -135,6 +140,8 @@ module Ast
             @dest_analysis,
             preference: @preference,
             add_template_only_nodes: @add_template_only_nodes,
+            resolution_mode: @resolution_mode,
+            unresolved_policy: @unresolved_policy,
           )
         end
       end

@@ -133,6 +133,22 @@ RSpec.describe "FileAnalyzable shared examples" do
     let(:build_file_analysis) do
       ->(source, **opts) { TestFileAnalysis.new(source, **opts) }
     end
+
+    let(:analysis_expected_feature_profile) do
+      {
+        owner_selector: :shared_default,
+        match_key: :signature,
+        read_strategy: nil,
+        attachment_strategy: :layout_only,
+        comment_style: nil,
+        render_family: nil,
+        capabilities: {layout_aware: true, logical_owner: false},
+        logical_owners: {},
+        repair_policies: [],
+        surfaces: [],
+        delegation_policies: [],
+      }
+    end
   end
 end
 # rubocop:enable RSpec/DescribeClass

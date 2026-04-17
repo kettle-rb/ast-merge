@@ -56,6 +56,18 @@ RSpec.describe Ast::Merge::Ruleset::Parser do
       expect(parsed[:read]).to eq(:native_read_portable_write)
     end
 
+    it "normalizes legacy source-augmented read-strategy names" do
+      parsed = described_class.parse(<<~RULESET)
+        format toml
+        owners line_bound_statements
+        match signature
+        read source_augmented_synthetic
+        attach normalize_tracked_layout_merge
+      RULESET
+
+      expect(parsed[:read]).to eq(:source_augmented_portable_write)
+    end
+
     it "rejects missing required directives" do
       expect do
         described_class.parse(<<~RULESET)

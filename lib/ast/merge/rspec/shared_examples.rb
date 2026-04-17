@@ -16,6 +16,7 @@
 # - "Ast::Merge::ConflictResolverBase" - validates conflict resolver base implementation
 # - "Ast::Merge::DebugLogger" - validates debug logging integration
 # - "Ast::Merge::FileAnalyzable" - validates file analysis mixin integration
+# - "Ast::Merge::Ruleset::FeatureProfile" - validates spec-aligned feature-profile exposure
 # - "Ast::Merge::FreezeNodeBase" - validates freeze node base implementation
 # - "Ast::Merge::Layout::Attachment" - validates merge-facing layout attachments
 # - "Ast::Merge::Layout::Augmenter" - validates shared layout gap inference
@@ -24,6 +25,10 @@
 # - "Ast::Merge::Recipe::PresetContract" - validates preset loading and companion-script resolution
 # - "Ast::Merge::RemovalModeCompliance" - validates generic remove_template_missing_nodes behavior
 # - "Ast::Merge::RuntimeDebugContract" - validates runtime-aware merge_with_debug payloads
+# - "Ast::Merge::UnresolvedHelperContract" - validates shared unresolved helper support
+# - "Ast::Merge::UnresolvedReviewStateTransportContract" - validates persisted unresolved review replay and JSON-safe transport
+# - "Ast::Merge::UnresolvedRuntimeDebugContract" - validates unresolved review state in debug payloads
+# - "Ast::Merge::UnresolvedRuntimeContract" - validates reviewable unresolved runtime payloads
 # - "a reproducible merge" - validates merge scenarios with fixtures and idempotency
 # - "a reproducible partial merge" - validates partial-merge scenarios with idempotency
 
@@ -35,6 +40,7 @@ require_relative "shared_examples/comment_region"
 require_relative "shared_examples/conflict_resolver_base"
 require_relative "shared_examples/debug_logger"
 require_relative "shared_examples/file_analyzable"
+require_relative "shared_examples/feature_profile"
 require_relative "shared_examples/freeze_node_base"
 require_relative "shared_examples/layout_attachment"
 require_relative "shared_examples/layout_augmenter"
@@ -45,3 +51,7 @@ require_relative "shared_examples/removal_mode_compliance"
 require_relative "shared_examples/reproducible_merge"
 require_relative "shared_examples/reproducible_partial_merge"
 require_relative "shared_examples/runtime_debug_contract"
+require_relative "shared_examples/unresolved_helper_contract"
+require_relative "shared_examples/unresolved_review_state_transport_contract"
+require_relative "shared_examples/unresolved_runtime_debug_contract"
+require_relative "shared_examples/unresolved_runtime_contract"

@@ -120,6 +120,30 @@ RSpec.describe Ast::Merge::Ruleset::Config do
       }.to raise_error(ArgumentError, /Unknown attach strategy/)
     end
 
+    it "rejects unknown owner selectors" do
+      expect {
+        described_class.parse(<<~RULESET)
+          format toml
+          owners mystery_owner
+          match signature
+          read native_read_portable_write
+          attach normalize_tracked_layout_merge
+        RULESET
+      }.to raise_error(ArgumentError, /Unknown owner selector/)
+    end
+
+    it "rejects unknown match keys" do
+      expect {
+        described_class.parse(<<~RULESET)
+          format toml
+          owners line_bound_statements
+          match mystery_match
+          read native_read_portable_write
+          attach normalize_tracked_layout_merge
+        RULESET
+      }.to raise_error(ArgumentError, /Unknown match key/)
+    end
+
     it "rejects invalid token content" do
       expect {
         described_class.parse(<<~RULESET)

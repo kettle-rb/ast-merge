@@ -44,6 +44,14 @@ RSpec.shared_examples("Ast::Merge::MergerConfig") do
     it "defaults signature_generator to nil" do
       expect(config.signature_generator).to(be_nil)
     end
+
+    it "defaults resolution_mode to :eager" do
+      expect(config.resolution_mode).to(eq(:eager))
+    end
+
+    it "defaults unresolved_policy to a policy object" do
+      expect(config.unresolved_policy).to(be_a(Ast::Merge::UnresolvedPolicy))
+    end
   end
 
   describe "custom configuration" do
@@ -66,6 +74,24 @@ RSpec.shared_examples("Ast::Merge::MergerConfig") do
       generator = ->(node) { [:custom, node] }
       config = build_merger_config.call(signature_generator: generator)
       expect(config.signature_generator).to(eq(generator))
+    end
+
+    it "accepts resolution_mode: :unresolved" do
+      config = build_merger_config.call(resolution_mode: :unresolved)
+      expect(config.resolution_mode).to(eq(:unresolved))
+    end
+
+    it "accepts unresolved_policy as a Hash" do
+      config = build_merger_config.call(unresolved_policy: {
+        enabled_kinds: [:matched_line],
+        provisional_winner: :template,
+      })
+
+      expect(config.unresolved_policy).to(be_a(Ast::Merge::UnresolvedPolicy))
+      expect(config.unresolved_policy.to_h).to(include(
+        enabled_kinds: [:matched_line],
+        provisional_winner: :template,
+      ))
     end
   end
 
@@ -93,6 +119,16 @@ RSpec.shared_examples("Ast::Merge::MergerConfig") do
     it "validates node_typing if provided" do
       expect { build_merger_config.call(node_typing: "not a hash") }
         .to(raise_error(ArgumentError, /must be a Hash/))
+    end
+
+    it "raises ArgumentError for invalid resolution_mode" do
+      expect { build_merger_config.call(resolution_mode: :invalid) }
+        .to(raise_error(ArgumentError, /invalid.*resolution_mode/i))
+    end
+
+    it "raises ArgumentError for invalid unresolved_policy" do
+      expect { build_merger_config.call(unresolved_policy: :invalid) }
+        .to(raise_error(ArgumentError, /unresolved_policy/i))
     end
   end
 
@@ -131,6 +167,20 @@ RSpec.shared_examples("Ast::Merge::MergerConfig") do
       expect(hash).to(be_a(Hash))
       expect(hash[:preference]).to(eq(:template))
       expect(hash[:add_template_only_nodes]).to(eq(true))
+    end
+
+    it "includes resolution_mode" do
+      config = build_merger_config.call(resolution_mode: :unresolved)
+      hash = config.to_h
+
+      expect(hash[:resolution_mode]).to(eq(:unresolved))
+    end
+
+    it "includes unresolved_policy" do
+      config = build_merger_config.call(unresolved_policy: {provisional_winner: :template})
+      hash = config.to_h
+
+      expect(hash[:unresolved_policy]).to(include(provisional_winner: :template))
     end
 
     it "includes freeze_token when set" do
@@ -189,6 +239,20 @@ RSpec.shared_examples("Ast::Merge::MergerConfig") do
       updated = original.with(preference: :template)
 
       expect(updated.node_typing).to(eq(typing))
+    end
+
+    it "preserves resolution_mode" do
+      original = build_merger_config.call(resolution_mode: :unresolved)
+      updated = original.with(preference: :template)
+
+      expect(updated.resolution_mode).to(eq(:unresolved))
+    end
+
+    it "preserves unresolved_policy" do
+      original = build_merger_config.call(unresolved_policy: {provisional_winner: :template})
+      updated = original.with(preference: :template)
+
+      expect(updated.unresolved_policy.to_h).to(include(provisional_winner: :template))
     end
   end
 

@@ -59,6 +59,30 @@ RSpec.describe Ast::Merge::FileAnalyzable do
       expect(support_style.details[:source]).to eq(:fixture_native)
     end
 
+    it "normalizes legacy source-augmented support-style names" do
+      support_style = analysis.shared_comment_support_style(
+        source: :fixture_source,
+        style: :hash_comment,
+        read_strategy: :source_augmented_synthetic,
+        capability: :full,
+      )
+
+      expect(support_style).to be_source_augmented_portable_write
+      expect(support_style).to be_source_augmented_synthetic
+    end
+
+    it "normalizes legacy native-read support-style names" do
+      support_style = analysis.shared_comment_support_style(
+        source: :fixture_native,
+        style: :hash_comment,
+        read_strategy: :native_read_synthetic_write,
+        capability: :full,
+      )
+
+      expect(support_style).to be_native_read_portable_write
+      expect(support_style).to be_native_read_synthetic_write
+    end
+
     it "raises for an unknown shared support-style strategy" do
       expect do
         analysis.shared_comment_support_style(

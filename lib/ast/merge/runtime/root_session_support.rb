@@ -72,18 +72,23 @@ module Ast
           replacement_text:,
           metadata: {},
           capabilities_used: [],
-          capabilities_missing: []
+          capabilities_missing: [],
+          unresolved_cases: []
         )
           return unless @runtime_session && root_operation
 
-          root_operation.complete!(
-            result: ChildResult.new(
-              replacement_text: replacement_text,
-              capabilities_used: capabilities_used,
-              capabilities_missing: capabilities_missing,
-              metadata: metadata,
-            ),
+          child_result = ChildResult.new(
+            replacement_text: replacement_text,
+            capabilities_used: capabilities_used,
+            capabilities_missing: capabilities_missing,
+            unresolved_cases: unresolved_cases,
+            metadata: metadata,
           )
+          if child_result.unresolved?
+            root_operation.unresolved!(result: child_result)
+          else
+            root_operation.complete!(result: child_result)
+          end
         end
 
         def fail_runtime_root_session!(root_operation:, error:, kind: :merge_failed, severity: :error, metadata: {})

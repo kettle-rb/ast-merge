@@ -57,6 +57,30 @@ module Ast
           capabilities.fetch(:layout_aware, false)
         end
 
+        def owner_selector_metadata
+          ProfileVocabulary.owner_selector_metadata(owner_selector)
+        end
+
+        def owner_selector_family
+          owner_selector_metadata&.fetch(:family, nil)
+        end
+
+        def match_key_metadata
+          ProfileVocabulary.match_key_metadata(match_key)
+        end
+
+        def match_key_family
+          match_key_metadata&.fetch(:family, nil)
+        end
+
+        def attachment_strategy_metadata
+          ProfileVocabulary.attachment_strategy_metadata(attachment_strategy)
+        end
+
+        def attachment_strategy_family
+          attachment_strategy_metadata&.fetch(:family, nil)
+        end
+
         def logical_owner?
           capabilities.fetch(:logical_owner, logical_owners.any?)
         end
@@ -87,6 +111,18 @@ module Ast
           delegation_policies.any?
         end
 
+        def tracked_attachment?
+          attachment_strategy_metadata&.fetch(:tracked_comments, false) || false
+        end
+
+        def normalized_attachment?
+          attachment_strategy_metadata&.fetch(:normalized, false) || false
+        end
+
+        def augmenter_preferred_attachment?
+          attachment_strategy_metadata&.fetch(:augmenter_preferred, false) || false
+        end
+
         def to_h
           {
             owner_selector: owner_selector,
@@ -104,12 +140,18 @@ module Ast
             delegation_policies: delegation_policies.map(&:to_h),
             metadata: metadata,
             layout_aware: layout_aware?,
+            owner_selector_family: owner_selector_family,
+            match_key_family: match_key_family,
+            attachment_strategy_family: attachment_strategy_family,
             logical_owner: logical_owner?,
             comment_aware: comment_aware?,
             structural_only: structural_only?,
             repair_aware: repair_aware?,
             surface_aware: surface_aware?,
             delegated_surface_aware: delegated_surface_aware?,
+            tracked_attachment: tracked_attachment?,
+            normalized_attachment: normalized_attachment?,
+            augmenter_preferred_attachment: augmenter_preferred_attachment?,
           }.compact
         end
 

@@ -29,6 +29,10 @@ RSpec.describe Ast::Merge::MergeResultBase do
     it "defines DECISION_APPENDED" do
       expect(described_class::DECISION_APPENDED).to eq(:appended)
     end
+
+    it "defines DECISION_UNRESOLVED" do
+      expect(described_class::DECISION_UNRESOLVED).to eq(:unresolved)
+    end
   end
 
   describe "#initialize" do
@@ -61,6 +65,10 @@ RSpec.describe Ast::Merge::MergeResultBase do
 
       it "has empty stats" do
         expect(result.stats).to eq({})
+      end
+
+      it "has empty unresolved_cases" do
+        expect(result.unresolved_cases).to eq([])
       end
     end
 
@@ -111,6 +119,25 @@ RSpec.describe Ast::Merge::MergeResultBase do
 
       it "stores stats" do
         expect(result.stats).to eq(stats)
+      end
+    end
+
+    context "with unresolved_cases" do
+      subject(:result) { described_class.new(unresolved_cases: unresolved_cases) }
+
+      let(:unresolved_cases) do
+        [
+          Ast::Merge::Runtime::ResolutionCase.new(
+            case_id: "case-1",
+            reason: :conflict,
+            candidates: {template: "a", destination: "b"},
+            provisional_winner: :destination,
+          ),
+        ]
+      end
+
+      it "stores unresolved_cases" do
+        expect(result.unresolved_cases).to eq(unresolved_cases)
       end
     end
   end
@@ -223,6 +250,296 @@ RSpec.describe Ast::Merge::MergeResultBase do
       lines << "line1"
       lines << "line2"
       expect(result.line_count).to eq(2)
+    end
+  end
+
+  describe "#unresolved?" do
+    it "returns false when unresolved_cases is empty" do
+      result = described_class.new
+      expect(result.unresolved?).to be(false)
+      expect(result.review_required?).to be(false)
+    end
+
+    it "returns true when unresolved_cases exist" do
+      result = described_class.new
+      result.add_unresolved_case(
+        Ast::Merge::Runtime::ResolutionCase.new(
+          case_id: "case-1",
+          reason: :conflict,
+          candidates: {template: "a", destination: "b"},
+          provisional_winner: :destination,
+        ),
+      )
+
+      expect(result.unresolved?).to be(true)
+      expect(result.review_required?).to be(true)
+    end
+  end
+
+  describe "#record_unresolved_choice" do
+    it "adds both conflict and resolution case entries" do
+      result = described_class.new
+
+      resolution_case = result.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        surface_path: "document[0]",
+        metadata: {node_type: :pair},
+        conflict_fields: {identifier: "name"},
+      )
+
+      expect(result.conflicts).to eq([
+        {
+          case_id: "case-1",
+          reason: :conflict,
+          template: "template",
+          destination: "destination",
+          provisional_winner: :destination,
+          identifier: "name",
+        },
+      ])
+      expect(result.unresolved_cases).to eq([resolution_case])
+      expect(resolution_case.to_h).to include(
+        case_id: "case-1",
+        surface_path: "document[0]",
+        metadata: {node_type: :pair},
+      )
+    end
+
+    it "skips identical candidate text" do
+      result = described_class.new
+
+      result.record_unresolved_choice(
+        template_text: "same",
+        destination_text: "same",
+        provisional_winner: :destination,
+        case_id: "case-1",
+      )
+
+      expect(result.conflicts).to eq([])
+      expect(result.unresolved_cases).to eq([])
+    end
+  end
+
+  describe "#apply_unresolved_resolutions!" do
+    it "accepts provisional winners and clears unresolved review state" do
+      result = described_class.new
+      result.content = "destination"
+      result.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        metadata: {line: 1},
+      )
+
+      returned = result.apply_unresolved_resolutions!("case-1" => :destination)
+
+      expect(returned).to be(result)
+      expect(result.review_required?).to be(false)
+      expect(result.unresolved_cases).to eq([])
+      expect(result.conflicts).to eq([])
+      expect(result.to_s).to eq("destination\n")
+    end
+
+    it "replaces line-backed provisional content when caller chooses a different candidate" do
+      result = described_class.new
+      result.content = "destination"
+      result.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        metadata: {line: 1},
+      )
+      result.instance_variable_get(:@decisions) << {decision: :unresolved, line: 1}
+
+      result.apply_unresolved_resolutions!("case-1" => :template)
+
+      expect(result.review_required?).to be(false)
+      expect(result.to_s).to eq("template\n")
+      expect(result.decision_summary[:kept_template]).to eq(1)
+    end
+
+    it "raises when caller chooses a non-provisional candidate without line metadata" do
+      result = described_class.new
+      result.content = "destination"
+      result.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+      )
+
+      expect {
+        result.apply_unresolved_resolutions!("case-1" => :template)
+      }.to raise_error(ArgumentError, /without line metadata/)
+
+      expect(result.review_required?).to be(true)
+      expect(result.unresolved_case("case-1")).not_to be_nil
+    end
+  end
+
+  describe "unresolved review state persistence" do
+    it "exports unresolved review state" do
+      result = described_class.new
+      result.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        metadata: {line: 1},
+      )
+
+      state = result.to_unresolved_review_state(
+        selections: {"case-1" => :template},
+        metadata: {document: "example"},
+      )
+
+      expect(state.to_h).to include(
+        schema_version: 1,
+        cases: [result.unresolved_cases.first.to_h],
+        selections: {"case-1" => :template},
+      )
+      expect(state.to_h[:metadata]).to include(document: "example")
+      expect(state.to_h.dig(:metadata, :review_state, :replay_context)).to include(
+        merge_result_class: described_class.name,
+      )
+    end
+
+    it "applies a persisted unresolved review state" do
+      result = described_class.new
+      result.content = "destination"
+      result.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        metadata: {line: 1},
+      )
+
+      state = Ast::Merge::UnresolvedReviewState.new(
+        cases: result.unresolved_cases,
+        selections: {"case-1" => :template},
+      )
+      result.instance_variable_get(:@decisions) << {decision: :unresolved, line: 1}
+
+      result.apply_unresolved_review_state!(state)
+
+      expect(result.review_required?).to be(false)
+      expect(result.to_s).to eq("template\n")
+    end
+
+    it "rejects persisted review state when the selected case is no longer present" do
+      result = described_class.new
+      result.content = "destination"
+      result.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        metadata: {line: 1},
+      )
+
+      state = Ast::Merge::UnresolvedReviewState.new(
+        cases: result.unresolved_cases,
+        selections: {"case-2" => :template},
+      )
+
+      expect {
+        result.apply_unresolved_review_state!(state)
+      }.to raise_error(ArgumentError, /case case-2 is not present/)
+    end
+
+    it "rejects persisted review state when review identity no longer matches" do
+      result = described_class.new
+      result.content = "destination"
+      result.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        metadata: {line: 1, review_identity: "current-identity"},
+      )
+
+      state = Ast::Merge::UnresolvedReviewState.new(
+        cases: [
+          Ast::Merge::Runtime::ResolutionCase.new(
+            case_id: "case-1",
+            reason: :conflict,
+            candidates: {template: "template", destination: "destination"},
+            provisional_winner: :destination,
+            metadata: {line: 1, review_identity: "stale-identity"},
+          ),
+        ],
+        selections: {"case-1" => :template},
+        metadata: {review_state: {selection_identities: {"case-1" => "stale-identity"}}},
+      )
+
+      expect {
+        result.apply_unresolved_review_state!(state)
+      }.to raise_error(ArgumentError, /case case-1 no longer matches the current unresolved surface/)
+    end
+
+    it "exports replay context for detached review-state replay" do
+      analysis_class = Struct.new(:source)
+      result = described_class.new(
+        template_analysis: analysis_class.new("template"),
+        dest_analysis: analysis_class.new("destination"),
+      )
+      result.content = "destination"
+      result.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        metadata: {line: 1, review_identity: "current-identity"},
+      )
+
+      state = result.to_unresolved_review_state(selections: {"case-1" => :template}).to_h
+      replay_context = state.dig(:metadata, :review_state, :replay_context)
+
+      expect(replay_context).to include(
+        merge_result_class: described_class.name,
+        template_input_fingerprint: Digest::SHA256.hexdigest("template"),
+        destination_input_fingerprint: Digest::SHA256.hexdigest("destination"),
+      )
+    end
+
+    it "rejects persisted review state when template input fingerprint drifts" do
+      analysis_class = Struct.new(:source)
+      original = described_class.new(
+        template_analysis: analysis_class.new("template"),
+        dest_analysis: analysis_class.new("destination"),
+      )
+      original.content = "destination"
+      original.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        metadata: {line: 1, review_identity: "current-identity"},
+      )
+      state = original.to_unresolved_review_state(selections: {"case-1" => :template})
+
+      current = described_class.new(
+        template_analysis: analysis_class.new("template changed"),
+        dest_analysis: analysis_class.new("destination"),
+      )
+      current.content = "destination"
+      current.record_unresolved_choice(
+        template_text: "template",
+        destination_text: "destination",
+        provisional_winner: :destination,
+        case_id: "case-1",
+        metadata: {line: 1, review_identity: "current-identity"},
+      )
+
+      expect {
+        current.apply_unresolved_review_state!(state)
+      }.to raise_error(ArgumentError, /template input fingerprint no longer matches/)
     end
   end
 

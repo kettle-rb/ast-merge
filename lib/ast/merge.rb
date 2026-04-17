@@ -160,6 +160,7 @@ module Ast
     autoload :DebugLogger, "ast/merge/debug_logger"
     autoload :DiffMapperBase, "ast/merge/diff_mapper_base"
     autoload :EmitterBase, "ast/merge/emitter_base"
+    autoload :EmitterLineMetadataSupport, "ast/merge/emitter_line_metadata_support"
     autoload :FileAlignerBase, "ast/merge/file_aligner_base"
     autoload :FileAnalyzable, "ast/merge/file_analyzable"
     autoload :Freezable, "ast/merge/freezable"
@@ -179,9 +180,13 @@ module Ast
     autoload :SectionTyping, "ast/merge/section_typing"
     autoload :SmartMergerBase, "ast/merge/smart_merger_base"
     autoload :StructuralEdit, "ast/merge/structural_edit"
+    autoload :StructuredEmitterProvenanceSupport, "ast/merge/structured_emitter_provenance_support"
+    autoload :StructuredReviewApplySupport, "ast/merge/structured_review_apply_support"
     autoload :Text, "ast/merge/text"
     autoload :TokenMatchRefiner, "ast/merge/token_match_refiner"
     autoload :TrailingGroups, "ast/merge/trailing_groups"
+    autoload :UnresolvedPolicy, "ast/merge/unresolved_policy"
+    autoload :UnresolvedReviewState, "ast/merge/unresolved_review_state"
 
     # Namespaces
     autoload :Detector, "ast/merge/detector/base"  # Detector::Region, Detector::Base, Detector::Mergeable, etc.

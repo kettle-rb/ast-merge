@@ -73,6 +73,55 @@ RSpec.describe Ast::Merge::Runtime do
     end
   end
 
+  describe Ast::Merge::Runtime::ResolutionCase do
+    it "captures candidates and provisional winner" do
+      resolution_case = described_class.new(
+        case_id: "case-1",
+        reason: :conflict,
+        candidates: {template: "old", destination: "new"},
+        provisional_winner: :destination,
+        surface_path: "document[0]",
+        operation_id: "op-1",
+      )
+
+      expect(resolution_case.selected_candidate).to eq("new")
+      expect(resolution_case.to_h).to include(
+        case_id: "case-1",
+        reason: :conflict,
+        provisional_winner: :destination,
+        surface_path: "document[0]",
+        operation_id: "op-1",
+      )
+    end
+
+    it "returns an explicitly selected candidate" do
+      resolution_case = described_class.new(
+        case_id: "case-1",
+        reason: :conflict,
+        candidates: {template: "old", destination: "new"},
+        provisional_winner: :destination,
+      )
+
+      expect(resolution_case.candidate_for(:template)).to eq("old")
+    end
+
+    it "loads from a persisted hash" do
+      resolution_case = described_class.from_h(
+        case_id: "case-1",
+        reason: :conflict,
+        candidates: {template: "old", destination: "new"},
+        provisional_winner: :destination,
+        metadata: {line: 1},
+      )
+
+      expect(resolution_case.to_h).to include(
+        case_id: "case-1",
+        provisional_winner: :destination,
+        metadata: {line: 1},
+      )
+    end
+  end
+
   describe Ast::Merge::Runtime::ChildResult do
     it "captures replacement text, boundaries, and capabilities" do
       diagnostic = Ast::Merge::Runtime::Diagnostic.new(
@@ -94,6 +143,23 @@ RSpec.describe Ast::Merge::Runtime do
       expect(result.capabilities_used).to eq(%i[nested_surfaces source_spans])
       expect(result.capabilities_missing).to eq(%i[yard_language_hint])
       expect(result.to_h[:diagnostics].first[:kind]).to eq(:child_completed)
+    end
+
+    it "tracks unresolved cases" do
+      resolution_case = Ast::Merge::Runtime::ResolutionCase.new(
+        case_id: "case-1",
+        reason: :conflict,
+        candidates: {template: "old", destination: "new"},
+        provisional_winner: :destination,
+      )
+
+      result = described_class.new(
+        replacement_text: "new\n",
+        unresolved_cases: [resolution_case],
+      )
+
+      expect(result.unresolved?).to be(true)
+      expect(result.to_h[:unresolved_cases]).to eq([resolution_case.to_h])
     end
   end
 
@@ -150,6 +216,31 @@ RSpec.describe Ast::Merge::Runtime do
 
       expect(operation.delegate_name).to eq("ruby-docs")
       expect(operation.delegate_assigned?).to be(true)
+    end
+
+    it "tracks unresolved completion state" do
+      operation = described_class.new(
+        operation_id: "op-1",
+        surface: surface,
+        template_fragment: "# docs\n",
+        destination_fragment: "# docs\n",
+      )
+      resolution_case = Ast::Merge::Runtime::ResolutionCase.new(
+        case_id: "case-1",
+        reason: :conflict,
+        candidates: {template: "old", destination: "new"},
+        provisional_winner: :destination,
+      )
+
+      operation.unresolved!(
+        result: Ast::Merge::Runtime::ChildResult.new(
+          replacement_text: "# docs\n",
+          unresolved_cases: [resolution_case],
+        ),
+      )
+
+      expect(operation.unresolved?).to be(true)
+      expect(operation.status).to eq(:unresolved)
     end
   end
 
@@ -386,8 +477,52 @@ RSpec.describe Ast::Merge::Runtime do
         effective_languages: %i[markdown ruby],
         capabilities_used: %i[nested_surfaces source_spans],
         capabilities_missing: [:reintegrate_into_parent],
+        unresolved_operation_count: 0,
+        unresolved_case_count: 0,
       )
       expect(session.to_h[:summary]).to eq(session.summary)
+    end
+
+    it "counts unresolved operations and cases in summary" do
+      surface = Ast::Merge::Runtime::Surface.new(
+        surface_kind: :document,
+        effective_language: :markdown,
+        address: "document[0]",
+      )
+      resolution_case = Ast::Merge::Runtime::ResolutionCase.new(
+        case_id: "case-1",
+        reason: :conflict,
+        candidates: {template: "old", destination: "new"},
+        provisional_winner: :destination,
+      )
+      operation = Ast::Merge::Runtime::Operation.new(
+        operation_id: "root-op",
+        surface: surface,
+        template_fragment: "old",
+        destination_fragment: "new",
+      )
+      operation.unresolved!(
+        result: Ast::Merge::Runtime::ChildResult.new(
+          replacement_text: "new",
+          unresolved_cases: [resolution_case],
+        ),
+      )
+      session = described_class.new
+      session.register(
+        operation,
+        frame: Ast::Merge::Runtime::Frame.new(
+          operation_id: "root-op",
+          depth: 0,
+          surface_path: "document[0]",
+          language_chain: %i[markdown],
+        ),
+      )
+
+      expect(session.summary).to include(
+        status_counts: {unresolved: 1},
+        unresolved_operation_count: 1,
+        unresolved_case_count: 1,
+      )
     end
 
     it "projects nested operation trees with frame metadata" do
@@ -564,6 +699,32 @@ RSpec.describe Ast::Merge::Runtime do
         kind: :merge_failed,
         message: "boom",
       )
+    end
+
+    it "marks the root operation unresolved when completion returns review cases" do
+      host = host_class.new("template", "destination")
+      root_operation = host.start!(
+        surface_kind: :yaml_document,
+        declared_language: :yaml,
+        effective_language: :yaml,
+        operation_id: "yaml-root",
+        delegate_name: "psych-yaml",
+      )
+      resolution_case = Ast::Merge::Runtime::ResolutionCase.new(
+        case_id: "case-1",
+        reason: :conflict,
+        candidates: {template: "template", destination: "destination"},
+        provisional_winner: :destination,
+      )
+
+      host.complete!(
+        root_operation: root_operation,
+        replacement_text: "destination\n",
+        unresolved_cases: [resolution_case],
+      )
+
+      expect(root_operation.status).to eq(:unresolved)
+      expect(root_operation.result.unresolved_cases).to eq([resolution_case])
     end
   end
 end

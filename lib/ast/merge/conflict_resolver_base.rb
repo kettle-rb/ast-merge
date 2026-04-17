@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "unresolved_support"
+
 module Ast
   module Merge
     # Base class for conflict resolvers across all *-merge gems.
@@ -65,6 +67,8 @@ module Ast
     #
     # @abstract Subclass and implement resolve_node_pair, resolve_batch, or resolve_boundary
     class ConflictResolverBase
+      include UnresolvedSupport
+
       # Decision constants - shared across all conflict resolvers
 
       # Use destination version (customization preserved)

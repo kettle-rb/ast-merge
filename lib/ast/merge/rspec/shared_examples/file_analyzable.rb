@@ -21,6 +21,21 @@
 #       end
 #       # Factory to create file analysis instance
 #       let(:build_file_analysis) { ->(source, **opts) { file_analysis_class.new(source, **opts) } }
+#       let(:analysis_expected_feature_profile) do
+#         {
+#           owner_selector: :shared_default,
+#           match_key: :signature,
+#           read_strategy: nil,
+#           attachment_strategy: :layout_only,
+#           comment_style: nil,
+#           render_family: nil,
+#           capabilities: {layout_aware: true, logical_owner: false},
+#           logical_owners: {},
+#           repair_policies: [],
+#           surfaces: [],
+#           delegation_policies: [],
+#         }
+#       end
 #     end
 #   end
 #
@@ -33,6 +48,7 @@ RSpec.shared_examples("Ast::Merge::FileAnalyzable") do
   # - sample_source: A valid source string for this parser
   # - sample_source_with_freeze: Source containing a freeze block
   # - build_file_analysis: Lambda that creates a file analysis instance
+  # - analysis_expected_feature_profile: Expected ruleset-shaped profile hash
 
   describe "module inclusion" do
     it "includes Ast::Merge::FileAnalyzable" do
@@ -178,19 +194,14 @@ RSpec.shared_examples("Ast::Merge::FileAnalyzable") do
 
   describe "#feature_profile" do
     let(:analysis) { build_file_analysis.call(sample_source) }
+    let(:feature_profile) { analysis.feature_profile }
+    let(:expected_feature_profile) { analysis_expected_feature_profile }
 
     it "responds to the method" do
       expect(analysis).to(respond_to(:feature_profile))
     end
 
-    it "returns a spec-aligned feature profile" do
-      profile = analysis.feature_profile
-
-      expect(profile).to(be_a(Ast::Merge::Ruleset::FeatureProfile))
-      expect(profile.owner_selector).to(eq(analysis.ruleset_owner_selector))
-      expect(profile.match_key).to(eq(analysis.ruleset_match_key))
-      expect(profile.attachment_strategy).to(eq(analysis.ruleset_attachment_strategy))
-    end
+    it_behaves_like "Ast::Merge::Ruleset::FeatureProfile"
   end
 
   describe "#generate_signature" do

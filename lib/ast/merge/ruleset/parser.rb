@@ -20,13 +20,6 @@ module Ast
           native_read_synthetic_write: :native_read_portable_write,
         }.freeze
 
-        ATTACHMENT_STRATEGIES = %i[
-          layout_only
-          tracker_layout_merge
-          augmenter_preferred_tracker_layout
-          normalize_tracked_layout_merge
-        ].freeze
-
         IDENTIFIER_RE = /\A[A-Za-z][A-Za-z0-9_.-]*\z/
         TOKEN_RE = /\A[!-~]+\z/
 
@@ -121,8 +114,16 @@ module Ast
           when :read
             value = parse_strategy!(value, READ_STRATEGIES, directive, line_number, aliases: LEGACY_READ_STRATEGIES)
           when :attach
-            value = parse_strategy!(value, ATTACHMENT_STRATEGIES, directive, line_number)
+            value = parse_strategy!(
+              value,
+              ProfileVocabulary::ATTACHMENT_STRATEGIES.keys,
+              directive,
+              line_number,
+            )
           end
+
+          value = validate_owner_selector!(value, line_number) if directive == :owners
+          value = validate_match_key!(value, line_number) if directive == :match
 
           raise ArgumentError, "Duplicate directive #{directive} on line #{line_number}" if @parsed_values.key?(directive)
 
@@ -224,6 +225,20 @@ module Ast
           return strategy if allowed_values.include?(strategy)
 
           raise ArgumentError, "Unknown #{directive} strategy #{value.inspect} on line #{line_number}"
+        end
+
+        def validate_owner_selector!(value, line_number)
+          owner_selector = value.to_sym
+          return owner_selector if ProfileVocabulary.known_owner_selector?(owner_selector)
+
+          raise ArgumentError, "Unknown owner selector #{value.inspect} on line #{line_number}"
+        end
+
+        def validate_match_key!(value, line_number)
+          match_key = value.to_sym
+          return match_key if ProfileVocabulary.known_match_key?(match_key)
+
+          raise ArgumentError, "Unknown match key #{value.inspect} on line #{line_number}"
         end
 
         def parse_scalar(token, line_number)

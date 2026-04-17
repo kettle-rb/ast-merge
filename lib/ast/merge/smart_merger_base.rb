@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "unresolved_support"
+
 module Ast
   module Merge
     # Abstract base class for SmartMerger implementations across all *-merge gems.
@@ -106,6 +108,7 @@ module Ast
     # @api public
     class SmartMergerBase
       include Detector::Mergeable
+      include UnresolvedSupport
 
       # @return [String] Template source content
       attr_reader :template_content
@@ -145,6 +148,11 @@ module Ast
 
       # @return [Hash{Symbol,String => #call}, nil] Node typing configuration
       attr_reader :node_typing
+
+      # @return [Symbol] How matching differences should be surfaced
+      attr_reader :resolution_mode
+      # @return [Ast::Merge::UnresolvedPolicy] Caller-facing unresolved review policy.
+      attr_reader :unresolved_policy
 
       # Creates a new SmartMerger for intelligent file merging.
       #
@@ -214,6 +222,8 @@ module Ast
         regions: nil,
         region_placeholder: nil,
         node_typing: nil,
+        resolution_mode: :eager,
+        unresolved_policy: nil,
         template_path: nil,
         dest_path: nil,
         **format_options
@@ -226,12 +236,15 @@ module Ast
         @freeze_token = freeze_token || default_freeze_token
         @match_refiner = match_refiner
         @node_typing = node_typing
+        @resolution_mode = resolution_mode
+        @unresolved_policy = Ast::Merge::UnresolvedPolicy.coerce(unresolved_policy)
         @template_path = template_path
         @dest_path = dest_path
         @format_options = format_options
 
         # Validate node_typing if provided
         NodeTyping.validate!(node_typing) if node_typing
+        validate_resolution_mode!(resolution_mode)
 
         # Set up region support
         setup_regions(regions: regions || [], region_placeholder: region_placeholder)
@@ -388,6 +401,14 @@ module Ast
       end
 
       private
+
+      def validate_resolution_mode!(resolution_mode)
+        return if MergerConfig::VALID_RESOLUTION_MODES.include?(resolution_mode)
+
+        raise ArgumentError,
+          "Invalid resolution_mode: #{resolution_mode.inspect}. " \
+            "Must be one of: #{MergerConfig::VALID_RESOLUTION_MODES.map(&:inspect).join(", ")}"
+      end
 
       # Parse and analyze content, raising appropriate errors.
       #

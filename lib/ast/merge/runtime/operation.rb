@@ -68,6 +68,13 @@ module Ast
           self
         end
 
+        def unresolved!(result:, diagnostic: nil)
+          @result = result
+          add_diagnostic(diagnostic) if diagnostic
+          @status = :unresolved
+          self
+        end
+
         def fail!(diagnostic: nil)
           add_diagnostic(diagnostic) if diagnostic
           @status = :failed
@@ -80,6 +87,10 @@ module Ast
 
         def failed?
           status == :failed
+        end
+
+        def unresolved?
+          status == :unresolved
         end
 
         def delegate_assigned?

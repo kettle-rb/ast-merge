@@ -75,6 +75,8 @@ module Ast
             effective_languages: normalized_values(operations.filter_map { |operation| operation.surface&.effective_language }),
             capabilities_used: normalized_values(operations.filter_map { |operation| operation.result&.capabilities_used }.flatten),
             capabilities_missing: normalized_values(operations.filter_map { |operation| operation.result&.capabilities_missing }.flatten),
+            unresolved_operation_count: operations.count(&:unresolved?),
+            unresolved_case_count: operations.sum { |operation| operation.result&.unresolved_cases&.length.to_i },
           }
         end
 
