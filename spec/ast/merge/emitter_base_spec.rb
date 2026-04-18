@@ -308,5 +308,4 @@ RSpec.describe Ast::Merge::EmitterBase do
       expect(emitter.lines).to eq(["", "", "", ""])
     end
   end
-
 end

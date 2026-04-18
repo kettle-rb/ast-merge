@@ -39,7 +39,7 @@ module Ast
 
       def provisional_winner_for(kind, fallback: nil)
         normalize_provisional_winner(
-          provisional_winner_by_kind.fetch(kind.to_sym, provisional_winner || fallback)
+          provisional_winner_by_kind.fetch(kind.to_sym, provisional_winner || fallback),
         )
       end
 

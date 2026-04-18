@@ -460,8 +460,8 @@ module Ast
           return line if line
 
           raise MissingTrackedLineError,
-                "tree_haver comment at line #{line_num} could not be mapped back to tracker source lines. " \
-                "HashTrackerBase requires source lines and tree_haver comments to describe the same input."
+            "tree_haver comment at line #{line_num} could not be mapped back to tracker source lines. " \
+              "HashTrackerBase requires source lines and tree_haver comments to describe the same input."
         end
 
         # Resolve a structural owner to a 1-based line number.

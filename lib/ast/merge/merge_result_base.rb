@@ -134,7 +134,6 @@ module Ast
         content
       end
 
-
       # Check if content has been built (has any lines).
       #
       # @return [Boolean]
@@ -158,7 +157,7 @@ module Ast
         @unresolved_cases.any?
       end
 
-      alias review_required? unresolved?
+      alias_method :review_required?, :unresolved?
 
       def add_unresolved_case(resolution_case)
         @unresolved_cases << resolution_case
@@ -381,7 +380,7 @@ module Ast
           persisted_context: persisted_context,
           current_context: current_context,
           key: :merge_result_class,
-          mismatch_message: "cannot apply review state exported from #{persisted_context[:merge_result_class] || persisted_context['merge_result_class']} to #{self.class.name}",
+          mismatch_message: "cannot apply review state exported from #{persisted_context[:merge_result_class] || persisted_context["merge_result_class"]} to #{self.class.name}",
         )
         compare_review_state_replay_context!(
           persisted_context: persisted_context,

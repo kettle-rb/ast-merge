@@ -27,12 +27,12 @@ module Ast
         compact_line_metadata(
           source: data[:source],
           original_line: if data.key?(:line_numbers)
-            Array(data[:line_numbers])[index]
-          elsif data.key?(:original_line_start)
-            data[:original_line_start].to_i + index
-          else
-            data[:original_line]
-          end,
+                           Array(data[:line_numbers])[index]
+                         elsif data.key?(:original_line_start)
+                           data[:original_line_start].to_i + index
+                         else
+                           data[:original_line]
+                         end,
         )
       end
 

@@ -201,9 +201,9 @@ module Ast
           elsif unresolved_mode? && @unresolved_policy.unresolved_for?(:matched_line)
             provisional_winner = @unresolved_policy.provisional_winner_for(
               :matched_line,
-              fallback: (@preference == :template ? :template : :destination),
+              fallback: ((@preference == :template) ? :template : :destination),
             )
-            chosen_content = provisional_winner == :template ? template_node.content : dest_node.content
+            chosen_content = (provisional_winner == :template) ? template_node.content : dest_node.content
             result.add_line(chosen_content)
             result.record_decision(Ast::Merge::MergeResultBase::DECISION_UNRESOLVED, template_node, dest_node)
             record_unresolved_node_choice(

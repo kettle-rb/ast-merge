@@ -640,5 +640,4 @@ RSpec.describe Ast::Merge::MergeResultBase do
       expect(result.decisions.length).to eq(1)
     end
   end
-
 end

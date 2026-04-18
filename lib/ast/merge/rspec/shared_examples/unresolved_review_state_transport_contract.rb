@@ -11,7 +11,7 @@ require "json"
 #   end
 #   let(:expected_replayed_output_fragment) { 'name = "template"' }
 #   it_behaves_like "Ast::Merge::UnresolvedReviewStateTransportContract"
-RSpec.shared_examples "Ast::Merge::UnresolvedReviewStateTransportContract" do
+RSpec.shared_examples("Ast::Merge::UnresolvedReviewStateTransportContract") do
   let(:persisted_review_state_result) { unresolved_runtime_merger.merge_result }
   let(:persisted_review_state_case) { persisted_review_state_result.unresolved_cases.fetch(0) }
   let(:persisted_review_state_selection) { :template }
@@ -25,8 +25,8 @@ RSpec.shared_examples "Ast::Merge::UnresolvedReviewStateTransportContract" do
   it "emits stable review identity metadata for persisted unresolved review state" do
     persisted_review_identity = selection_identities_for(review_state_hash).fetch(persisted_review_state_case.case_id)
 
-    expect(persisted_review_identity).to be_a(String)
-    expect(persisted_review_identity).not_to be_empty
+    expect(persisted_review_identity).to(be_a(String))
+    expect(persisted_review_identity).not_to(be_empty)
   end
 
   it "rejects persisted review state when review identity drifts" do
@@ -35,23 +35,23 @@ RSpec.shared_examples "Ast::Merge::UnresolvedReviewStateTransportContract" do
 
     expect {
       build_fresh_unresolved_merge_result!.apply_unresolved_review_state!(stale_review_state)
-    }.to raise_error(ArgumentError, /no longer matches the current unresolved surface/)
+    }.to(raise_error(ArgumentError, /no longer matches the current unresolved surface/))
   end
 
   it "round-trips persisted review state against a fresh merge result" do
     fresh_result = build_fresh_unresolved_merge_result!
     fresh_result.apply_unresolved_review_state!(review_state_hash)
 
-    expect(fresh_result.review_required?).to be(false)
-    expect(fresh_result.to_s).to include(expected_replayed_output_fragment!)
+    expect(fresh_result.review_required?).to(be(false))
+    expect(fresh_result.to_s).to(include(expected_replayed_output_fragment!))
   end
 
   it "replays persisted review state after JSON serialization" do
     fresh_result = build_fresh_unresolved_merge_result!
     fresh_result.apply_unresolved_review_state!(transported_review_state_hash)
 
-    expect(fresh_result.review_required?).to be(false)
-    expect(fresh_result.to_s).to include(expected_replayed_output_fragment!)
+    expect(fresh_result.review_required?).to(be(false))
+    expect(fresh_result.to_s).to(include(expected_replayed_output_fragment!))
   end
 
   def selection_identities_for(payload)

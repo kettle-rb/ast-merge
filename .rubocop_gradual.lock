@@ -1,0 +1,24 @@
+{
+  "lib/ast/merge/runtime/delegate.rb:3841073719": [
+    [46, 45, 38, "Style/ArrayIntersect: Use `!surface_languages.intersect?(languages)` instead of `(surface_languages & languages).empty?`.", 2274736556]
+  ],
+  "lib/ast/merge/runtime/resolution_case.rb:2802799398": [
+    [8, 9, 708, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3146313210]
+  ],
+  "lib/ast/merge/unresolved_policy.rb:3549992640": [
+    [11, 7, 277, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 4108246229]
+  ],
+  "lib/ast/merge/unresolved_review_state.rb:3318139497": [
+    [11, 7, 257, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 325972227],
+    [21, 7, 423, "Style/ClassMethodsDefinitions: Use `class << self` to define a class method.", 3316323678]
+  ],
+  "spec/ast/merge/rspec/shared_examples/feature_profile_spec.rb:4219351820": [
+    [5, 16, 32, "RSpec/DescribeClass: The first argument to describe should be the class or module being tested.", 2973506344]
+  ],
+  "spec/ast/merge/ruleset/declaration_objects_spec.rb:2500619647": [
+    [3, 16, 41, "RSpec/DescribeClass: The first argument to describe should be the class or module being tested.", 2449925393]
+  ],
+  "spec/ast/merge/runtime_spec.rb:1137461086": [
+    [182, 15, 30, "RSpec/DescribedClass: Use `described_class` instead of `Ast::Merge::Runtime::Operation`.", 650139858]
+  ]
+}

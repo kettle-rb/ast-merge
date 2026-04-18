@@ -224,7 +224,6 @@ module Ast
         content
       end
 
-
       # Clear the emitter state
       def clear
         @lines = []

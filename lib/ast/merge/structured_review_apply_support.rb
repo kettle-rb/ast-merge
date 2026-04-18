@@ -57,7 +57,7 @@ module Ast
 
       def source_line_span_for(resolution_case, selection)
         span = Array(
-          selection.to_sym == :template ?
+          (selection.to_sym == :template) ?
             resolution_case.metadata[:template_lines] :
             resolution_case.metadata[:destination_lines],
         )
@@ -67,7 +67,7 @@ module Ast
       end
 
       def source_for_selection(selection)
-        selection.to_sym == :template ? :template : :destination
+        (selection.to_sym == :template) ? :template : :destination
       end
 
       def decision_for_selection(selection)
